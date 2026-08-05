@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,20 +31,43 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:' . User::class,
+            ],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults(),
+            ],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+
+            // Business Rules Tokobii
+            'role' => 'customer',
+            'status' => 'active',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->isOwner()) {
+            return redirect()->route('owner.dashboard');
+        }
+
+        return redirect()->route('customer.dashboard');
     }
 }
