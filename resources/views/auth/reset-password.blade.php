@@ -1,39 +1,146 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
+@extends('layouts.guest.auth')
 
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
+@section('title', 'Reset Password')
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+@section('subtitle', 'Buat password baru untuk akun Tokobii Anda.')
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+@section('content')
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+<form method="POST"
+      action="{{ route('password.store') }}">
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
+    @csrf
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+    {{-- Password Reset Token --}}
+    <input
+        type="hidden"
+        name="token"
+        value="{{ $request->route('token') }}">
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+    {{-- Email --}}
+    <div class="mb-3">
+
+        <label
+            for="email"
+            class="form-label fw-semibold">
+
+            Email
+
+        </label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ old('email', $request->email) }}"
+            class="form-control @error('email') is-invalid @enderror"
+            placeholder="Masukkan email"
+            autocomplete="username"
+            required
+            autofocus>
+
+        @error('email')
+
+            <div class="invalid-feedback">
+
+                {{ $message }}
+
+            </div>
+
+        @enderror
+
+    </div>
+
+    {{-- Password Baru --}}
+    <div class="mb-3">
+
+        <label
+            for="password"
+            class="form-label fw-semibold">
+
+            Password Baru
+
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control @error('password') is-invalid @enderror"
+            placeholder="Masukkan password baru"
+            autocomplete="new-password"
+            required>
+
+        @error('password')
+
+            <div class="invalid-feedback">
+
+                {{ $message }}
+
+            </div>
+
+        @enderror
+
+    </div>
+
+    {{-- Konfirmasi Password --}}
+    <div class="mb-4">
+
+        <label
+            for="password_confirmation"
+            class="form-label fw-semibold">
+
+            Konfirmasi Password
+
+        </label>
+
+        <input
+            type="password"
+            id="password_confirmation"
+            name="password_confirmation"
+            class="form-control @error('password_confirmation') is-invalid @enderror"
+            placeholder="Masukkan ulang password baru"
+            autocomplete="new-password"
+            required>
+
+        @error('password_confirmation')
+
+            <div class="invalid-feedback">
+
+                {{ $message }}
+
+            </div>
+
+        @enderror
+
+    </div>
+
+    {{-- Tombol Reset --}}
+    <div class="d-grid mb-3">
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+
+            Reset Password
+
+        </button>
+
+    </div>
+
+    {{-- Kembali Login --}}
+    <div class="text-center">
+
+        <a
+            href="{{ route('login') }}"
+            class="text-decoration-none">
+
+            ← Kembali ke Login
+
+        </a>
+
+    </div>
+
+</form>
+
+@endsection

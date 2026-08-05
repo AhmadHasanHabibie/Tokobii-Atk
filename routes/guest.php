@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Guest\GuestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -7,14 +8,65 @@ use Illuminate\Support\Facades\Route;
 | Guest Routes
 |--------------------------------------------------------------------------
 |
-| Route yang dapat diakses tanpa login.
+| Public routes that can be accessed without authentication.
 |
 */
 
-Route::middleware('guest')->group(function () {
+Route::controller(GuestController::class)
+    ->group(function () {
 
-    Route::get('/', function () {
-        return view('welcome');
-    })->name('home');
+        /*
+        |--------------------------------------------------------------------------
+        | Home
+        |--------------------------------------------------------------------------
+        */
 
-});
+        Route::get('/', 'home')
+            ->name('home');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Shop
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/shop', 'shop')
+            ->name('shop');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Product Detail
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/product/{slug}', 'product')
+            ->name('product.show');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Category
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/category/{slug}', 'category')
+            ->name('category.show');
+
+        /*
+        |--------------------------------------------------------------------------
+        | About
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/about', 'about')
+            ->name('about');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Contact
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/contact', 'contact')
+            ->name('contact');
+
+    });
