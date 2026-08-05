@@ -32,24 +32,22 @@
 
         </div>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+        <a href="{{ route('customer.shop.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('customer.shop.*') ? 'active' : 'bg-dark text-white' }}">
 
-            🛍️ Products
-
-        </a>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
-
-            🛒 My Cart
+            🛍️ Products / Shop
 
         </a>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+        <a href="{{ route('customer.cart.index') }}"
+           class="list-group-item list-group-item-action border-0 d-flex justify-content-between align-items-center
+           {{ request()->routeIs('customer.cart.*') ? 'active' : 'bg-dark text-white' }}">
 
-            ❤️ Wishlist
+            <span>🛒 My Cart</span>
+            @if(session('cart') && count(session('cart')) > 0)
+                <span class="badge bg-primary rounded-pill">{{ count(session('cart')) }}</span>
+            @endif
 
         </a>
 
@@ -60,17 +58,11 @@
 
         </div>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+        <a href="{{ route('customer.orders.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('customer.orders.*') ? 'active' : 'bg-dark text-white' }}">
 
             📦 My Orders
-
-        </a>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
-
-            🚚 Order Tracking
 
         </a>
 

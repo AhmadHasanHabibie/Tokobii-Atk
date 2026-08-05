@@ -16,7 +16,7 @@
     {{-- Sidebar Menu --}}
     <div class="list-group list-group-flush">
 
-        {{-- Dashboard --}}
+        {{-- ================= Dashboard ================= --}}
         <a href="{{ route('admin.dashboard') }}"
            class="list-group-item list-group-item-action border-0
            {{ request()->routeIs('admin.dashboard') ? 'active' : 'bg-dark text-white' }}">
@@ -25,56 +25,67 @@
 
         </a>
 
-        {{-- Master --}}
+        {{-- ================= Master Data ================= --}}
         <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
 
             Master Data
 
         </div>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+        <a href="{{ route('admin.categories.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.categories.*') ? 'active' : 'bg-dark text-white' }}">
 
-            📂 Category
-
-        </a>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
-
-            📦 Product
+            📂 Categories
 
         </a>
 
-        {{-- Transaction --}}
-        <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
+        <a href="{{ route('admin.products.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.products.*') ? 'active' : 'bg-dark text-white' }}">
 
-            Transaction
-
-        </div>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
-
-            🛒 Orders
+            📦 Products
 
         </a>
 
-        {{-- Customer --}}
+        {{-- ================= Customer ================= --}}
         <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
 
             Customer
 
         </div>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+        <a href="{{ route('admin.customers.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.customers.*') ? 'active' : 'bg-dark text-white' }}">
 
             👥 Customers
 
         </a>
 
-        {{-- Reports --}}
+        <a href="#"
+           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
+
+            ⭐ Reviews
+
+        </a>
+
+        {{-- ================= Transaction ================= --}}
+        <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
+
+            Transaction
+
+        </div>
+
+        <a href="{{ route('admin.orders.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.orders.*') ? 'active' : 'bg-dark text-white' }}">
+
+            🛒 Orders & Pickup
+
+        </a>
+
+        {{-- ================= Reports ================= --}}
         <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
 
             Reports
@@ -82,21 +93,43 @@
         </div>
 
         <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
 
             📈 Sales Report
 
         </a>
 
-        {{-- Settings --}}
+        <a href="#"
+           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
+
+            📦 Product Report
+
+        </a>
+
+        <a href="#"
+           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
+
+            👥 Customer Report
+
+        </a>
+
+        {{-- ================= System ================= --}}
         <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
 
-            Settings
+            System
 
         </div>
 
+        <a href="{{ route('admin.profile.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.profile.*') ? 'active' : 'bg-dark text-white' }}">
+
+            🙍 My Profile
+
+        </a>
+
         <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0">
+           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
 
             ⚙️ Settings
 
