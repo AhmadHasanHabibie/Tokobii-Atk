@@ -189,24 +189,16 @@
                 <div class="card-body p-3">
                     <div class="list-group list-group-flush">
                         <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
-                            <span class="small text-secondary">🔑 Sesi Login</span>
-                            <span class="fw-bold text-dark">{{ number_format($loginCount) }}</span>
+                            <span class="small text-secondary">🛒 Total Transaksi Order</span>
+                            <span class="fw-bold text-dark">{{ number_format($totalOrders) }}</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
-                            <span class="small text-secondary">🛒 Processed Checkout</span>
-                            <span class="fw-bold text-dark">{{ number_format($checkoutCount) }}</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
-                            <span class="small text-secondary">⭐ Rating Diberikan</span>
+                            <span class="small text-secondary">⭐ Rating & Ulasan Diberikan</span>
                             <span class="fw-bold text-dark">{{ number_format($ratingCount) }}</span>
                         </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
-                            <span class="small text-secondary">❤️ Favorite Added</span>
-                            <span class="fw-bold text-dark">{{ number_format($favoriteCount) }}</span>
-                        </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
-                            <span class="small text-secondary">🛍️ Cart Items</span>
-                            <span class="fw-bold text-dark">{{ number_format($cartCount) }}</span>
+                            <span class="small text-secondary">🚩 Laporan Masalah Diajukan</span>
+                            <span class="fw-bold text-dark">{{ number_format($reportCount) }}</span>
                         </div>
                     </div>
                 </div>
@@ -312,15 +304,11 @@
                             <tbody>
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold" style="width: 35%;">Most Purchased Product</th>
-                                    <td class="text-dark fw-semibold">: {{ $mostPurchasedProduct ?? 'Belum ada data' }}</td>
+                                    <td class="text-dark fw-semibold">: {{ $mostPurchasedProduct ?? 'Belum ada data transaksi' }}</td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold">Favorite Category</th>
-                                    <td class="text-dark fw-semibold">: {{ $favoriteCategory ?? 'Belum ada data' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Favorite Brand</th>
-                                    <td class="text-dark fw-semibold">: {{ $favoriteBrand ?? 'Belum ada data' }}</td>
+                                    <td class="text-dark fw-semibold">: {{ $favoriteCategory ?? 'Belum ada data transaksi' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -329,34 +317,61 @@
             </div>
 
             {{-- Recent Order Card --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Recent Order</h5>
-                </div>
-                <div class="card-body p-4 text-center">
-                    @if(isset($recentOrders) && $recentOrders->isNotEmpty())
-                        {{-- Recent orders list --}}
-                    @else
-                        <div class="py-4 text-muted">
-                            <span class="fs-1 d-block mb-2">🛒</span>
-                            <span class="fw-semibold">Tidak ada aktivitas order pada periode {{ $periodInfo['label'] }}.</span>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Recent Activity Card (Timeline) --}}
+            {{-- Recent Order Card --}}
             <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Recent Activity</h5>
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">Recent Orders</h5>
+                    <span class="badge bg-light text-primary border small">{{ $periodInfo['label'] }}</span>
                 </div>
-                <div class="card-body p-4 text-center">
-                    @if(isset($activities) && $activities->isNotEmpty())
-                        {{-- Activity timeline --}}
+                <div class="card-body p-0">
+                    @if(isset($recentOrders) && $recentOrders->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 small">
+                                <thead class="table-light border-bottom">
+                                    <tr>
+                                        <th scope="col" class="ps-4 py-2">Invoice</th>
+                                        <th scope="col" class="py-2 text-end">Grand Total</th>
+                                        <th scope="col" class="py-2">Status</th>
+                                        <th scope="col" class="pe-4 py-2 text-end">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recentOrders as $ord)
+                                        <tr>
+                                            <td class="ps-4">
+                                                <code class="text-primary bg-primary-subtle px-2 py-0.5 rounded fw-bold">{{ $ord->invoice_number }}</code>
+                                                <small class="text-muted d-block">{{ $ord->created_at ? $ord->created_at->format('d M Y, H:i') : '-' }}</small>
+                                            </td>
+                                            <td class="text-end font-monospace fw-bold text-dark">
+                                                Rp {{ number_format($ord->grand_total, 0, ',', '.') }}
+                                            </td>
+                                            <td>
+                                                @if($ord->status === 'completed')
+                                                    <span class="badge bg-dark px-2 py-1 fw-normal">🏁 Completed</span>
+                                                @elseif($ord->status === 'ready_for_pickup')
+                                                    <span class="badge bg-primary px-2 py-1 fw-normal">📦 Ready</span>
+                                                @elseif($ord->status === 'processing')
+                                                    <span class="badge bg-info px-2 py-1 fw-normal">⚙️ Processing</span>
+                                                @elseif($ord->status === 'paid')
+                                                    <span class="badge bg-success-subtle text-success border px-2 py-1 fw-normal">Paid</span>
+                                                @elseif($ord->status === 'waiting_verification')
+                                                    <span class="badge bg-info-subtle text-info-emphasis border px-2 py-1 fw-normal">Waiting Verification</span>
+                                                @else
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border px-2 py-1 fw-normal">Waiting Payment</span>
+                                                @endif
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <a href="{{ route('admin.orders.show', $ord) }}" class="btn btn-sm btn-outline-info">Detail</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @else
-                        <div class="py-4 text-muted">
-                            <span class="fs-1 d-block mb-2">⏱️</span>
-                            <span class="fw-semibold">Tidak ada aktivitas pengguna pada periode {{ $periodInfo['label'] }}.</span>
+                        <div class="py-4 text-center text-muted">
+                            <span class="fs-1 d-block mb-2">🛒</span>
+                            <span class="fw-semibold">Tidak ada transaksi order pada periode {{ $periodInfo['label'] }}.</span>
                         </div>
                     @endif
                 </div>

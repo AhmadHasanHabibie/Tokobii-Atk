@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -21,7 +25,7 @@ class CustomerController extends Controller
         $startDate = $periodInfo['startDate'];
         $endDate = $periodInfo['endDate'];
 
-        // Period-filtered Customer Analytics Statistics
+        // Period-filtered Customer Analytics Statistics from REAL Database
         $totalNewCustomers = User::where('role', 'customer')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
@@ -41,21 +45,31 @@ class CustomerController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-        // Placeholders for Order & Revenue analytics (until Order system tables exist)
-        $totalOrders = 0;
-        $totalRevenue = 0;
-        $totalProductsPurchased = 0;
-        $totalRatings = 0;
+        // REAL Order & Revenue Analytics from Database for the filtered period
+        $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
 
-        // Query Builder for Customer List
-        $query = User::where('role', 'customer');
+        $totalRevenue = Order::whereBetween('created_at', [$startDate, $endDate])
+            ->where(function ($q) {
+                $q->where('order_status', 'completed')
+                  ->orWhere('payment_status', 'paid');
+            })->sum('grand_total');
 
-        // Apply period filter to table list if period is explicitly selected
+        $totalProductsPurchased = OrderItem::whereHas('order', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('created_at', [$startDate, $endDate]);
+        })->sum('qty');
+
+        $totalRatings = Review::whereBetween('created_at', [$startDate, $endDate])->count();
+
+        // Query Builder for Customer List with eager counts
+        $query = User::where('role', 'customer')
+            ->withCount(['orders', 'reviews']);
+
+        // Apply period filter to customer table list if period parameter is explicitly passed
         if ($request->filled('period')) {
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        // Check if phone column exists dynamically
+        // Check phone column name
         $hasPhoneColumn = Schema::hasColumn('users', 'phone') ? 'phone' : (Schema::hasColumn('users', 'phone_number') ? 'phone_number' : null);
 
         // Search by Name, Email, or Phone
@@ -97,6 +111,9 @@ class CustomerController extends Controller
             case 'name_desc':
                 $query->orderBy('name', 'desc');
                 break;
+            case 'orders_desc':
+                $query->orderBy('orders_count', 'desc');
+                break;
             case 'latest':
             default:
                 $query->orderBy('created_at', 'desc');
@@ -120,7 +137,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Display the specified customer detail with period analytics.
+     * Display the specified customer detail with period analytics sourced 100% from real DB.
      */
     public function show(User $customer, Request $request): View
     {
@@ -131,32 +148,89 @@ class CustomerController extends Controller
 
         // Parse period filter for customer detail analytics
         $periodInfo = $this->getPeriodDateRange($request);
+        $startDate = $periodInfo['startDate'];
+        $endDate = $periodInfo['endDate'];
 
-        // Customer Level tier (Default: New Customer)
-        $customerLevel = 'New Customer';
+        // REAL Purchase Summary Metrics for this customer
+        $totalOrders = $customer->orders()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
 
-        // Purchase Summary metrics (placeholders until Order system is built)
-        $totalOrders = 0;
-        $totalSpent = 0;
-        $averageOrder = 0;
-        $largestOrder = 0;
-        $lastOrderDate = null;
+        $totalSpent = $customer->orders()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where(function ($q) {
+                $q->where('order_status', 'completed')
+                  ->orWhere('payment_status', 'paid');
+            })->sum('grand_total');
 
-        // Product Summary metrics
-        $mostPurchasedProduct = null;
-        $favoriteCategory = null;
-        $favoriteBrand = null;
+        $averageOrder = $totalOrders > 0 ? ($totalSpent / $totalOrders) : 0;
 
-        // Activity Summary metrics
-        $loginCount = 0;
-        $checkoutCount = 0;
-        $ratingCount = 0;
-        $favoriteCount = 0;
-        $cartCount = 0;
+        $largestOrder = $customer->orders()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->max('grand_total') ?? 0;
 
-        // Placeholder collections
-        $recentOrders = collect();
-        $activities = collect();
+        $lastOrderRecord = $customer->orders()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->latest()
+            ->first();
+        $lastOrderDate = $lastOrderRecord ? ($lastOrderRecord->order_date ?? $lastOrderRecord->created_at) : null;
+
+        // Calculate REAL Customer Level tier based on lifetime completed orders and spending
+        $lifetimeOrders = $customer->orders()->count();
+        $lifetimeSpent = $customer->orders()
+            ->where(function ($q) {
+                $q->where('order_status', 'completed')
+                  ->orWhere('payment_status', 'paid');
+            })->sum('grand_total');
+
+        if ($lifetimeOrders >= 10 || $lifetimeSpent >= 500000) {
+            $customerLevel = 'Gold Customer';
+        } elseif ($lifetimeOrders >= 4 || $lifetimeSpent >= 200000) {
+            $customerLevel = 'Silver Customer';
+        } elseif ($lifetimeOrders >= 1) {
+            $customerLevel = 'Bronze Customer';
+        } else {
+            $customerLevel = 'New Customer';
+        }
+
+        // REAL Product Preference Summaries for this customer
+        $mostPurchasedOrderItem = OrderItem::whereHas('order', function ($q) use ($customer, $startDate, $endDate) {
+            $q->where('user_id', $customer->id)
+              ->whereBetween('created_at', [$startDate, $endDate]);
+        })
+        ->select('product_id', DB::raw('SUM(qty) as total_qty'))
+        ->groupBy('product_id')
+        ->orderByDesc('total_qty')
+        ->with('product')
+        ->first();
+
+        $mostPurchasedProduct = $mostPurchasedOrderItem && $mostPurchasedOrderItem->product ? $mostPurchasedOrderItem->product->name : null;
+
+        $favoriteCategoryItem = OrderItem::whereHas('order', function ($q) use ($customer, $startDate, $endDate) {
+            $q->where('user_id', $customer->id)
+              ->whereBetween('created_at', [$startDate, $endDate]);
+        })
+        ->whereHas('product.category')
+        ->join('products', 'order_items.product_id', '=', 'products.id')
+        ->join('categories', 'products.category_id', '=', 'categories.id')
+        ->select('categories.name as category_name', DB::raw('SUM(order_items.qty) as total_qty'))
+        ->groupBy('categories.id', 'categories.name')
+        ->orderByDesc('total_qty')
+        ->first();
+
+        $favoriteCategory = $favoriteCategoryItem ? $favoriteCategoryItem->category_name : null;
+
+        // REAL Activity Metrics from database
+        $ratingCount = $customer->reviews()->whereBetween('created_at', [$startDate, $endDate])->count();
+        $reportCount = $customer->reports()->whereBetween('created_at', [$startDate, $endDate])->count();
+
+        // REAL Recent Orders collection
+        $recentOrders = $customer->orders()
+            ->with(['items.product', 'payment'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('admin.customers.show', compact(
             'customer',
@@ -169,14 +243,9 @@ class CustomerController extends Controller
             'lastOrderDate',
             'mostPurchasedProduct',
             'favoriteCategory',
-            'favoriteBrand',
-            'loginCount',
-            'checkoutCount',
             'ratingCount',
-            'favoriteCount',
-            'cartCount',
-            'recentOrders',
-            'activities'
+            'reportCount',
+            'recentOrders'
         ));
     }
 

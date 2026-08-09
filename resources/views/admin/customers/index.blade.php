@@ -310,9 +310,23 @@
                         </span>
                     </td>
                     <td>
-                        <span class="badge bg-light text-secondary border border-secondary-subtle px-2.5 py-1.5 fw-normal">
-                            🌱 New Customer
-                        </span>
+                        @if(($customer->orders_count ?? 0) >= 10)
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 fw-normal">
+                                🥇 Gold
+                            </span>
+                        @elseif(($customer->orders_count ?? 0) >= 4)
+                            <span class="badge bg-secondary-subtle text-dark border border-secondary-subtle px-2.5 py-1.5 fw-normal">
+                                🥈 Silver
+                            </span>
+                        @elseif(($customer->orders_count ?? 0) >= 1)
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1.5 fw-normal">
+                                🥉 Bronze ({{ $customer->orders_count }} Order)
+                            </span>
+                        @else
+                            <span class="badge bg-light text-secondary border border-secondary-subtle px-2.5 py-1.5 fw-normal">
+                                🌱 New
+                            </span>
+                        @endif
                     </td>
                     <td>
                         @if($customer->status === 'active')
