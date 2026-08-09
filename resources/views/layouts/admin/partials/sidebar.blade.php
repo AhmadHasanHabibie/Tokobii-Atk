@@ -63,8 +63,9 @@
 
         </a>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
+        <a href="{{ route('admin.reviews.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.reviews.*') ? 'active' : 'bg-dark text-white' }}">
 
             ⭐ Reviews
 
@@ -82,6 +83,14 @@
            {{ request()->routeIs('admin.orders.*') ? 'active' : 'bg-dark text-white' }}">
 
             🛒 Orders & Pickup
+
+        </a>
+
+        <a href="{{ route('admin.orders.scan') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.orders.scan') ? 'active' : 'bg-dark text-white' }}">
+
+            Scan Order
 
         </a>
 

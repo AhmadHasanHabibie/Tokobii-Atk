@@ -144,6 +144,7 @@
                                 <p class="text-primary fw-bold mb-2 font-monospace">
                                     Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </p>
+                                <small class="text-warning d-block mb-2">@if($product->reviews_count)★ {{ number_format($product->reviews_avg_rating, 1) }} <span class="text-muted">({{ $product->reviews_count }})</span>@else<span class="text-muted">Belum ada rating</span>@endif</small>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">

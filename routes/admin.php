@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,11 +60,21 @@ Route::middleware(['auth', 'verified', 'admin'])
                 'show',
             ]);
 
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('reviews/categories/{category}', [ReviewController::class, 'category'])->name('reviews.categories.show');
+        Route::get('reviews/products/{product}', [ReviewController::class, 'product'])->name('reviews.products.show');
+
         /*
         |--------------------------------------------------------------------------
         | Order Management (Unified Transaction & Pickup Center)
         |--------------------------------------------------------------------------
         */
+
+        Route::get('orders/scan', [OrderController::class, 'scan'])
+            ->name('orders.scan');
+
+        Route::post('orders/scan/lookup', [OrderController::class, 'lookupByInvoice'])
+            ->name('orders.scan.lookup');
 
         Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])
             ->name('orders.receipt');

@@ -367,7 +367,7 @@
             </div>
 
             {{-- Module 5: Rating & Review Card (Only if Completed) --}}
-            @if($order->order_status === 'completed')
+            @if(false)
                 <div class="card border-0 shadow-sm rounded-3 mb-4">
                     <div class="card-header bg-white border-bottom py-3 px-4">
                         <h5 class="fw-bold mb-0 text-dark">⭐ Rating & Ulasan Produk</h5>
@@ -439,6 +439,7 @@
                                     <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 10%;">Qty</th>
                                     <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 18%;">Harga</th>
                                     <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 20%;">Subtotal</th>
+                                    @if($order->order_status === 'completed')<th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end">Review</th>@endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -472,6 +473,7 @@
                                         <td class="pe-4 text-end font-monospace fw-bold text-primary">
                                             Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
+                                        @if($order->order_status === 'completed')<td class="pe-4 text-end">@if($item->review)<span class="badge bg-success">Sudah Direview</span>@if($item->review->canBeEdited())<a class="btn btn-sm btn-outline-secondary mt-1" href="{{ route('customer.reviews.edit', $item->review) }}">Edit Review</a><small class="d-block text-muted">Edit tersedia sampai {{ $item->review->created_at->copy()->addHours(24)->format('d M Y H:i') }}</small>@else<button class="btn btn-sm btn-secondary mt-1" disabled>Edit Terkunci</button><small class="d-block text-muted">Periode edit 24 jam telah berakhir.</small>@endif @elseif($item->product_id)<a class="btn btn-sm btn-outline-primary" href="{{ route('customer.orders.reviews.create', [$order, $item]) }}">Review Produk</a>@endif</td>@endif
                                     </tr>
                                 @endforeach
                             </tbody>

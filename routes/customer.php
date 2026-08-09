@@ -4,6 +4,7 @@ use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\DashboardController;
 use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\ShopController;
 use Illuminate\Support\Facades\Route;
@@ -97,8 +98,12 @@ Route::middleware(['auth', 'verified', 'customer'])
         Route::post('/orders/{order}/upload-proof', [OrderController::class, 'uploadProof'])
             ->name('orders.upload-proof');
 
-        Route::post('/orders/{order}/review', [OrderController::class, 'review'])
-            ->name('orders.review');
+        Route::get('/orders/{order}/items/{item}/review', [ReviewController::class, 'create'])->name('orders.reviews.create');
+        Route::post('/orders/{order}/items/{item}/review', [ReviewController::class, 'store'])->name('orders.reviews.store');
+        Route::post('/orders/{order}/review', [OrderController::class, 'review'])->name('orders.review');
+        Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+        Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
 
         /*
         |--------------------------------------------------------------------------

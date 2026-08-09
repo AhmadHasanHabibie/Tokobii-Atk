@@ -31,8 +31,8 @@ class DashboardController extends Controller
         $totalCategories = Category::count();
 
         // Real products data from Admin (latest & popular placeholder)
-        $newProducts = Product::latest()->take(8)->get();
-        $popularProducts = Product::latest()->take(4)->get();
+        $newProducts = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(8)->get();
+        $popularProducts = Product::withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(4)->get();
 
         return view('customer.dashboard.index', compact(
             'greeting',

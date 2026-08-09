@@ -1,0 +1,7 @@
+@extends('layouts.admin.app')
+@section('title', 'Reviews ' . $product->name . ' - Tokobii')
+@section('content')
+<a href="{{ route('admin.reviews.categories.show', $product->category) }}" class="btn btn-outline-secondary btn-sm mb-3">Kembali</a><h2 class="fw-bold">Reviews: {{ $product->name }}</h2><p class="text-muted">{{ $product->reviews_count ? number_format($product->reviews_avg_rating, 1) . ' / 5 dari ' . $product->reviews_count . ' review' : 'Belum ada review' }}</p>
+<form class="row g-2 mb-4"><div class="col-sm-3"><select class="form-select" name="rating"><option value="">Semua rating</option>@for($i=5;$i>=1;$i--)<option value="{{ $i }}" @selected(request('rating') == $i)>{{ $i }} bintang</option>@endfor</select></div><div class="col-sm-3"><select class="form-select" name="sort"><option value="latest">Terbaru</option><option value="oldest" @selected(request('sort') === 'oldest')>Terlama</option></select></div><div class="col-sm-2"><button class="btn btn-primary w-100">Filter</button></div></form>
+@forelse($reviews as $review)<div class="card border-0 shadow-sm mb-3"><div class="card-body"><div class="text-warning">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</div><p class="mb-2">{{ $review->comment }}</p><small class="text-muted">{{ $review->user->name }} | {{ $review->order->invoice_number }} | {{ $review->created_at->format('d M Y') }}</small></div></div>@empty<p class="text-muted">Belum ada review.</p>@endforelse{{ $reviews->links('pagination::bootstrap-5') }}
+@endsection

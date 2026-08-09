@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -98,6 +99,40 @@ class OrderController extends Controller
         $order->load(['user', 'items.product', 'payment.verifiedByAdmin']);
 
         return view('admin.orders.show', compact('order'));
+    }
+
+    /**
+     * Show the camera-based scanner for existing pickup receipt QR codes.
+     */
+    public function scan(): View
+    {
+        return view('admin.orders.scan');
+    }
+
+    /**
+     * Resolve the invoice number encoded in an existing pickup receipt QR code.
+     */
+    public function lookupByInvoice(Request $request): JsonResponse
+    {
+        $payload = trim((string) $request->input('payload'));
+
+        if (!preg_match('/^INV-\d{8}-\d{4}$/', $payload)) {
+            return response()->json([
+                'message' => 'QR Code tidak valid.',
+            ], 422);
+        }
+
+        $order = Order::where('invoice_number', $payload)->first();
+
+        if (!$order) {
+            return response()->json([
+                'message' => 'Pesanan tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'redirect_url' => route('admin.orders.show', $order),
+        ]);
     }
 
     /**

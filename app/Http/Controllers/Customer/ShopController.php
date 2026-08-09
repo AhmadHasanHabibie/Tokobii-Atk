@@ -15,7 +15,7 @@ class ShopController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Product::with('category');
+        $query = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews');
 
         // Search by Product Name or SKU
         if ($request->filled('search')) {
@@ -74,7 +74,7 @@ class ShopController extends Controller
     public function category(string $slug, Request $request): View
     {
         $selectedCategory = Category::where('slug', $slug)->firstOrFail();
-        $query = Product::with('category')->where('category_id', $selectedCategory->id);
+        $query = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('category_id', $selectedCategory->id);
 
         // Search by Product Name or SKU
         if ($request->filled('search')) {
@@ -122,7 +122,8 @@ class ShopController extends Controller
      */
     public function show(string $slug): View
     {
-        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
+        $product = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->firstOrFail();
+        $reviews = $product->reviews()->with('user')->latest()->paginate(10);
 
         // Related Products (Same category max 4, fallback to latest if empty)
         $relatedProducts = Product::with('category')
@@ -142,6 +143,6 @@ class ShopController extends Controller
             $relatedProducts = $relatedProducts->concat($additionalProducts);
         }
 
-        return view('customer.shop.show', compact('product', 'relatedProducts'));
+        return view('customer.shop.show', compact('product', 'relatedProducts', 'reviews'));
     }
 }

@@ -83,6 +83,8 @@
                         {{-- Product Name --}}
                         <h2 class="fw-bold text-dark mb-3">{{ $product->name }}</h2>
 
+                        <p class="text-warning fw-semibold mb-3">@if($product->reviews_count) ★ {{ number_format($product->reviews_avg_rating, 1) }} <span class="text-muted fw-normal">({{ $product->reviews_count }} reviews)</span>@else<span class="text-muted fw-normal">Belum ada rating</span>@endif</p>
+
                         {{-- Price --}}
                         <div class="p-3 bg-light rounded-3 border mb-4">
                             <span class="text-secondary small d-block mb-1">Harga Produk</span>
@@ -157,6 +159,8 @@
 
         </div>
     </div>
+
+    <section class="mb-5"><h4 class="fw-bold">Customer Reviews</h4><p class="text-muted">@if($product->reviews_count){{ number_format($product->reviews_avg_rating, 1) }} / 5 dari {{ $product->reviews_count }} review@else Belum ada review untuk produk ini.@endif</p>@forelse($reviews as $review)<div class="card border-0 shadow-sm mb-3"><div class="card-body"><div class="text-warning">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</div><p class="mb-1">{{ $review->comment }}</p><small class="text-muted">{{ $review->user->name }} · {{ $review->created_at->format('d M Y') }}</small></div></div>@empty @endforelse{{ $reviews->links('pagination::bootstrap-5') }}</section>
 
     {{-- Related Products Section --}}
     @if($relatedProducts->isNotEmpty())

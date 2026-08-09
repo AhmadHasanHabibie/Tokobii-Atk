@@ -17,7 +17,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Order::with(['items.product', 'payment'])
+        $query = Order::with(['items.product', 'items.review', 'payment'])
             ->where('user_id', auth()->id());
 
         // Search by Invoice Number or Product Name
@@ -56,7 +56,7 @@ class OrderController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat pesanan ini.');
         }
 
-        $order->load(['items.product', 'payment', 'user']);
+        $order->load(['items.product', 'items.review', 'payment', 'user']);
 
         return view('customer.orders.show', compact('order'));
     }
@@ -176,6 +176,9 @@ class OrderController extends Controller
      */
     public function review(Request $request, Order $order): RedirectResponse
     {
+        return redirect()->route('customer.orders.show', $order)
+            ->with('info', 'Pilih tombol Review Produk pada item pesanan untuk memberikan ulasan.');
+
         if ($order->user_id !== auth()->id()) {
             abort(403, 'Anda tidak diizinkan memberikan ulasan untuk pesanan ini.');
         }
