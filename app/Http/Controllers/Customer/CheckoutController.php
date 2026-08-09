@@ -74,12 +74,14 @@ class CheckoutController extends Controller
         $order = DB::transaction(function () use ($cart, $subtotal, $paymentMethod, $notes) {
             $invoiceNumber = Order::generateInvoiceNumber();
 
-            // Initial status for both Cash & QRIS is pending (Waiting Payment / Waiting Upload)
+            // Cash orders can be prepared immediately, while QRIS orders remain
+            // pending until the customer submits proof of payment. Both payment
+            // records use the existing `pending` enum value for Waiting Payment.
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'invoice_number' => $invoiceNumber,
                 'order_date' => now(),
-                'order_status' => 'pending',
+                'order_status' => $paymentMethod === 'cash' ? 'processing' : 'pending',
                 'payment_status' => 'pending',
                 'payment_method' => $paymentMethod,
                 'subtotal' => $subtotal,

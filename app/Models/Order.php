@@ -85,6 +85,24 @@ class Order extends Model
     }
 
     /**
+     * Return the payable total in whole rupiah for cash transactions.
+     *
+     * Tokobii displays prices in whole rupiah. Parse the stored DECIMAL value
+     * as a string so rounding to that displayed value cannot introduce a
+     * floating-point fraction into cash change calculations.
+     */
+    public function getGrandTotalInRupiahAttribute(): int
+    {
+        [$whole, $fraction] = array_pad(
+            explode('.', (string) $this->getRawOriginal('grand_total'), 2),
+            2,
+            '0'
+        );
+
+        return (int) $whole + ((int) substr(str_pad($fraction, 2, '0'), 0, 2) >= 50 ? 1 : 0);
+    }
+
+    /**
      * Helper to generate a unique invoice number format (e.g. INV-20260805-0001).
      */
     public static function generateInvoiceNumber(): string

@@ -154,6 +154,8 @@
                                             <span class="badge bg-dark px-2.5 py-1 fw-normal">🏁 Completed</span>
                                         @elseif($order->order_status === 'ready_for_pickup')
                                             <span class="badge bg-primary px-2.5 py-1 fw-normal">📦 Ready for Pickup</span>
+                                        @elseif($order->order_status === 'processing')
+                                            <span class="badge bg-info px-2.5 py-1 fw-normal">⚙️ Processing</span>
                                         @elseif($order->payment_status === 'paid')
                                             <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
                                         @elseif($order->payment_status === 'rejected')
@@ -348,7 +350,7 @@
                         @if($order->payment_method === 'cash')
                             <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
                             <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Pesanan siap diambil customer</small></div></li>
-                            <li class="mb-3 d-flex align-items-start {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir dan pembayaran tunai diproses kasir</small></div></li>
+                            <li class="mb-3 d-flex align-items-start {{ ($order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending') || $order->payment_status === 'paid' || $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ ($order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending') || $order->payment_status === 'paid' || $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir dan pembayaran tunai diproses kasir</small></div></li>
                             <li class="mb-3 d-flex align-items-start {{ $order->payment_status === 'paid' ? '' : 'opacity-50' }}"><span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
                         @else
                         <li class="mb-3 d-flex align-items-start {{ $order->payment_status !== 'pending' ? '' : 'opacity-50' }}">
@@ -539,16 +541,17 @@
     <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Konfirmasi Pembayaran Tunai</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-            <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+            <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="cashPaymentForm">
                 @csrf @method('PUT')
                 <input type="hidden" name="action" value="confirm_cash_payment">
-                <div class="modal-body p-4"><p class="mb-3">Total pesanan: <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong></p>
+                <div class="modal-body p-4"><p class="mb-3">Total pesanan: <strong>Rp {{ number_format($order->grand_total_in_rupiah, 0, ',', '.') }}</strong></p>
                     <label for="received_amount" class="form-label fw-semibold">Uang Diterima</label>
-                    <input id="received_amount" name="received_amount" type="number" min="{{ $order->grand_total }}" step="1" class="form-control @error('received_amount') is-invalid @enderror" value="{{ old('received_amount') }}" required>
+                    <input id="received_amount" name="received_amount" type="number" min="{{ $order->grand_total_in_rupiah }}" step="1" inputmode="numeric" class="form-control @error('received_amount') is-invalid @enderror" value="{{ old('received_amount') }}" required>
                     @error('received_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="mt-3 p-3 bg-light rounded">Kembalian: <strong id="cashChangePreview">Rp 0</strong></div>
+                    <small id="cashAmountError" class="text-danger d-none">Uang diterima kurang dari total pesanan.</small>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-success">Konfirmasi Pembayaran Tunai</button></div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button type="submit" id="cashPaymentSubmit" class="btn btn-success" disabled>Konfirmasi Pembayaran Tunai</button></div>
             </form>
         </div></div>
     </div>
@@ -733,12 +736,40 @@
 
         const receivedAmount = document.getElementById('received_amount');
         const changePreview = document.getElementById('cashChangePreview');
-        if (receivedAmount && changePreview) {
-            const total = {{ (float) $order->grand_total }};
-            receivedAmount.addEventListener('input', function () {
-                const received = Number(this.value || 0);
-                changePreview.textContent = 'Rp ' + Math.max(0, received - total).toLocaleString('id-ID');
+        const cashPaymentForm = document.getElementById('cashPaymentForm');
+        const cashPaymentSubmit = document.getElementById('cashPaymentSubmit');
+        const cashAmountError = document.getElementById('cashAmountError');
+        if (receivedAmount && changePreview && cashPaymentSubmit) {
+            const total = BigInt({{ $order->grand_total_in_rupiah }});
+            const formatRupiah = (amount) => 'Rp ' + amount.toLocaleString('id-ID');
+            const updateCashPayment = () => {
+                let received;
+
+                try {
+                    received = BigInt(receivedAmount.value);
+                } catch (error) {
+                    received = null;
+                }
+
+                const isValid = received !== null && received >= total;
+                cashPaymentSubmit.disabled = !isValid;
+                cashAmountError?.classList.toggle('d-none', received === null || isValid);
+                changePreview.textContent = formatRupiah(isValid ? received - total : BigInt(0));
+
+                return isValid;
+            };
+
+            receivedAmount.addEventListener('input', updateCashPayment);
+            cashPaymentForm?.addEventListener('submit', function (event) {
+                if (!updateCashPayment()) {
+                    event.preventDefault();
+                    return;
+                }
+
+                cashPaymentSubmit.disabled = true;
             });
+
+            updateCashPayment();
         }
     });
 </script>

@@ -84,7 +84,7 @@
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold">Jumlah Produk</th>
-                                    <td class="fw-semibold text-secondary">: 0 Produk</td>
+                                    <td class="fw-semibold text-secondary">: {{ $category->products_count }} Produk</td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold align-top">Deskripsi</th>

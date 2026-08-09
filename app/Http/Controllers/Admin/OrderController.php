@@ -168,15 +168,17 @@ class OrderController extends Controller
                 return back()->with('error', 'Pembayaran tunai hanya dapat dikonfirmasi saat pesanan Cash sudah Ready for Pickup.');
             }
 
+            $cashTotal = $order->grand_total_in_rupiah;
             $data = $request->validate([
-                'received_amount' => ['required', 'numeric', 'min:' . $order->grand_total],
+                'received_amount' => ['required', 'integer', 'min:' . $cashTotal],
             ], [
                 'received_amount.required' => 'Uang diterima wajib diisi.',
-                'received_amount.numeric' => 'Uang diterima harus berupa angka.',
+                'received_amount.integer' => 'Uang diterima harus berupa nominal rupiah utuh.',
                 'received_amount.min' => 'Uang diterima kurang dari total pembayaran.',
             ]);
 
-            $change = (float) $data['received_amount'] - (float) $order->grand_total;
+            $receivedAmount = (int) $data['received_amount'];
+            $change = $receivedAmount - $cashTotal;
             $payment = $order->payment;
 
             if (!$payment) {
@@ -185,7 +187,7 @@ class OrderController extends Controller
 
             $payment->update([
                 'payment_status' => 'paid',
-                'received_amount' => $data['received_amount'],
+                'received_amount' => $receivedAmount,
                 'change_amount' => $change,
                 'verified_by_admin_id' => auth()->id(),
                 'verified_at' => now(),

@@ -187,7 +187,7 @@
                         @endif
                     </td>
                     <td class="text-center fw-semibold text-secondary">
-                        0
+                        {{ $category->products_count }}
                     </td>
                     <td class="text-muted small">
                         {{ $category->created_at ? $category->created_at->format('d M Y, H:i') : '-' }}

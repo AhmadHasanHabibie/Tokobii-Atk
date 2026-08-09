@@ -242,6 +242,8 @@
                             <span class="badge bg-dark px-2.5 py-1.5 fw-normal">🏁 Completed</span>
                         @elseif($order->order_status === 'ready_for_pickup')
                             <span class="badge bg-primary px-2.5 py-1.5 fw-normal">📦 Ready for Pickup</span>
+                        @elseif($order->order_status === 'processing')
+                            <span class="badge bg-info px-2.5 py-1.5 fw-normal">⚙️ Processing</span>
                         @elseif($order->payment_status === 'paid')
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 fw-normal">Paid</span>
                         @elseif($order->payment_status === 'rejected')

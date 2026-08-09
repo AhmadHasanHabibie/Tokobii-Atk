@@ -24,7 +24,9 @@ class CategoryController extends Controller
         $activeCategories = Category::where('status', 'active')->count();
         $inactiveCategories = Category::where('status', 'inactive')->count();
 
-        $query = Category::query();
+        // Count products through products.category_id without loading every
+        // related product record for the paginated category list.
+        $query = Category::withCount('products');
 
         // Search by name, slug, or description
         if ($request->filled('search')) {
@@ -111,6 +113,8 @@ class CategoryController extends Controller
      */
     public function show(Category $category): View
     {
+        $category->loadCount('products');
+
         return view('admin.categories.show', compact('category'));
     }
 
