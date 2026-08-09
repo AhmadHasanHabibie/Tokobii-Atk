@@ -1,138 +1,43 @@
-<footer class="bg-dark text-white mt-5">
-
+<footer class="bg-dark text-white mt-auto border-top border-secondary">
     <div class="container py-5">
-
-        <div class="row">
-
-            {{-- Brand --}}
-            <div class="col-lg-4 mb-4">
-
-                <h4 class="fw-bold">
-
-                    Tokobii
-
-                </h4>
-
-                <p class="text-light mb-0">
-
-                    Tokobii adalah platform belanja online yang menyediakan
-                    berbagai kebutuhan alat tulis kantor dengan mudah,
-                    cepat, dan terpercaya.
-
+        <div class="row g-4 justify-content-between align-items-center">
+            {{-- Brand Info --}}
+            <div class="col-12 col-md-7 col-lg-6">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="bg-primary text-white rounded-3 px-2.5 py-1 fs-5 shadow-sm">🛍️</span>
+                    <h4 class="fw-bold text-white mb-0">Tokobii</h4>
+                </div>
+                <p class="text-white-50 mb-0 leading-relaxed" style="max-width: 480px;">
+                    Platform e-commerce modern terpercaya untuk kebutuhan Alat Tulis Kantor (ATK) berkualitas tinggi dengan proses belanja mudah, cepat, dan transparan.
                 </p>
-
             </div>
 
-            {{-- Navigation --}}
-            <div class="col-lg-4 mb-4">
-
-                <h5 class="fw-bold">
-
-                    Navigation
-
-                </h5>
-
-                <ul class="list-unstyled">
-
-                    <li class="mb-2">
-
-                        <a href="{{ route('home') }}"
-                           class="text-decoration-none text-light">
-
-                            Home
-
-                        </a>
-
-                    </li>
-
-                    <li class="mb-2">
-
-                        <a href="{{ route('shop') }}"
-                           class="text-decoration-none text-light">
-
-                            Shop
-
-                        </a>
-
-                    </li>
-
-                    <li class="mb-2">
-
-                        <a href="{{ route('about') }}"
-                           class="text-decoration-none text-light">
-
-                            About
-
-                        </a>
-
-                    </li>
-
-                    <li>
-
-                        <a href="{{ route('contact') }}"
-                           class="text-decoration-none text-light">
-
-                            Contact
-
-                        </a>
-
-                    </li>
-
-                </ul>
-
+            {{-- Contact Info --}}
+            <div class="col-12 col-md-5 col-lg-4">
+                <h6 class="fw-bold text-uppercase tracking-wider text-primary mb-3">Layanan Customer</h6>
+                <div class="d-flex flex-column gap-2 text-white-50 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <span>📍</span> <span>Jakarta, Indonesia</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span>📧</span> <span>support@tokobii.test</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span>☎</span> <span>+62 812-3456-7890</span>
+                    </div>
+                </div>
             </div>
-
-            {{-- Contact --}}
-            <div class="col-lg-4 mb-4">
-
-                <h5 class="fw-bold">
-
-                    Contact
-
-                </h5>
-
-                <p class="mb-2">
-
-                    📍 Jakarta, Indonesia
-
-                </p>
-
-                <p class="mb-2">
-
-                    📧 support@tokobii.test
-
-                </p>
-
-                <p class="mb-0">
-
-                    ☎ +62 812-3456-7890
-
-                </p>
-
-            </div>
-
         </div>
 
-        <hr class="border-secondary">
+        <hr class="border-secondary opacity-25 my-4">
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-
-            <small class="text-light">
-
-                © {{ date('Y') }}
-                <strong>Tokobii</strong>.
-                All Rights Reserved.
-
-            </small>
-
-            <small class="text-secondary mt-2 mt-md-0">
-
-                Built with Laravel 10 & Bootstrap 5
-
-            </small>
-
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 small text-white-50">
+            <div>
+                © {{ date('Y') }} <strong class="text-white">Tokobii</strong>. All Rights Reserved.
+            </div>
+            <div>
+                Built with Laravel & Bootstrap 5
+            </div>
         </div>
-
     </div>
-
 </footer>

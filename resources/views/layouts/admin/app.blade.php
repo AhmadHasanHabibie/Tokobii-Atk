@@ -29,7 +29,7 @@
             @include('layouts.admin.partials.sidebar')
 
             {{-- Main Content --}}
-            <main class="col-md-10 ms-sm-auto px-md-4 py-4 min-vh-100">
+            <main class="col-12 col-md-9 col-lg-10 px-md-4 py-4 min-vh-100">
 
                 {{-- Flash Message --}}
                 @if(session('success'))
