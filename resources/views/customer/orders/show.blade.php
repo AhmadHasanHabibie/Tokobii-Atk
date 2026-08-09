@@ -141,16 +141,20 @@
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold">Status Pesanan</th>
                                     <td>: 
-                                        @if($order->order_status === 'completed')
+                                        @if($order->status === 'completed')
                                             <span class="badge bg-dark px-2.5 py-1 fw-normal">🏁 Completed</span>
-                                        @elseif($order->order_status === 'ready_for_pickup')
+                                        @elseif($order->status === 'ready_for_pickup')
                                             <span class="badge bg-primary px-2.5 py-1 fw-normal">📦 Ready for Pickup</span>
-                                        @elseif($order->order_status === 'processing')
+                                        @elseif($order->status === 'processing')
                                             <span class="badge bg-info px-2.5 py-1 fw-normal">⚙️ Processing</span>
-                                        @elseif($order->order_status === 'cancelled')
-                                            <span class="badge bg-danger px-2.5 py-1 fw-normal">🔴 Cancelled</span>
+                                        @elseif($order->status === 'paid')
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
+                                        @elseif($order->status === 'cancelled')
+                                            <span class="badge bg-danger px-2.5 py-1 fw-normal">🔴 Cancelled / Rejected</span>
+                                        @elseif($order->status === 'waiting_verification')
+                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
                                         @else
-                                            <span class="badge bg-warning text-dark px-2.5 py-1 fw-normal">⏳ Pending</span>
+                                            <span class="badge bg-warning text-dark px-2.5 py-1 fw-normal">⏳ Waiting Payment</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -291,11 +295,11 @@
                     <ul class="timeline list-unstyled mb-0 position-relative">
                     @if($order->payment_method === 'cash')
                         <li class="mb-3 d-flex align-items-start"><span class="badge bg-success rounded-circle p-2 me-3">✓</span><div><h6 class="fw-bold mb-0 text-dark">Order Created</h6><small class="text-muted">{{ $order->created_at?->format('d M Y, H:i') }}</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Bayar tunai saat mengambil pesanan</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ ($order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending') || $order->payment_status === 'paid' || $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ ($order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending') || $order->payment_status === 'paid' || $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir di kasir untuk pembayaran tunai</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ $order->payment_status === 'paid' ? '' : 'opacity-50' }}"><span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
-                        <li class="d-flex align-items-start {{ $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">🏁</span><div><h6 class="fw-bold mb-0 text-dark">Completed</h6><small class="text-muted">Pesanan telah diserahkan</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Bayar tunai saat mengambil pesanan</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir di kasir untuk pembayaran tunai</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
+                        <li class="d-flex align-items-start {{ $order->status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ $order->status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">🏁</span><div><h6 class="fw-bold mb-0 text-dark">Completed</h6><small class="text-muted">Pesanan telah diserahkan</small></div></li>
                     @else
                         {{-- 1. Order Created --}}
                         <li class="mb-3 d-flex align-items-start">
@@ -307,9 +311,9 @@
                         </li>
 
                         {{-- 2. Waiting Payment --}}
-                        <li class="mb-3 d-flex align-items-start {{ $order->payment_status !== 'pending' || $order->order_status !== 'pending' ? '' : 'opacity-75' }}">
-                            <span class="badge {{ $order->payment_status !== 'pending' ? 'bg-success' : 'bg-warning text-dark' }} rounded-circle p-2 me-3">
-                                {{ $order->payment_status !== 'pending' ? '✓' : '💳' }}
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_payment', 'waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="badge {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_payment' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
+                                {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '💳' }}
                             </span>
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">Waiting Payment</h6>
@@ -318,9 +322,9 @@
                         </li>
 
                         {{-- 3. Waiting Verification --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->payment_status, ['waiting_verification', 'paid', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->payment_status, ['waiting_verification', 'paid', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                {{ in_array($order->payment_status, ['waiting_verification', 'paid', 'ready_for_pickup', 'completed']) ? '✓' : '🔍' }}
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="badge {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_verification' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
+                                {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '🔍' }}
                             </span>
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6>
@@ -329,9 +333,9 @@
                         </li>
 
                         {{-- 4. Paid --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                {{ in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']) ? '✓' : '🟢' }}
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="badge {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'paid' ? 'bg-success' : 'bg-secondary') }} rounded-circle p-2 me-3">
+                                {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '✓' : '🟢' }}
                             </span>
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">Paid</h6>
@@ -339,10 +343,21 @@
                             </div>
                         </li>
 
-                        {{-- 5. Ready for Pickup --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '✓' : '📦' }}
+                        {{-- 5. Processing --}}
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'processing' ? 'bg-info' : 'bg-secondary') }} rounded-circle p-2 me-3">
+                                {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '✓' : '⚙️' }}
+                            </span>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Processing</h6>
+                                <small class="text-muted">Pesanan sedang dikemas</small>
+                            </div>
+                        </li>
+
+                        {{-- 6. Ready for Pickup --}}
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="badge {{ $order->status === 'completed' ? 'bg-success' : ($order->status === 'ready_for_pickup' ? 'bg-primary' : 'bg-secondary') }} rounded-circle p-2 me-3">
+                                {{ $order->status === 'completed' ? '✓' : '📦' }}
                             </span>
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6>
@@ -350,19 +365,19 @@
                             </div>
                         </li>
 
-                        {{-- 6. Completed or Rejected --}}
-                        @if($order->payment_status === 'rejected' || $order->order_status === 'cancelled')
+                        {{-- 7. Completed or Cancelled/Rejected --}}
+                        @if($order->status === 'cancelled')
                             <li class="d-flex align-items-start">
                                 <span class="badge bg-danger rounded-circle p-2 me-3">🔴</span>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-danger">Rejected</h6>
-                                    <small class="text-muted">Pembayaran/Pesanan ditolak Admin</small>
+                                    <h6 class="fw-bold mb-0 text-danger">Cancelled / Rejected</h6>
+                                    <small class="text-muted">Pembayaran/Pesanan ditolak Admin atau dibatalkan</small>
                                 </div>
                             </li>
                         @else
-                            <li class="d-flex align-items-start {{ $order->order_status === 'completed' ? '' : 'opacity-50' }}">
-                                <span class="badge {{ $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                    {{ $order->order_status === 'completed' ? '🏁' : '🏁' }}
+                            <li class="d-flex align-items-start {{ $order->status === 'completed' ? '' : 'opacity-50' }}">
+                                <span class="badge {{ $order->status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
+                                    🏁
                                 </span>
                                 <div>
                                     <h6 class="fw-bold mb-0 text-dark">Completed</h6>

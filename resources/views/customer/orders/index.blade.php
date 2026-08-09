@@ -115,18 +115,20 @@
                         Rp {{ number_format($order->grand_total, 0, ',', '.') }}
                     </td>
                     <td>
-                        @if($order->order_status === 'completed')
+                        @if($order->status === 'completed')
                             <span class="badge bg-dark px-2.5 py-1.5 fw-normal">🏁 Completed</span>
-                        @elseif($order->order_status === 'ready_for_pickup')
+                        @elseif($order->status === 'ready_for_pickup')
                             <span class="badge bg-primary px-2.5 py-1.5 fw-normal">📦 Ready for Pickup</span>
-                        @elseif($order->order_status === 'processing')
+                        @elseif($order->status === 'processing')
                             <span class="badge bg-info px-2.5 py-1.5 fw-normal">⚙️ Processing</span>
-                        @elseif($order->payment_status === 'paid')
+                        @elseif($order->status === 'paid')
                             <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 fw-normal">Paid</span>
-                        @elseif($order->payment_status === 'rejected')
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 fw-normal">Rejected</span>
+                        @elseif($order->status === 'cancelled')
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 fw-normal">Cancelled / Rejected</span>
+                        @elseif($order->status === 'waiting_verification')
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1.5 fw-normal">Waiting Verification</span>
                         @else
-                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 fw-normal">Waiting Verification</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 fw-normal">Waiting Payment</span>
                         @endif
                     </td>
                     <td class="pe-4 text-end">

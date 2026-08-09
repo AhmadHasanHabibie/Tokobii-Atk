@@ -43,6 +43,34 @@ class Order extends Model
     ];
 
     /**
+     * Get the single unified order status.
+     * Source of truth for order lifecycle display across all admin and customer views.
+     */
+    public function getStatusAttribute(): string
+    {
+        if ($this->order_status === 'completed') {
+            return 'completed';
+        }
+        if ($this->order_status === 'cancelled' || $this->payment_status === 'rejected') {
+            return 'cancelled';
+        }
+        if ($this->order_status === 'ready_for_pickup') {
+            return 'ready_for_pickup';
+        }
+        if ($this->order_status === 'processing') {
+            return 'processing';
+        }
+        if ($this->payment_status === 'paid' || $this->order_status === 'paid') {
+            return 'paid';
+        }
+        if ($this->payment_status === 'waiting_verification' || $this->order_status === 'waiting_verification') {
+            return 'waiting_verification';
+        }
+
+        return 'waiting_payment';
+    }
+
+    /**
      * Get the customer user that owns the order.
      */
     public function user(): BelongsTo
