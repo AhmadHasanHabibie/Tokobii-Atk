@@ -82,17 +82,27 @@
         <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2 align-items-center">
             
             {{-- Workflow Action Buttons --}}
-            @if($order->payment_status === 'waiting_verification')
+            @if($order->payment_method === 'cash' && $order->order_status === 'pending' && $order->payment_status === 'pending')
+                <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="action" value="start_processing">
+                    <button type="submit" class="btn btn-info fw-semibold shadow-sm px-3">Mulai Diproses</button>
+                </form>
+            @elseif($order->payment_status === 'waiting_verification')
                 <button type="button" class="btn btn-success fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#approvePaymentModal" title="Setujui Pembayaran" aria-label="Setujui Pembayaran">
                     ✅ Approve Payment
                 </button>
                 <button type="button" class="btn btn-danger fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#rejectPaymentModal" title="Tolak Pembayaran" aria-label="Tolak Pembayaran">
                     ❌ Reject Payment
                 </button>
-            @elseif($order->payment_status === 'paid' || $order->order_status === 'processing')
+            @elseif($order->order_status === 'processing')
                 <button type="button" class="btn btn-primary fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#readyForPickupModal" title="Tandai Siap Diambil">
                     📦 Ready for Pickup
                 </button>
+            @elseif($order->order_status === 'ready_for_pickup' && $order->payment_method === 'cash' && $order->payment_status === 'pending')
+                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm px-3">Print Pickup Receipt</a>
+                <button type="button" class="btn btn-success fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#cashPaymentModal">Konfirmasi Pembayaran Tunai</button>
             @elseif($order->order_status === 'ready_for_pickup')
                 <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm px-3" title="Buka Halaman Cetak Struk Pengambilan">
                     🖨 Print Pickup Receipt
@@ -192,6 +202,18 @@
                     <h5 class="fw-bold mb-0 text-dark">💳 Payment Verification</h5>
                 </div>
                 <div class="card-body p-4">
+                    @if($order->payment_method === 'cash')
+                        <table class="table table-borderless align-middle mb-3 small"><tbody>
+                            <tr><th class="ps-0 text-secondary" style="width:42%">Total Pesanan</th><td>: <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong></td></tr>
+                            <tr><th class="ps-0 text-secondary">Status Pembayaran</th><td>: <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-warning text-dark' }}">{{ $order->payment_status === 'paid' ? 'Paid' : 'Menunggu Pembayaran Tunai' }}</span></td></tr>
+                            @if($order->payment?->received_amount !== null)
+                                <tr><th class="ps-0 text-secondary">Uang Diterima</th><td>: Rp {{ number_format($order->payment->received_amount, 0, ',', '.') }}</td></tr>
+                                <tr><th class="ps-0 text-secondary">Kembalian</th><td>: Rp {{ number_format($order->payment->change_amount, 0, ',', '.') }}</td></tr>
+                                <tr><th class="ps-0 text-secondary">Diterima Oleh</th><td>: {{ $order->payment->verifiedByAdmin?->name ?? '-' }}</td></tr>
+                            @endif
+                        </tbody></table>
+                        <p class="text-muted small mb-0">Pembayaran tunai diterima di kasir saat customer mengambil pesanan; tidak ada upload atau verifikasi bukti.</p>
+                    @else
                     <div class="table-responsive mb-3">
                         <table class="table table-borderless align-middle mb-0 small">
                             <tbody>
@@ -265,6 +287,7 @@
                             @endif
                         </div>
                     @endif
+                    @endif
                 </div>
             </div>
 
@@ -322,6 +345,12 @@
                                 <small class="text-muted">{{ $order->created_at ? $order->created_at->format('d M Y, H:i') : '-' }}</small>
                             </div>
                         </li>
+                        @if($order->payment_method === 'cash')
+                            <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
+                            <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Pesanan siap diambil customer</small></div></li>
+                            <li class="mb-3 d-flex align-items-start {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir dan pembayaran tunai diproses kasir</small></div></li>
+                            <li class="mb-3 d-flex align-items-start {{ $order->payment_status === 'paid' ? '' : 'opacity-50' }}"><span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
+                        @else
                         <li class="mb-3 d-flex align-items-start {{ $order->payment_status !== 'pending' ? '' : 'opacity-50' }}">
                             <span class="badge {{ in_array($order->payment_status, ['waiting_verification', 'paid', 'ready_for_pickup', 'completed', 'rejected']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
                                 {{ in_array($order->payment_status, ['waiting_verification', 'paid', 'ready_for_pickup', 'completed', 'rejected']) ? '✓' : '🟡' }}
@@ -349,6 +378,7 @@
                                 <small class="text-muted">Pesanan Siap Diambil di toko</small>
                             </div>
                         </li>
+                        @endif
                         @if($order->payment_status === 'rejected' || $order->order_status === 'cancelled')
                             <li class="d-flex align-items-start">
                                 <span class="badge bg-danger rounded-circle p-2 me-3">🔴</span>
@@ -504,6 +534,25 @@
 @endif
 
 {{-- Bootstrap Confirmation Modals --}}
+
+@if($order->payment_method === 'cash' && $order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending')
+    <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Konfirmasi Pembayaran Tunai</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+                @csrf @method('PUT')
+                <input type="hidden" name="action" value="confirm_cash_payment">
+                <div class="modal-body p-4"><p class="mb-3">Total pesanan: <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong></p>
+                    <label for="received_amount" class="form-label fw-semibold">Uang Diterima</label>
+                    <input id="received_amount" name="received_amount" type="number" min="{{ $order->grand_total }}" step="1" class="form-control @error('received_amount') is-invalid @enderror" value="{{ old('received_amount') }}" required>
+                    @error('received_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="mt-3 p-3 bg-light rounded">Kembalian: <strong id="cashChangePreview">Rp 0</strong></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-success">Konfirmasi Pembayaran Tunai</button></div>
+            </form>
+        </div></div>
+    </div>
+@endif
 
 @if($order->payment_status === 'waiting_verification')
     {{-- Modal Confirmation: Approve Payment --}}
@@ -681,6 +730,16 @@
         setupSubmitHandler('rejectOrderForm', 'rejectSubmitBtn', 'rejectSpinner', 'rejectBtnText', 'Memproses...');
         setupSubmitHandler('readyOrderForm', 'readySubmitBtn', 'readySpinner', 'readyBtnText', 'Memproses...');
         setupSubmitHandler('completeOrderForm', 'completeSubmitBtn', 'completeSpinner', 'completeBtnText', 'Memproses...');
+
+        const receivedAmount = document.getElementById('received_amount');
+        const changePreview = document.getElementById('cashChangePreview');
+        if (receivedAmount && changePreview) {
+            const total = {{ (float) $order->grand_total }};
+            receivedAmount.addEventListener('input', function () {
+                const received = Number(this.value || 0);
+                changePreview.textContent = 'Rp ' + Math.max(0, received - total).toLocaleString('id-ID');
+            });
+        }
     });
 </script>
 @endpush

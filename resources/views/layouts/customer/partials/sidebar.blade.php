@@ -74,6 +74,14 @@
 
         </a>
 
+        <a href="{{ route('customer.reports.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('customer.reports.*', 'customer.orders.reports.*') ? 'active' : 'bg-dark text-white' }}">
+
+            📊 Reports
+
+        </a>
+
         {{-- Account --}}
         <div class="px-3 pt-4 pb-2 text-uppercase small fw-bold text-secondary">
 

@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+        outline: 3px solid rgba(13, 110, 253, .35);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .list-group-item-action { transition: background-color .15s ease, color .15s ease; }
+    .list-group-item-action:not(.active):hover { background-color: rgba(255,255,255,.12) !important; color: #fff !important; }
+    .btn:disabled, .btn.disabled { cursor: not-allowed; opacity: .65; }
+    .card { border-radius: .75rem; }
+    .form-control, .form-select { min-height: 2.5rem; }
+}

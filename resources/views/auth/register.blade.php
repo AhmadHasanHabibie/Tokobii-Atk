@@ -1,6 +1,6 @@
 @extends('layouts.guest.auth')
 
-@section('title', 'Register')
+@section('title', 'Daftar')
 
 @section('subtitle', 'Buat akun baru Tokobii.')
 
@@ -149,7 +149,7 @@
             type="submit"
             class="btn btn-primary">
 
-            Register
+            Daftar
 
         </button>
 

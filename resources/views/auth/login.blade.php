@@ -1,6 +1,6 @@
 @extends('layouts.guest.auth')
 
-@section('title', 'Login')
+@section('title', 'Masuk')
 
 @section('subtitle', 'Masuk ke akun Tokobii Anda.')
 
@@ -100,7 +100,7 @@
             class="form-check-label"
             for="remember">
 
-            Remember Me
+            Ingat Saya
 
         </label>
 
@@ -113,7 +113,7 @@
             type="submit"
             class="btn btn-primary">
 
-            Login
+            Masuk
 
         </button>
 
@@ -128,7 +128,7 @@
                 href="{{ route('password.request') }}"
                 class="text-decoration-none">
 
-                Lupa Password?
+                Lupa Kata Sandi?
 
             </a>
 

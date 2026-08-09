@@ -21,6 +21,8 @@ class Payment extends Model
         'payment_method',
         'payment_status',
         'amount',
+        'received_amount',
+        'change_amount',
         'proof_of_payment',
         'payment_date',
         'verified_by_admin_id',
@@ -35,6 +37,8 @@ class Payment extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
+        'received_amount' => 'decimal:2',
+        'change_amount' => 'decimal:2',
         'payment_date' => 'datetime',
         'verified_at' => 'datetime',
         'created_at' => 'datetime',

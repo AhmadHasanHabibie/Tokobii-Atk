@@ -79,6 +79,11 @@ class Order extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
     /**
      * Helper to generate a unique invoice number format (e.g. INV-20260805-0001).
      */

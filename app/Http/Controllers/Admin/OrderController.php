@@ -152,8 +152,53 @@ class OrderController extends Controller
     {
         $action = $request->input('action');
 
+        if ($action === 'start_processing') {
+            if ($order->payment_method !== 'cash' || $order->order_status !== 'pending' || $order->payment_status !== 'pending') {
+                return back()->with('error', 'Hanya pesanan tunai yang masih menunggu pembayaran dapat mulai diproses.');
+            }
+
+            $order->update(['order_status' => 'processing']);
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Pesanan tunai mulai diproses. Status pembayaran tetap menunggu pembayaran tunai.');
+        }
+
+        if ($action === 'confirm_cash_payment') {
+            if ($order->payment_method !== 'cash' || $order->order_status !== 'ready_for_pickup' || $order->payment_status !== 'pending') {
+                return back()->with('error', 'Pembayaran tunai hanya dapat dikonfirmasi saat pesanan Cash sudah Ready for Pickup.');
+            }
+
+            $data = $request->validate([
+                'received_amount' => ['required', 'numeric', 'min:' . $order->grand_total],
+            ], [
+                'received_amount.required' => 'Uang diterima wajib diisi.',
+                'received_amount.numeric' => 'Uang diterima harus berupa angka.',
+                'received_amount.min' => 'Uang diterima kurang dari total pembayaran.',
+            ]);
+
+            $change = (float) $data['received_amount'] - (float) $order->grand_total;
+            $payment = $order->payment;
+
+            if (!$payment) {
+                return back()->with('error', 'Data pembayaran pesanan tidak ditemukan.');
+            }
+
+            $payment->update([
+                'payment_status' => 'paid',
+                'received_amount' => $data['received_amount'],
+                'change_amount' => $change,
+                'verified_by_admin_id' => auth()->id(),
+                'verified_at' => now(),
+                'reject_reason' => null,
+            ]);
+            $order->update(['payment_status' => 'paid']);
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Pembayaran tunai dikonfirmasi. Kembalian: Rp ' . number_format($change, 0, ',', '.') . '.');
+        }
+
         if ($action === 'approve_payment') {
-            if ($order->payment_status !== 'waiting_verification') {
+            if ($order->payment_method !== 'qris' || $order->payment_status !== 'waiting_verification') {
                 return back()->with('error', 'Hanya pembayaran berstatus Waiting Verification yang dapat disetujui.');
             }
 
@@ -176,7 +221,7 @@ class OrderController extends Controller
         }
 
         if ($action === 'reject_payment') {
-            if ($order->payment_status !== 'waiting_verification') {
+            if ($order->payment_method !== 'qris' || $order->payment_status !== 'waiting_verification') {
                 return back()->with('error', 'Hanya pembayaran berstatus Waiting Verification yang dapat ditolak.');
             }
 
@@ -206,40 +251,26 @@ class OrderController extends Controller
         }
 
         if ($action === 'ready_for_pickup') {
-            if ($order->payment_status !== 'paid' && $order->order_status !== 'processing') {
-                return back()->with('error', 'Hanya pesanan yang sudah dibayar (Paid) yang dapat diubah menjadi Ready for Pickup.');
+            $canBeReady = $order->payment_method === 'cash'
+                ? $order->order_status === 'processing' && $order->payment_status === 'pending'
+                : $order->payment_status === 'paid' && $order->order_status === 'processing';
+
+            if (!$canBeReady) {
+                return back()->with('error', 'Status pesanan belum memenuhi syarat untuk Ready for Pickup.');
             }
 
-            $order->update([
-                'order_status' => 'ready_for_pickup',
-                'payment_status' => 'ready_for_pickup',
-            ]);
-
-            if ($order->payment) {
-                $order->payment->update([
-                    'payment_status' => 'ready_for_pickup',
-                ]);
-            }
+            $order->update(['order_status' => 'ready_for_pickup']);
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', 'Pesanan ' . $order->invoice_number . ' kini Siap Diambil di toko (Ready for Pickup).');
         }
 
         if ($action === 'complete') {
-            if (!in_array($order->order_status, ['ready_for_pickup', 'processing']) && !in_array($order->payment_status, ['paid', 'ready_for_pickup'])) {
-                return back()->with('error', 'Status pesanan tidak memenuhi syarat untuk diselesaikan.');
+            if ($order->order_status !== 'ready_for_pickup' || $order->payment_status !== 'paid') {
+                return back()->with('error', 'Pesanan harus Ready for Pickup dan pembayarannya Paid sebelum diselesaikan.');
             }
 
-            $order->update([
-                'order_status' => 'completed',
-                'payment_status' => 'completed',
-            ]);
-
-            if ($order->payment) {
-                $order->payment->update([
-                    'payment_status' => 'completed',
-                ]);
-            }
+            $order->update(['order_status' => 'completed']);
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', 'Pesanan ' . $order->invoice_number . ' telah Selesai (Completed).');

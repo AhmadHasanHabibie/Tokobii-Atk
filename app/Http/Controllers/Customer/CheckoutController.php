@@ -116,13 +116,9 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        // Revised Workflow: QRIS redirects to Lakukan Pembayaran page, CASH redirects to Order History / Detail Order
-        if ($order->payment_method === 'qris') {
-            return redirect()->route('customer.orders.pay', $order)
-                ->with('info', 'Pesanan ' . $order->invoice_number . ' berhasil dibuat. Silakan selesaikan pembayaran QRIS di bawah ini.');
-        }
-
-        return redirect()->route('customer.orders.show', $order)
-            ->with('success', 'Pesanan ' . $order->invoice_number . ' berhasil dibuat. Pembayaran secara tunai dilakukan di kasir toko saat mengambil pesanan.');
+        return redirect()->route('customer.orders.index')
+            ->with('success', 'Pesanan berhasil dibuat. ' . ($order->payment_method === 'qris'
+                ? 'Silakan buka pesanan terbaru untuk menyelesaikan pembayaran QRIS.'
+                : 'Pembayaran tunai dilakukan di kasir saat pesanan diambil.'));
     }
 }

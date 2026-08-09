@@ -127,7 +127,7 @@
                                 <tr>
                                     <th class="ps-0 text-secondary fw-semibold">Status Pembayaran</th>
                                     <td>: 
-                                        @if($order->payment_status === 'paid' || in_array($order->order_status, ['ready_for_pickup', 'completed']))
+                                        @if($order->payment_status === 'paid')
                                             <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
                                         @elseif($order->payment_status === 'waiting_verification')
                                             <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
@@ -289,6 +289,14 @@
                 </div>
                 <div class="card-body p-4">
                     <ul class="timeline list-unstyled mb-0 position-relative">
+                    @if($order->payment_method === 'cash')
+                        <li class="mb-3 d-flex align-items-start"><span class="badge bg-success rounded-circle p-2 me-3">✓</span><div><h6 class="fw-bold mb-0 text-dark">Order Created</h6><small class="text-muted">{{ $order->created_at?->format('d M Y, H:i') }}</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->order_status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Bayar tunai saat mengambil pesanan</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->payment_status, ['waiting_verification', 'paid']) || $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir di kasir untuk pembayaran tunai</small></div></li>
+                        <li class="mb-3 d-flex align-items-start {{ $order->payment_status === 'paid' ? '' : 'opacity-50' }}"><span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
+                        <li class="d-flex align-items-start {{ $order->order_status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ $order->order_status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">🏁</span><div><h6 class="fw-bold mb-0 text-dark">Completed</h6><small class="text-muted">Pesanan telah diserahkan</small></div></li>
+                    @else
                         {{-- 1. Order Created --}}
                         <li class="mb-3 d-flex align-items-start">
                             <span class="badge bg-success rounded-circle p-2 me-3">✓</span>
@@ -362,6 +370,7 @@
                                 </div>
                             </li>
                         @endif
+                    @endif
                     </ul>
                 </div>
             </div>
@@ -439,7 +448,7 @@
                                     <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 10%;">Qty</th>
                                     <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 18%;">Harga</th>
                                     <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 20%;">Subtotal</th>
-                                    @if($order->order_status === 'completed')<th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end">Review</th>@endif
+                                    @if($order->order_status === 'completed')<th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end">Review / Report</th>@endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -473,7 +482,7 @@
                                         <td class="pe-4 text-end font-monospace fw-bold text-primary">
                                             Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
-                                        @if($order->order_status === 'completed')<td class="pe-4 text-end">@if($item->review)<span class="badge bg-success">Sudah Direview</span>@if($item->review->canBeEdited())<a class="btn btn-sm btn-outline-secondary mt-1" href="{{ route('customer.reviews.edit', $item->review) }}">Edit Review</a><small class="d-block text-muted">Edit tersedia sampai {{ $item->review->created_at->copy()->addHours(24)->format('d M Y H:i') }}</small>@else<button class="btn btn-sm btn-secondary mt-1" disabled>Edit Terkunci</button><small class="d-block text-muted">Periode edit 24 jam telah berakhir.</small>@endif @elseif($item->product_id)<a class="btn btn-sm btn-outline-primary" href="{{ route('customer.orders.reviews.create', [$order, $item]) }}">Review Produk</a>@endif</td>@endif
+                                        @if($order->order_status === 'completed')<td class="pe-4 text-end">@if($item->review)<span class="badge bg-success">Sudah Direview</span>@if($item->review->canBeEdited())<a class="btn btn-sm btn-outline-secondary mt-1" href="{{ route('customer.reviews.edit', $item->review) }}">Edit Review</a><small class="d-block text-muted">Edit tersedia sampai {{ $item->review->created_at->copy()->addHours(24)->format('d M Y H:i') }}</small>@else<button class="btn btn-sm btn-secondary mt-1" disabled>Edit Terkunci</button><small class="d-block text-muted">Periode edit 24 jam telah berakhir.</small>@endif @elseif($item->product_id)<a class="btn btn-sm btn-outline-primary" href="{{ route('customer.orders.reviews.create', [$order, $item]) }}">Review Produk</a>@endif @if($item->product_id)<div class="mt-1">@if($item->reports->isNotEmpty())<span class="badge bg-secondary">Sudah Dilaporkan</span>@else<a class="btn btn-sm btn-outline-danger" href="{{ route('customer.orders.reports.create', [$order, $item]) }}">Report Product</a>@endif</div>@endif</td>@endif
                                     </tr>
                                 @endforeach
                             </tbody>

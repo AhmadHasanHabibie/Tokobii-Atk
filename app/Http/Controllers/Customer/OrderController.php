@@ -17,7 +17,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Order::with(['items.product', 'items.review', 'payment'])
+        $query = Order::with(['items.product', 'items.review', 'items.reports', 'payment'])
             ->where('user_id', auth()->id());
 
         // Search by Invoice Number or Product Name
@@ -56,7 +56,7 @@ class OrderController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat pesanan ini.');
         }
 
-        $order->load(['items.product', 'items.review', 'payment', 'user']);
+        $order->load(['items.product', 'items.review', 'items.reports', 'payment', 'user']);
 
         return view('customer.orders.show', compact('order'));
     }

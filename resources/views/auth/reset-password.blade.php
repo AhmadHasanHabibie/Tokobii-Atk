@@ -1,8 +1,8 @@
 @extends('layouts.guest.auth')
 
-@section('title', 'Reset Password')
+@section('title', 'Atur Ulang Kata Sandi')
 
-@section('subtitle', 'Buat password baru untuk akun Tokobii Anda.')
+@section('subtitle', 'Buat kata sandi baru untuk akun Tokobii Anda.')
 
 @section('content')
 
@@ -58,7 +58,7 @@
             for="password"
             class="form-label fw-semibold">
 
-            Password Baru
+            Kata Sandi Baru
 
         </label>
 
@@ -90,7 +90,7 @@
             for="password_confirmation"
             class="form-label fw-semibold">
 
-            Konfirmasi Password
+            Konfirmasi Kata Sandi
 
         </label>
 
@@ -122,7 +122,7 @@
             type="submit"
             class="btn btn-primary">
 
-            Reset Password
+            Atur Ulang Kata Sandi
 
         </button>
 

@@ -5,6 +5,7 @@ use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\DashboardController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ReviewController;
+use App\Http\Controllers\Customer\ReportController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\ShopController;
 use Illuminate\Support\Facades\Route;
@@ -104,6 +105,10 @@ Route::middleware(['auth', 'verified', 'customer'])
         Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
         Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/orders/{order}/items/{item}/report', [ReportController::class, 'create'])->name('orders.reports.create');
+        Route::post('/orders/{order}/items/{item}/report', [ReportController::class, 'store'])->name('orders.reports.store');
 
         /*
         |--------------------------------------------------------------------------

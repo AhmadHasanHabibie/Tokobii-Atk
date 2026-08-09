@@ -60,4 +60,9 @@ class Product extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
 }

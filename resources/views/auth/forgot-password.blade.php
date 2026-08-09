@@ -1,15 +1,14 @@
 @extends('layouts.guest.auth')
 
-@section('title', 'Lupa Password')
+@section('title', 'Lupa Kata Sandi')
 
-@section('subtitle', 'Masukkan email Anda untuk menerima tautan reset password.')
+@section('subtitle', 'Masukkan alamat email Anda untuk menerima tautan mengatur ulang kata sandi.')
 
 @section('content')
 
 <div class="mb-4 text-muted">
 
-    Lupa password? Tidak masalah. Masukkan alamat email yang terdaftar,
-    kemudian kami akan mengirimkan tautan untuk mengatur ulang password Anda.
+    Masukkan alamat email yang terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.
 
 </div>
 
@@ -34,7 +33,7 @@
             for="email"
             class="form-label fw-semibold">
 
-            Email
+            Alamat Email
 
         </label>
 
@@ -44,7 +43,7 @@
             name="email"
             value="{{ old('email') }}"
             class="form-control @error('email') is-invalid @enderror"
-            placeholder="Masukkan email Anda"
+            placeholder="Masukkan alamat email Anda"
             required
             autofocus>
 
@@ -66,7 +65,7 @@
             type="submit"
             class="btn btn-primary">
 
-            Kirim Link Reset Password
+            Kirim Tautan Reset Kata Sandi
 
         </button>
 

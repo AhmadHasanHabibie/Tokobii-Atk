@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -63,6 +64,13 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::get('reviews/categories/{category}', [ReviewController::class, 'category'])->name('reviews.categories.show');
         Route::get('reviews/products/{product}', [ReviewController::class, 'product'])->name('reviews.products.show');
+
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/categories/{category}', [ReportController::class, 'category'])->name('reports.categories.show');
+        Route::get('reports/products/{product}', [ReportController::class, 'product'])->name('reports.products.show');
+        Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+        Route::put('reports/{report}/reply', [ReportController::class, 'reply'])->name('reports.reply');
+        Route::put('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
 
         /*
         |--------------------------------------------------------------------------

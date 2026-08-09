@@ -101,24 +101,11 @@
 
         </div>
 
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
+        <a href="{{ route('admin.reports.index') }}"
+           class="list-group-item list-group-item-action border-0
+           {{ request()->routeIs('admin.reports.*') ? 'active' : 'bg-dark text-white' }}">
 
-            📈 Sales Report
-
-        </a>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
-
-            📦 Product Report
-
-        </a>
-
-        <a href="#"
-           class="list-group-item list-group-item-action bg-dark text-white border-0 disabled">
-
-            👥 Customer Report
+            📊 Reports
 
         </a>
 
