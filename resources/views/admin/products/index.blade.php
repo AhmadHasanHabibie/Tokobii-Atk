@@ -1,374 +1,923 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Product Management - Tokobii')
+@section('title', 'Manajemen Produk - Tokobii')
 
 @section('content')
 <div class="container-fluid px-0">
 
     {{-- Breadcrumb --}}
     <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}"
+                   class="text-decoration-none text-slate-500 hover-text-blue-600">
+                    Dashboard
+                </a>
             </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Product Management</li>
+
+            <li class="breadcrumb-item active text-slate-800 fw-semibold"
+                aria-current="page">
+                Produk
+            </li>
+
         </ol>
     </nav>
 
+
     {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
         <div>
-            <h2 class="fw-bold mb-1 text-dark">Product Management</h2>
-            <p class="text-muted mb-0">Kelola dan atur katalog produk serta stok inventaris Tokobii.</p>
+            <h1 class="h3 fw-bold text-slate-900 mb-1"
+                style="color: #0f172a;">
+                Produk
+            </h1>
+
+            <p class="text-slate-500 mb-0"
+               style="font-size: 0.875rem;">
+                Kelola produk toko, harga, dan tingkat stok inventaris.
+            </p>
         </div>
-        <div class="mt-3 mt-md-0">
-            <a href="{{ route('admin.products.create') }}" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm rounded-2">
-                📦 Tambah Product
+
+        <div>
+
+            {{-- Tombol Tambah Produk --}}
+            <a href="{{ route('admin.products.create') }}"
+               class="btn d-inline-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+               style="
+                    background-color: #2563eb;
+                    border: 1px solid #2563eb;
+                    color: #ffffff;
+                    padding: 10px 18px;
+                    min-height: 42px;
+               ">
+
+                <svg width="17"
+                     height="17"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4">
+                    </path>
+
+                </svg>
+
+                <span>Tambah Produk</span>
+
             </a>
+
         </div>
+
     </div>
+
 
     {{-- Mini Dashboard Statistic Cards --}}
     <div class="row g-3 mb-4">
+
+        {{-- Total Produk --}}
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+
+            <div class="tokobii-card p-3">
+
+                <div class="d-flex align-items-center justify-content-between">
+
                     <div>
-                        <span class="text-muted small fw-semibold text-uppercase">Total Product</span>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ number_format($totalProducts) }}</h3>
+
+                        <span class="text-slate-400 text-uppercase fw-bold"
+                              style="
+                                font-size: 0.6875rem;
+                                letter-spacing: 0.05em;
+                              ">
+                            Total Produk
+                        </span>
+
+                        <h3 class="fw-bold text-slate-900 mb-0 mt-1"
+                            style="font-size: 1.5rem;">
+                            {{ number_format($totalProducts) }}
+                        </h3>
+
                     </div>
-                    <div class="bg-light rounded-circle p-3 text-primary fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        📦
+
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                         style="
+                            width: 44px;
+                            height: 44px;
+                            background-color: #eff6ff;
+                            color: #2563eb;
+                         ">
+
+                        <svg width="20"
+                             height="20"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4">
+                            </path>
+
+                        </svg>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
+
+        {{-- Status Aktif --}}
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+
+            <div class="tokobii-card p-3">
+
+                <div class="d-flex align-items-center justify-content-between">
+
                     <div>
-                        <span class="text-muted small fw-semibold text-uppercase">Active Status</span>
-                        <h3 class="fw-bold text-success mb-0 mt-1">{{ number_format($activeProducts) }}</h3>
+
+                        <span class="text-slate-400 text-uppercase fw-bold"
+                              style="
+                                font-size: 0.6875rem;
+                                letter-spacing: 0.05em;
+                              ">
+                            Status Aktif
+                        </span>
+
+                        <h3 class="fw-bold text-emerald-600 mb-0 mt-1"
+                            style="font-size: 1.5rem;">
+                            {{ number_format($activeProducts) }}
+                        </h3>
+
                     </div>
-                    <div class="bg-success-subtle rounded-circle p-3 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        🟢
+
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                         style="
+                            width: 44px;
+                            height: 44px;
+                            background-color: #f0fdf4;
+                            color: #16a34a;
+                         ">
+
+                        <svg width="20"
+                             height="20"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M5 13l4 4L19 7">
+                            </path>
+
+                        </svg>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
+
+        {{-- Status Tidak Aktif --}}
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+
+            <div class="tokobii-card p-3">
+
+                <div class="d-flex align-items-center justify-content-between">
+
                     <div>
-                        <span class="text-muted small fw-semibold text-uppercase">Inactive Status</span>
-                        <h3 class="fw-bold text-secondary mb-0 mt-1">{{ number_format($inactiveProducts) }}</h3>
+
+                        <span class="text-slate-400 text-uppercase fw-bold"
+                              style="
+                                font-size: 0.6875rem;
+                                letter-spacing: 0.05em;
+                              ">
+                            Status Tidak Aktif
+                        </span>
+
+                        <h3 class="fw-bold text-slate-500 mb-0 mt-1"
+                            style="font-size: 1.5rem;">
+                            {{ number_format($inactiveProducts) }}
+                        </h3>
+
                     </div>
-                    <div class="bg-light rounded-circle p-3 text-secondary fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        ⚫
+
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                         style="
+                            width: 44px;
+                            height: 44px;
+                            background-color: #f8fafc;
+                            color: #64748b;
+                         ">
+
+                        <svg width="20"
+                             height="20"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+
+                        </svg>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
+
+        {{-- Stok Habis --}}
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-3 d-flex align-items-center justify-content-between">
+
+            <div class="tokobii-card p-3">
+
+                <div class="d-flex align-items-center justify-content-between">
+
                     <div>
-                        <span class="text-muted small fw-semibold text-uppercase">Out Of Stock</span>
-                        <h3 class="fw-bold text-danger mb-0 mt-1">{{ number_format($outOfStockProducts) }}</h3>
+
+                        <span class="text-slate-400 text-uppercase fw-bold"
+                              style="
+                                font-size: 0.6875rem;
+                                letter-spacing: 0.05em;
+                              ">
+                            Stok Habis
+                        </span>
+
+                        <h3 class="fw-bold text-rose-600 mb-0 mt-1"
+                            style="font-size: 1.5rem;">
+                            {{ number_format($outOfStockProducts) }}
+                        </h3>
+
                     </div>
-                    <div class="bg-danger-subtle rounded-circle p-3 text-danger fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        🔴
+
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                         style="
+                            width: 44px;
+                            height: 44px;
+                            background-color: #fef2f2;
+                            color: #dc2626;
+                         ">
+
+                        <svg width="20"
+                             height="20"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+
+                        </svg>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 
     {{-- Filter, Search, and Sort Bar --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-body p-3">
-            <form action="{{ route('admin.products.index') }}" method="GET" class="row g-2 align-items-center">
-                
-                {{-- Search Input --}}
-                <div class="col-12 col-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted" id="search-addon">🔍</span>
-                        <input type="text" 
-                               name="search" 
-                               class="form-control border-start-0 ps-0" 
-                               placeholder="Cari nama, SKU, deskripsi..." 
-                               value="{{ request('search') }}"
-                               aria-label="Cari produk"
-                               aria-describedby="search-addon">
-                    </div>
-                </div>
+    <div class="tokobii-card p-3 mb-4">
 
-                {{-- Category Filter --}}
-                <div class="col-12 col-sm-6 col-md-2">
-                    <select name="category_id" class="form-select" aria-label="Filter kategori">
-                        <option value="">Semua Category</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ (request('category_id') == $category->id || request('category') == $category->id) ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+        <form action="{{ route('admin.products.index') }}"
+              method="GET"
+              class="row g-2 align-items-center">
 
-                {{-- Status Filter --}}
-                <div class="col-12 col-sm-6 col-md-2">
-                    <select name="status" class="form-select" aria-label="Filter status">
-                        <option value="">Semua Status</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    </select>
-                </div>
+            {{-- Search --}}
+            <div class="col-12 col-md-3">
 
-                {{-- Stock Filter --}}
-                <div class="col-12 col-sm-6 col-md-2">
-                    <select name="stock" class="form-select" aria-label="Filter stok">
-                        <option value="">Semua Stock</option>
-                        <option value="in_stock" {{ request('stock') === 'in_stock' ? 'selected' : '' }}>In Stock (> 20)</option>
-                        <option value="low_stock" {{ request('stock') === 'low_stock' ? 'selected' : '' }}>Low Stock (1-20)</option>
-                        <option value="out_of_stock" {{ request('stock') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock (0)</option>
-                    </select>
-                </div>
+                <input type="text"
+                       name="search"
+                       class="tokobii-input w-100"
+                       placeholder="Cari nama produk, SKU..."
+                       value="{{ request('search') }}">
 
-                {{-- Sorting --}}
-                <div class="col-12 col-sm-6 col-md-2">
-                    <select name="sort" class="form-select" aria-label="Urutkan produk">
-                        <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Urutkan: Terbaru</option>
-                        <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Urutkan: Terlama</option>
-                        <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama (A-Z)</option>
-                        <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama (Z-A)</option>
-                        <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Harga Termurah</option>
-                        <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Harga Termahal</option>
-                        <option value="stock_asc" {{ request('sort') === 'stock_asc' ? 'selected' : '' }}>Stok Terendah</option>
-                        <option value="stock_desc" {{ request('sort') === 'stock_desc' ? 'selected' : '' }}>Stok Tertinggi</option>
-                    </select>
-                </div>
+            </div>
 
-                {{-- Filter Action Buttons --}}
-                <div class="col-12 col-md-1 d-flex gap-1">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
-                        Filter
-                    </button>
-                    @if(request()->hasAny(['search', 'category_id', 'category', 'status', 'stock', 'sort']))
-                        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary" title="Reset Filter" aria-label="Reset Filter">
-                            ↺
-                        </a>
-                    @endif
-                </div>
 
-            </form>
-        </div>
+            {{-- Category --}}
+            <div class="col-12 col-sm-6 col-md-2">
+
+                <select name="category_id"
+                        class="tokobii-select w-100">
+
+                    <option value="">
+                        Semua Kategori
+                    </option>
+
+                    @foreach($categories as $category)
+
+                        <option value="{{ $category->id }}"
+                            {{ (request('category_id') == $category->id || request('category') == $category->id) ? 'selected' : '' }}>
+
+                            {{ $category->name }}
+
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+            </div>
+
+
+            {{-- Status --}}
+            <div class="col-12 col-sm-6 col-md-2">
+
+                <select name="status"
+                        class="tokobii-select w-100">
+
+                    <option value="">
+                        Semua Status
+                    </option>
+
+                    <option value="active"
+                        {{ request('status') === 'active' ? 'selected' : '' }}>
+                        Aktif
+                    </option>
+
+                    <option value="inactive"
+                        {{ request('status') === 'inactive' ? 'selected' : '' }}>
+                        Tidak Aktif
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            {{-- Stock --}}
+            <div class="col-12 col-sm-6 col-md-2">
+
+                <select name="stock"
+                        class="tokobii-select w-100">
+
+                    <option value="">
+                        Semua Stok
+                    </option>
+
+                    <option value="in_stock"
+                        {{ request('stock') === 'in_stock' ? 'selected' : '' }}>
+                        Stok Tersedia (> 20)
+                    </option>
+
+                    <option value="low_stock"
+                        {{ request('stock') === 'low_stock' ? 'selected' : '' }}>
+                        Stok Menipis (1-20)
+                    </option>
+
+                    <option value="out_of_stock"
+                        {{ request('stock') === 'out_of_stock' ? 'selected' : '' }}>
+                        Stok Habis (0)
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            {{-- Sort --}}
+            <div class="col-12 col-sm-6 col-md-2">
+
+                <select name="sort"
+                        class="tokobii-select w-100">
+
+                    <option value="latest"
+                        {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>
+                        Urutan: Terbaru
+                    </option>
+
+                    <option value="oldest"
+                        {{ request('sort') === 'oldest' ? 'selected' : '' }}>
+                        Urutan: Terlama
+                    </option>
+
+                    <option value="name_asc"
+                        {{ request('sort') === 'name_asc' ? 'selected' : '' }}>
+                        Nama (A-Z)
+                    </option>
+
+                    <option value="name_desc"
+                        {{ request('sort') === 'name_desc' ? 'selected' : '' }}>
+                        Nama (Z-A)
+                    </option>
+
+                    <option value="price_asc"
+                        {{ request('sort') === 'price_asc' ? 'selected' : '' }}>
+                        Harga Terendah
+                    </option>
+
+                    <option value="price_desc"
+                        {{ request('sort') === 'price_desc' ? 'selected' : '' }}>
+                        Harga Tertinggi
+                    </option>
+
+                    <option value="stock_asc"
+                        {{ request('sort') === 'stock_asc' ? 'selected' : '' }}>
+                        Stok Terendah
+                    </option>
+
+                    <option value="stock_desc"
+                        {{ request('sort') === 'stock_desc' ? 'selected' : '' }}>
+                        Stok Tertinggi
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            {{-- Filter Button --}}
+            <div class="col-12 col-md-1 d-flex gap-1">
+
+                <button type="submit"
+                        class="btn btn-tokobii-primary w-100">
+                    Filter
+                </button>
+
+                @if(request()->hasAny([
+                    'search',
+                    'category_id',
+                    'category',
+                    'status',
+                    'stock',
+                    'sort'
+                ]))
+
+                    <a href="{{ route('admin.products.index') }}"
+                       class="btn btn-tokobii-secondary px-3"
+                       title="Reset Filter">
+                        ↺
+                    </a>
+
+                @endif
+
+            </div>
+
+        </form>
+
     </div>
 
-    {{-- Active Filter Info Banner --}}
-    @if(request()->hasAny(['search', 'category_id', 'category', 'status', 'stock']) && $products->isNotEmpty())
-        <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center justify-content-between small" role="alert">
-            <div>
-                🔍 Filter aktif diterapkan. Menampilkan <strong>{{ $products->total() }}</strong> produk.
-            </div>
-            <a href="{{ route('admin.products.index') }}" class="text-decoration-none fw-semibold">Reset Filter</a>
-        </div>
-    @endif
 
-    {{-- Product Table Card --}}
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-body p-0">
+    {{-- Product Table Container --}}
+    <div class="tokobii-table-container">
 
-            @forelse($products as $product)
-                @if($loop->first)
-                    <div class="table-responsive" style="max-height: 600px;">
-                        <table class="table table-striped table-hover align-middle mb-0">
-                            <thead class="table-light sticky-top shadow-sm border-bottom">
-                                <tr>
-                                    <th scope="col" class="ps-4 py-3 text-secondary small text-uppercase" style="width: 4%;">No</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 10%;">Thumbnail</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 20%;">Nama Product</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 12%;">Category</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 10%;">SKU</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 12%;">Harga</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 12%;">Stock</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 8%;">Status</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 10%;">Tanggal Dibuat</th>
-                                    <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 12%;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                @endif
+        @forelse($products as $product)
 
-                <tr>
-                    <td class="ps-4 fw-semibold text-secondary">{{ $products->firstItem() + $loop->index }}</td>
-                    <td>
-                        @if($product->thumbnail)
-                            <img src="{{ asset('storage/' . $product->thumbnail) }}" 
-                                 alt="Thumbnail {{ $product->name }}" 
-                                 class="rounded shadow-sm border" 
-                                 style="width: 60px; height: 60px; object-fit: cover;">
-                        @else
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" 
-                                 style="width: 60px; height: 60px;" 
-                                 title="No Image">
-                                <span class="small text-secondary fw-semibold">No Image</span>
-                            </div>
-                        @endif
-                    </td>
-                    <td>
-                        <span class="fw-bold text-dark d-inline-block text-truncate" style="max-width: 180px;" title="{{ $product->name }}">
-                            {{ $product->name }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1.5 fw-normal">
-                            {{ $product->category->name ?? '-' }}
-                        </span>
-                    </td>
-                    <td>
-                        <code class="text-secondary bg-light px-2 py-1 rounded small fw-semibold">{{ $product->sku }}</code>
-                    </td>
-                    <td class="fw-bold text-dark text-end">
-                        Rp {{ number_format($product->price, 0, ',', '.') }}
-                    </td>
-                    <td>
-                        @if($product->stock > 20)
-                            <span class="badge bg-success px-2.5 py-1.5 fw-normal" title="In Stock">
-                                🟢 In Stock ({{ $product->stock }})
-                            </span>
-                        @elseif($product->stock >= 1)
-                            <span class="badge bg-warning text-dark px-2.5 py-1.5 fw-normal" title="Low Stock">
-                                🟡 Low Stock ({{ $product->stock }})
-                            </span>
-                        @else
-                            <span class="badge bg-danger px-2.5 py-1.5 fw-normal" title="Out Of Stock">
-                                🔴 Out Of Stock
-                            </span>
-                        @endif
-                    </td>
-                    <td>
-                        @if($product->status === 'active')
-                            <span class="badge bg-success px-2.5 py-1.5 fw-normal">🟢 Active</span>
-                        @else
-                            <span class="badge bg-secondary px-2.5 py-1.5 fw-normal">⚫ Inactive</span>
-                        @endif
-                    </td>
-                    <td class="text-muted small">
-                        {{ $product->created_at ? $product->created_at->format('d M Y, H:i') : '-' }}
-                    </td>
-                    <td class="pe-4 text-end">
-                        <div class="btn-group btn-group-sm" role="group" aria-label="Aksi Produk">
-                            <a href="{{ route('admin.products.show', $product) }}" 
-                               class="btn btn-outline-info" 
-                               title="Detail Product" 
-                               aria-label="Detail {{ $product->name }}">
-                                Detail
-                            </a>
-                            <a href="{{ route('admin.products.edit', $product) }}" 
-                               class="btn btn-outline-warning" 
-                               title="Edit Product" 
-                               aria-label="Edit {{ $product->name }}">
-                                Edit
-                            </a>
-                            <button type="button" 
-                                    class="btn btn-outline-danger" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#deleteModal{{ $product->id }}" 
-                                    title="Delete Product" 
-                                    aria-label="Hapus {{ $product->name }}">
-                                Delete
-                            </button>
-                        </div>
+            @if($loop->first)
 
-                        {{-- Delete Confirmation Modal --}}
-                        <div class="modal fade" id="deleteModal{{ $product->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $product->id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow-lg rounded-3">
-                                    <div class="modal-header bg-danger text-white border-0 py-3">
-                                        <h5 class="modal-title fw-bold" id="deleteModalLabel{{ $product->id }}">Konfirmasi Hapus Product</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body text-start p-4">
-                                        <div class="d-flex align-items-center mb-3">
-                                            @if($product->thumbnail)
-                                                <img src="{{ asset('storage/' . $product->thumbnail) }}" 
-                                                     alt="Thumbnail {{ $product->name }}" 
-                                                     class="rounded me-3 border shadow-sm" 
-                                                     style="width: 65px; height: 65px; object-fit: cover;">
-                                            @else
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border me-3" 
-                                                     style="width: 65px; height: 65px;">
-                                                    <span class="small text-secondary">No Image</span>
-                                                </div>
-                                            @endif
-                                            <div>
-                                                <h6 class="fw-bold mb-1 text-dark">{{ $product->name }}</h6>
-                                                <small class="text-muted d-block">Category: {{ $product->category->name ?? '-' }}</small>
-                                                <small class="text-muted d-block">SKU: {{ $product->sku }}</small>
-                                                <small class="fw-bold text-primary">Harga: Rp {{ number_format($product->price, 0, ',', '.') }}</small>
-                                            </div>
-                                        </div>
-                                        <p class="mb-2 text-secondary">Apakah Anda yakin ingin menghapus produk ini dari katalog?</p>
-                                        <div class="alert alert-warning mb-0 py-2 small" role="alert">
-                                            ⚠️ Tindakan ini tidak dapat dibatalkan. Data produk yang dihapus akan terhapus secara permanen.
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer bg-light border-0 py-3">
-                                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
-                                        <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger px-4 fw-semibold">Delete</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                <div class="table-responsive">
 
-                @if($loop->last)
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            @empty
-                {{-- Empty State --}}
-                <div class="text-center py-5 px-4">
-                    <div class="mb-3">
-                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <span class="fs-1">📦</span>
-                        </div>
-                    </div>
-                    @if(request()->hasAny(['search', 'category_id', 'category', 'status', 'stock']))
-                        <h5 class="fw-bold text-dark mb-1">Produk tidak ditemukan.</h5>
-                        <p class="text-muted mb-4">Coba ubah kata kunci atau filter yang digunakan.</p>
-                        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-primary px-4 py-2 fw-semibold">
-                            Reset Filter
-                        </a>
+                    <table class="tokobii-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th style="width: 4%;">
+                                    No
+                                </th>
+
+                                <th style="width: 8%;">
+                                    Gambar
+                                </th>
+
+                                <th style="width: 22%;">
+                                    Nama Produk
+                                </th>
+
+                                <th style="width: 14%;">
+                                    Kategori
+                                </th>
+
+                                <th style="width: 10%;">
+                                    SKU
+                                </th>
+
+                                <th class="text-end"
+                                    style="width: 12%;">
+                                    Harga
+                                </th>
+
+                                <th style="width: 12%;">
+                                    Stok
+                                </th>
+
+                                <th style="width: 8%;">
+                                    Status
+                                </th>
+
+                                <th style="width: 10%;">
+                                    Dibuat
+                                </th>
+
+                                <th class="text-end"
+                                    style="width: 10%;">
+                                    Aksi
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+            @endif
+
+
+            <tr>
+
+                {{-- No --}}
+                <td class="fw-semibold text-slate-400">
+                    {{ $products->firstItem() + $loop->index }}
+                </td>
+
+
+                {{-- Gambar --}}
+                <td>
+
+                    @if($product->thumbnail)
+
+                        <img src="{{ asset('storage/' . $product->thumbnail) }}"
+                             alt="Thumbnail {{ $product->name }}"
+                             class="rounded-3 border border-slate-200"
+                             style="
+                                width: 44px;
+                                height: 44px;
+                                object-fit: cover;
+                             ">
+
                     @else
-                        <h5 class="fw-bold text-dark mb-1">Belum ada produk.</h5>
-                        <p class="text-muted mb-4">Tambahkan produk pertama Anda untuk mulai mengisi katalog barang Tokobii.</p>
-                        <a href="{{ route('admin.products.create') }}" class="btn btn-primary px-4 py-2 fw-semibold">
-                            Tambah Product
-                        </a>
+
+                        <div class="bg-slate-100 rounded-3 d-flex align-items-center justify-content-center text-slate-400 border border-slate-200"
+                             style="
+                                width: 44px;
+                                height: 44px;
+                                font-size: 0.75rem;
+                             ">
+                            Tidak Ada
+                        </div>
+
                     @endif
+
+                </td>
+
+
+                {{-- Nama Produk --}}
+                <td>
+
+                    <span class="fw-semibold text-slate-900 d-inline-block text-truncate"
+                          style="max-width: 220px;"
+                          title="{{ $product->name }}">
+
+                        {{ $product->name }}
+
+                    </span>
+
+                </td>
+
+
+                {{-- Kategori --}}
+                <td>
+
+                    <span class="tokobii-badge tokobii-badge-info">
+                        {{ $product->category->name ?? '-' }}
+                    </span>
+
+                </td>
+
+
+                {{-- SKU --}}
+                <td>
+
+                    <code class="text-slate-600 bg-slate-100 px-2 py-1 rounded small font-monospace">
+                        {{ $product->sku }}
+                    </code>
+
+                </td>
+
+
+                {{-- Harga --}}
+                <td class="fw-bold text-slate-900 text-end font-monospace">
+
+                    Rp {{ number_format($product->price, 0, ',', '.') }}
+
+                </td>
+
+
+                {{-- Stok --}}
+                <td>
+
+                    @if($product->stock > 20)
+
+                        <span class="tokobii-badge tokobii-badge-success">
+                            Tersedia ({{ $product->stock }})
+                        </span>
+
+                    @elseif($product->stock >= 1)
+
+                        <span class="tokobii-badge tokobii-badge-warning">
+                            Stok Menipis ({{ $product->stock }})
+                        </span>
+
+                    @else
+
+                        <span class="tokobii-badge tokobii-badge-danger">
+                            Stok Habis
+                        </span>
+
+                    @endif
+
+                </td>
+
+
+                {{-- Status --}}
+                <td>
+
+                    @if($product->status === 'active')
+
+                        <span class="tokobii-badge tokobii-badge-success">
+                            Aktif
+                        </span>
+
+                    @else
+
+                        <span class="tokobii-badge tokobii-badge-neutral">
+                            Tidak Aktif
+                        </span>
+
+                    @endif
+
+                </td>
+
+
+                {{-- Dibuat --}}
+                <td class="text-slate-500"
+                    style="font-size: 0.8125rem;">
+
+                    {{ $product->created_at ? $product->created_at->format('d M Y') : '-' }}
+
+                </td>
+
+
+                {{-- Aksi --}}
+                <td class="text-end">
+
+                    <div class="d-inline-flex gap-2">
+
+                        {{-- Tombol Lihat --}}
+                        <a href="{{ route('admin.products.show', $product) }}"
+                           class="btn btn-sm btn-outline-primary rounded-3 px-3 d-inline-flex align-items-center justify-content-center gap-1"
+                           style="
+                                border-color: #2563eb;
+                                color: #2563eb;
+                                min-height: 34px;
+                           ">
+
+                            <svg width="14"
+                                 height="14"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                </path>
+
+                                <circle cx="12"
+                                        cy="12"
+                                        r="3"
+                                        stroke-width="2">
+                                </circle>
+
+                            </svg>
+
+                            <span>
+                                Lihat
+                            </span>
+
+                        </a>
+
+
+                        {{-- Tombol Edit --}}
+                        <a href="{{ route('admin.products.edit', $product) }}"
+                           class="btn btn-sm btn-outline-primary rounded-3 px-3 d-inline-flex align-items-center justify-content-center gap-1"
+                           style="
+                                border-color: #2563eb;
+                                color: #2563eb;
+                                min-height: 34px;
+                           ">
+
+                            <svg width="14"
+                                 height="14"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 viewBox="0 0 24 24">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z">
+                                </path>
+
+                            </svg>
+
+                            <span>
+                                Edit
+                            </span>
+
+                        </a>
+
+                    </div>
+
+
+                    {{-- Delete Confirmation Modal --}}
+                    <div class="modal fade text-start"
+                         id="deleteModal{{ $product->id }}"
+                         tabindex="-1"
+                         aria-hidden="true">
+
+                        <div class="modal-dialog modal-dialog-centered">
+
+                            <div class="modal-content border-0 shadow-lg rounded-3">
+
+                                <div class="modal-header border-bottom py-3 px-4"
+                                     style="border-color: #e2e8f0;">
+
+                                    <h5 class="modal-title fw-bold text-slate-900"
+                                        style="font-size: 1rem;">
+                                        Konfirmasi Hapus Produk
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close shadow-none"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Tutup">
+                                    </button>
+
+                                </div>
+
+
+                                <div class="modal-body p-4">
+
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+
+                                        @if($product->thumbnail)
+
+                                            <img src="{{ asset('storage/' . $product->thumbnail) }}"
+                                                 alt="{{ $product->name }}"
+                                                 class="rounded-3 border border-slate-200"
+                                                 style="
+                                                    width: 54px;
+                                                    height: 54px;
+                                                    object-fit: cover;
+                                                 ">
+
+                                        @endif
+
+                                        <div>
+
+                                            <h6 class="fw-bold mb-1 text-slate-900">
+                                                {{ $product->name }}
+                                            </h6>
+
+                                            <span class="text-slate-400 d-block"
+                                                  style="font-size: 0.75rem;">
+                                                SKU: {{ $product->sku }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <p class="text-slate-600 mb-0"
+                                       style="font-size: 0.875rem;">
+                                        Apakah Anda yakin ingin menghapus produk ini?
+                                        Tindakan ini tidak dapat dibatalkan.
+                                    </p>
+
+                                </div>
+
+
+                                <div class="modal-footer border-top py-3 px-4 bg-slate-50"
+                                     style="border-color: #e2e8f0;">
+
+                                    <button type="button"
+                                            class="btn btn-tokobii-secondary"
+                                            data-bs-dismiss="modal">
+                                        Batal
+                                    </button>
+
+                                    <form action="{{ route('admin.products.destroy', $product) }}"
+                                          method="POST"
+                                          class="d-inline">
+
+                                        @csrf
+
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="btn btn-danger rounded-2 px-3 fw-semibold"
+                                                style="border-radius: 10px;">
+                                            Hapus Produk
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+
+            @if($loop->last)
+
+                        </tbody>
+
+                    </table>
+
                 </div>
-            @endforelse
 
-        </div>
+            @endif
 
-        {{-- Pagination Footer --}}
+        @empty
+
+            <div class="text-center py-5 px-4">
+
+                <p class="text-slate-400 mb-3">
+                    Tidak ada produk yang ditemukan sesuai pencarian atau filter Anda.
+                </p>
+
+                <a href="{{ route('admin.products.create') }}"
+                   class="btn btn-tokobii-primary">
+                    Tambah Produk
+                </a>
+
+            </div>
+
+        @endforelse
+
+
+        {{-- Pagination --}}
         @if($products->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <small class="text-muted">
-                    Menampilkan {{ $products->firstItem() }} - {{ $products->lastItem() }} dari {{ $products->total() }} produk
-                </small>
+
+            <div class="p-3 border-top border-slate-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+
+                <span class="text-slate-400"
+                      style="font-size: 0.8125rem;">
+
+                    Menampilkan
+                    {{ $products->firstItem() }}
+                    -
+                    {{ $products->lastItem() }}
+                    dari
+                    {{ $products->total() }}
+                    produk
+
+                </span>
+
                 <div>
                     {{ $products->links('pagination::bootstrap-5') }}
                 </div>
+
             </div>
+
         @endif
+
     </div>
 
 </div>

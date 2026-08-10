@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Detail Order & Pickup - Tokobii')
+@section('title', 'Order Details - Tokobii')
 
 @push('styles')
 <style>
@@ -28,42 +28,42 @@
 
     {{-- Breadcrumb --}}
     <nav aria-label="breadcrumb" class="mb-3 d-print-none">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.orders.index') }}" class="text-decoration-none text-secondary">Order Management</a>
+                <a href="{{ route('admin.orders.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Orders</a>
             </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detail Order</li>
+            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Details</li>
         </ol>
     </nav>
 
     {{-- Flash Messages --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm d-print-none" role="alert">
-            <strong>✅ Sukses!</strong> {{ session('success') }}
+        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3 d-print-none" role="alert">
+            <strong>✅ Success!</strong> {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm d-print-none" role="alert">
-            <strong>⚠️ Perhatian!</strong> {{ session('warning') }}
+        <div class="alert alert-warning alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3 d-print-none" role="alert">
+            <strong>⚠️ Notice:</strong> {{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm d-print-none" role="alert">
-            <strong>❌ Terjadi Kesalahan!</strong> {{ session('error') }}
+        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3 d-print-none" role="alert">
+            <strong>❌ Error:</strong> {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm d-print-none" role="alert">
-            <strong>❌ Gagal Proses:</strong>
+        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3 d-print-none" role="alert">
+            <strong>❌ Form Error:</strong>
             <ul class="mb-0 mt-1 ps-3">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -74,12 +74,12 @@
     @endif
 
     {{-- Page Header & Actions --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 d-print-none">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 d-print-none">
         <div>
-            <h2 class="fw-bold mb-1 text-dark">Detail Order: <span class="text-primary">{{ $order->invoice_number }}</span></h2>
-            <p class="text-muted mb-0">Pusat verifikasi pembayaran, rincian produk, dan alur pengambilan pesanan.</p>
+            <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Order <span class="text-blue-600 font-monospace">{{ $order->invoice_number }}</span></h1>
+            <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">Payment verification, item breakdown, and pickup status management.</p>
         </div>
-        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2 align-items-center">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
             
             {{-- Workflow Action Buttons --}}
             @if($order->payment_method === 'cash' && $order->order_status === 'pending' && $order->payment_status === 'pending')
@@ -87,83 +87,83 @@
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="action" value="start_processing">
-                    <button type="submit" class="btn btn-info fw-semibold shadow-sm px-3">Mulai Diproses</button>
+                    <button type="submit" class="btn btn-tokobii-primary">Start Processing</button>
                 </form>
             @elseif($order->payment_status === 'waiting_verification')
-                <button type="button" class="btn btn-success fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#approvePaymentModal" title="Setujui Pembayaran" aria-label="Setujui Pembayaran">
-                    ✅ Approve Payment
+                <button type="button" class="btn btn-tokobii-primary" data-bs-toggle="modal" data-bs-target="#approvePaymentModal">
+                    Approve Payment
                 </button>
-                <button type="button" class="btn btn-danger fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#rejectPaymentModal" title="Tolak Pembayaran" aria-label="Tolak Pembayaran">
-                    ❌ Reject Payment
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectPaymentModal">
+                    Reject Payment
                 </button>
             @elseif($order->order_status === 'processing')
-                <button type="button" class="btn btn-primary fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#readyForPickupModal" title="Tandai Siap Diambil">
-                    📦 Ready for Pickup
+                <button type="button" class="btn btn-tokobii-primary" data-bs-toggle="modal" data-bs-target="#readyForPickupModal">
+                    Mark Ready for Pickup
                 </button>
             @elseif($order->order_status === 'ready_for_pickup' && $order->payment_method === 'cash' && $order->payment_status === 'pending')
-                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm px-3">Print Pickup Receipt</a>
-                <button type="button" class="btn btn-success fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#cashPaymentModal">Konfirmasi Pembayaran Tunai</button>
+                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary">Print Receipt</a>
+                <button type="button" class="btn btn-tokobii-primary" data-bs-toggle="modal" data-bs-target="#cashPaymentModal">Confirm Cash Payment</button>
             @elseif($order->order_status === 'ready_for_pickup')
-                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm px-3" title="Buka Halaman Cetak Struk Pengambilan">
-                    🖨 Print Pickup Receipt
+                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary">
+                    Print Receipt
                 </a>
-                <button type="button" class="btn btn-dark fw-semibold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#completeOrderModal" title="Tandai Selesai (Completed)">
-                    ✅ Completed
+                <button type="button" class="btn btn-tokobii-primary" data-bs-toggle="modal" data-bs-target="#completeOrderModal">
+                    Mark Completed
                 </button>
             @elseif($order->order_status === 'completed')
-                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm px-3" title="Buka Halaman Cetak Struk Pengambilan">
-                    🖨 Print Pickup Receipt
+                <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary">
+                    Print Receipt
                 </a>
             @endif
 
-            <button type="button" onclick="window.location.reload();" class="btn btn-outline-secondary px-3 fw-semibold shadow-sm" title="Refresh Halaman" aria-label="Refresh Halaman">
-                🔄 Refresh
+            <button type="button" onclick="window.location.reload();" class="btn btn-tokobii-secondary" title="Refresh">
+                🔄
             </button>
-            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary px-4 fw-semibold shadow-sm">
-                Kembali
+            <a href="{{ route('admin.orders.index') }}" class="btn btn-tokobii-secondary">
+                Back to Orders
             </a>
         </div>
     </div>
 
     <div class="row g-4">
 
-        {{-- Left Column: CARD 1 (Order Info), CARD 2 (Customer Info), CARD 4 (Payment Verification Info), CARD 5 (Pickup Info), CARD 6 (Timeline) --}}
+        {{-- Left Column: Cards --}}
         <div class="col-12 col-md-5">
             
             {{-- CARD 1: Order Information --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">📋 Order Information</h5>
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Order Overview</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="table-responsive">
-                        <table class="table table-borderless align-middle mb-0 small">
+                        <table class="table table-borderless align-middle mb-0" style="font-size: 0.875rem;">
                             <tbody>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 40%;">Invoice</th>
-                                    <td>: <code class="text-primary bg-primary-subtle px-2 py-1 rounded fw-bold">{{ $order->invoice_number }}</code></td>
+                                    <th class="ps-0 text-slate-500 fw-semibold" style="width: 40%;">Invoice</th>
+                                    <td>: <code class="text-blue-600 font-monospace fw-bold">{{ $order->invoice_number }}</code></td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Tanggal</th>
-                                    <td class="text-dark">: {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Order Date</th>
+                                    <td class="text-slate-800">: {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : '-' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Status</th>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Overall Status</th>
                                     <td>: 
                                         @if($order->status === 'completed')
-                                            <span class="badge bg-dark px-2.5 py-1 fw-normal">🏁 Completed</span>
+                                            <span class="tokobii-badge tokobii-badge-success">Completed</span>
                                         @elseif($order->status === 'ready_for_pickup')
-                                            <span class="badge bg-primary px-2.5 py-1 fw-normal">📦 Ready for Pickup</span>
+                                            <span class="tokobii-badge tokobii-badge-info">Ready for Pickup</span>
                                         @elseif($order->status === 'processing')
-                                            <span class="badge bg-info px-2.5 py-1 fw-normal">⚙️ Processing</span>
+                                            <span class="tokobii-badge tokobii-badge-info">Processing</span>
                                         @elseif($order->status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
+                                            <span class="tokobii-badge tokobii-badge-success">Paid</span>
                                         @elseif($order->status === 'cancelled')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 fw-normal">Cancelled / Rejected</span>
+                                            <span class="tokobii-badge tokobii-badge-danger">Cancelled</span>
                                         @elseif($order->status === 'waiting_verification')
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Verification</span>
                                         @else
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 fw-normal">Waiting Payment</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Pending</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -174,25 +174,21 @@
             </div>
 
             {{-- CARD 2: Customer Information --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">👤 Customer Information</h5>
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Customer Overview</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="table-responsive">
-                        <table class="table table-borderless align-middle mb-0 small">
+                        <table class="table table-borderless align-middle mb-0" style="font-size: 0.875rem;">
                             <tbody>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 35%;">Nama</th>
-                                    <td class="text-dark fw-bold">: {{ $order->user->name ?? '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold" style="width: 35%;">Customer</th>
+                                    <td class="text-slate-900 fw-bold">: {{ $order->user->name ?? '-' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Username</th>
-                                    <td class="text-dark">: {{ $order->user->name ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Email</th>
-                                    <td class="text-dark">: {{ $order->user->email ?? '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Email</th>
+                                    <td class="text-slate-800 font-monospace">: {{ $order->user->email ?? '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -201,70 +197,70 @@
             </div>
 
             {{-- CARD 4: Payment Verification & Proof --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">💳 Payment Verification</h5>
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Payment Verification</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     @if($order->payment_method === 'cash')
-                        <table class="table table-borderless align-middle mb-3 small"><tbody>
-                            <tr><th class="ps-0 text-secondary" style="width:42%">Total Pesanan</th><td>: <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong></td></tr>
-                            <tr><th class="ps-0 text-secondary">Status Pembayaran</th><td>: <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-warning text-dark' }}">{{ $order->payment_status === 'paid' ? 'Paid' : 'Menunggu Pembayaran Tunai' }}</span></td></tr>
+                        <table class="table table-borderless align-middle mb-3" style="font-size: 0.875rem;"><tbody>
+                            <tr><th class="ps-0 text-slate-500" style="width:42%">Grand Total</th><td>: <strong class="font-monospace text-slate-900">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong></td></tr>
+                            <tr><th class="ps-0 text-slate-500">Status</th><td>: <span class="tokobii-badge {{ $order->payment_status === 'paid' ? 'tokobii-badge-success' : 'tokobii-badge-warning' }}">{{ $order->payment_status === 'paid' ? 'Paid' : 'Pending Cash' }}</span></td></tr>
                             @if($order->payment?->received_amount !== null)
-                                <tr><th class="ps-0 text-secondary">Uang Diterima</th><td>: Rp {{ number_format($order->payment->received_amount, 0, ',', '.') }}</td></tr>
-                                <tr><th class="ps-0 text-secondary">Kembalian</th><td>: Rp {{ number_format($order->payment->change_amount, 0, ',', '.') }}</td></tr>
-                                <tr><th class="ps-0 text-secondary">Diterima Oleh</th><td>: {{ $order->payment->verifiedByAdmin?->name ?? '-' }}</td></tr>
+                                <tr><th class="ps-0 text-slate-500">Amount Received</th><td>: Rp {{ number_format($order->payment->received_amount, 0, ',', '.') }}</td></tr>
+                                <tr><th class="ps-0 text-slate-500">Change</th><td>: Rp {{ number_format($order->payment->change_amount, 0, ',', '.') }}</td></tr>
+                                <tr><th class="ps-0 text-slate-500">Processed By</th><td>: {{ $order->payment->verifiedByAdmin?->name ?? '-' }}</td></tr>
                             @endif
                         </tbody></table>
-                        <p class="text-muted small mb-0">Pembayaran tunai diterima di kasir saat customer mengambil pesanan; tidak ada upload atau verifikasi bukti.</p>
+                        <p class="text-slate-400 mb-0" style="font-size: 0.75rem;">Cash payments are accepted directly at the counter upon order pickup.</p>
                     @else
                     <div class="table-responsive mb-3">
-                        <table class="table table-borderless align-middle mb-0 small">
+                        <table class="table table-borderless align-middle mb-0" style="font-size: 0.875rem;">
                             <tbody>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 42%;">Payment Method</th>
+                                    <th class="ps-0 text-slate-500 fw-semibold" style="width: 42%;">Payment Method</th>
                                     <td>: 
                                         @if($order->payment_method === 'qris')
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 fw-normal">📱 QRIS</span>
+                                            <span class="tokobii-badge tokobii-badge-info">📱 QRIS</span>
                                         @else
-                                            <span class="badge bg-light text-dark border border-dark-subtle px-2.5 py-1 fw-normal">💵 Cash</span>
+                                            <span class="tokobii-badge tokobii-badge-neutral">💵 Cash</span>
                                         @endif
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Payment Status</th>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Payment Status</th>
                                     <td>: 
                                         @if($order->payment_status === 'paid' || in_array($order->order_status, ['ready_for_pickup', 'completed']))
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
+                                            <span class="tokobii-badge tokobii-badge-success">Paid</span>
                                         @elseif($order->payment_status === 'rejected')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 fw-normal">Rejected</span>
+                                            <span class="tokobii-badge tokobii-badge-danger">Rejected</span>
                                         @elseif($order->payment_status === 'waiting_verification')
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Verification</span>
                                         @else
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 fw-normal">Waiting Payment</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Pending</span>
                                         @endif
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Upload Time</th>
-                                    <td class="text-muted">: {{ $order->payment && $order->payment->payment_date ? $order->payment->payment_date->format('d M Y, H:i:s') : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Upload Time</th>
+                                    <td class="text-slate-500">: {{ $order->payment && $order->payment->payment_date ? $order->payment->payment_date->format('d M Y, H:i') : '-' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Verification Time</th>
-                                    <td class="text-muted">: {{ $order->payment && $order->payment->verified_at ? $order->payment->verified_at->format('d M Y, H:i:s') : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Verification Time</th>
+                                    <td class="text-slate-500">: {{ $order->payment && $order->payment->verified_at ? $order->payment->verified_at->format('d M Y, H:i') : '-' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Verified By</th>
-                                    <td class="text-dark">: {{ $order->payment && $order->payment->verifiedByAdmin ? $order->payment->verifiedByAdmin->name : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Verified By</th>
+                                    <td class="text-slate-800">: {{ $order->payment && $order->payment->verifiedByAdmin ? $order->payment->verifiedByAdmin->name : '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    {{-- Transfer Proof Preview (QRIS) --}}
+                    {{-- Transfer Proof Preview --}}
                     @if($order->payment_method === 'qris')
-                        <div class="border-top pt-3 text-center">
-                            <span class="text-secondary small fw-semibold d-block mb-2">Proof of Payment (Bukti Transfer):</span>
+                        <div class="border-top border-slate-100 pt-3 text-center">
+                            <span class="text-slate-400 d-block mb-2" style="font-size: 0.75rem;">Payment Proof Screenshot:</span>
                             @if($order->payment && $order->payment->proof_of_payment)
                                 @php
                                     $proofPath = $order->payment->proof_of_payment;
@@ -272,21 +268,21 @@
                                 @endphp
 
                                 @if($isPdf)
-                                    <a href="{{ asset('storage/' . $proofPath) }}" target="_blank" class="btn btn-outline-primary btn-sm fw-semibold w-100 py-2">
-                                        📄 Buka / Download PDF Bukti Pembayaran
+                                    <a href="{{ asset('storage/' . $proofPath) }}" target="_blank" class="btn btn-tokobii-secondary w-100">
+                                        📄 Open PDF Proof
                                     </a>
                                 @else
-                                    <button type="button" class="btn p-0 border-0 shadow-sm rounded overflow-hidden" data-bs-toggle="modal" data-bs-target="#proofModal">
+                                    <button type="button" class="btn p-0 border-0 shadow-sm rounded-3 overflow-hidden" data-bs-toggle="modal" data-bs-target="#proofModal">
                                         <img src="{{ asset('storage/' . $proofPath) }}" 
-                                             alt="Bukti Transfer QRIS {{ $order->invoice_number }}" 
-                                             class="img-fluid rounded border" 
+                                             alt="Payment proof {{ $order->invoice_number }}" 
+                                             class="img-fluid rounded-3 border border-slate-200" 
                                              style="max-height: 180px; object-fit: contain;">
                                     </button>
-                                    <small class="text-muted d-block mt-1">(Klik gambar untuk memperbesar)</small>
+                                    <span class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">(Click to view full size)</span>
                                 @endif
                             @else
-                                <div class="p-3 bg-light rounded text-muted small">
-                                    Customer belum mengunggah bukti pembayaran QRIS.
+                                <div class="p-3 bg-slate-50 rounded-3 text-slate-400" style="font-size: 0.8125rem;">
+                                    No payment proof uploaded yet.
                                 </div>
                             @endif
                         </div>
@@ -296,128 +292,110 @@
             </div>
 
             {{-- CARD 5: Pickup Information --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4 border-start border-primary border-4">
-                <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0 text-dark">📦 Pickup Information</h5>
-                    <span class="badge bg-light text-secondary border">Store Main Hall</span>
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Pickup Status</h5>
+                    <span class="tokobii-badge tokobii-badge-info">Main Counter</span>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="table-responsive mb-3">
-                        <table class="table table-borderless align-middle mb-0 small">
+                        <table class="table table-borderless align-middle mb-0" style="font-size: 0.875rem;">
                             <tbody>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 40%;">Pickup Status</th>
+                                    <th class="ps-0 text-slate-500 fw-semibold" style="width: 40%;">Pickup Status</th>
                                     <td>: 
                                         @if($order->status === 'completed')
-                                            <span class="badge bg-dark px-2.5 py-1 fw-normal">Completed (Sudah Diambil)</span>
+                                            <span class="tokobii-badge tokobii-badge-success">Completed</span>
                                         @elseif($order->status === 'ready_for_pickup')
-                                            <span class="badge bg-primary px-2.5 py-1 fw-normal">Ready for Pickup</span>
+                                            <span class="tokobii-badge tokobii-badge-info">Ready for Pickup</span>
                                         @elseif($order->status === 'processing' || $order->status === 'paid')
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Sedang Disiapkan</span>
+                                            <span class="tokobii-badge tokobii-badge-info">Processing</span>
                                         @elseif($order->status === 'waiting_verification')
-                                            <span class="badge bg-light text-secondary border px-2.5 py-1 fw-normal">Waiting Verification</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Verification</span>
                                         @else
-                                            <span class="badge bg-light text-secondary border px-2.5 py-1 fw-normal">Waiting Payment</span>
+                                            <span class="tokobii-badge tokobii-badge-warning">Pending Payment</span>
                                         @endif
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Pickup Receipt</th>
-                                    <td>: <code class="text-primary bg-primary-subtle px-2 py-1 rounded fw-bold">{{ $order->invoice_number }}</code></td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Pickup Receipt</th>
+                                    <td>: <code class="text-blue-600 font-monospace fw-bold">{{ $order->invoice_number }}</code></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     @if(in_array($order->order_status, ['ready_for_pickup', 'completed']) || in_array($order->payment_status, ['paid', 'completed']))
-                        <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
-                            🖨 Buka Halaman Cetak Pickup Receipt
+                        <a href="{{ route('admin.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary w-100">
+                            🖨 Open Pickup Receipt Page
                         </a>
                     @endif
                 </div>
             </div>
 
-            {{-- CARD 6: Timeline --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">⏳ Timeline</h5>
+            {{-- CARD 6: Order Timeline --}}
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Order Progress</h5>
                 </div>
-                <div class="card-body p-4">
-                    <ul class="timeline list-unstyled mb-0 position-relative">
-                        <li class="mb-3 d-flex align-items-start">
-                            <span class="badge bg-success rounded-circle p-2 me-3">✓</span>
+                <div class="p-4">
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-start gap-3">
+                            <span class="rounded-circle bg-emerald-100 text-emerald-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem; background-color: #f0fdf4; color: #16a34a;">✓</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Order Created</h6>
-                                <small class="text-muted">{{ $order->created_at ? $order->created_at->format('d M Y, H:i') : '-' }}</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Order Created</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">{{ $order->created_at ? $order->created_at->format('d M Y, H:i') : '-' }}</span>
                             </div>
                         </li>
-                        {{-- 2. Waiting Payment --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_payment', 'waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_payment' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '💳' }}
-                            </span>
+                        <li class="d-flex align-items-start gap-3 {{ in_array($order->status, ['waiting_payment', 'waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">💳</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Waiting Payment</h6>
-                                <small class="text-muted">Menunggu Pembayaran / Unggah Bukti</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Payment Pending</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">Customer checkout</span>
                             </div>
                         </li>
-                        {{-- 3. Waiting Verification --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_verification' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '🔍' }}
-                            </span>
+                        <li class="d-flex align-items-start gap-3 {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">🔍</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6>
-                                <small class="text-muted">Verifikasi Pembayaran Tokobii</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Payment Verification</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">Admin verification</span>
                             </div>
                         </li>
-                        {{-- 4. Paid --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'paid' ? 'bg-success' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '🟢' }}
-                            </span>
+                        <li class="d-flex align-items-start gap-3 {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">🟢</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Paid</h6>
-                                <small class="text-muted">Pembayaran Dikonfirmasi Lunas</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Payment Approved</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">Confirmed paid</span>
                             </div>
                         </li>
-                        {{-- 5. Processing --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'processing' ? 'bg-info' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '✓' : '⚙️' }}
-                            </span>
+                        <li class="d-flex align-items-start gap-3 {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">⚙️</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Processing</h6>
-                                <small class="text-muted">Pesanan sedang dikemas</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Processing Items</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">Item preparation</span>
                             </div>
                         </li>
-                        {{-- 6. Ready for Pickup --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ $order->status === 'completed' ? 'bg-success' : ($order->status === 'ready_for_pickup' ? 'bg-primary' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ $order->status === 'completed' ? '✓' : '📦' }}
-                            </span>
+                        <li class="d-flex align-items-start gap-3 {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
+                            <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">📦</span>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6>
-                                <small class="text-muted">Pesanan Siap Diambil di toko</small>
+                                <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Ready for Pickup</h6>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">Awaiting customer pickup</span>
                             </div>
                         </li>
-                        {{-- 7. Completed or Cancelled/Rejected --}}
                         @if($order->status === 'cancelled')
-                            <li class="d-flex align-items-start">
-                                <span class="badge bg-danger rounded-circle p-2 me-3">🔴</span>
+                            <li class="d-flex align-items-start gap-3">
+                                <span class="rounded-circle bg-rose-100 text-rose-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem; background-color: #ffe4e6; color: #e11d48;">❌</span>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-danger">Cancelled / Rejected</h6>
-                                    <small class="text-muted">Pembayaran ini telah ditolak / dibatalkan.</small>
+                                    <h6 class="fw-bold mb-0 text-rose-600" style="font-size: 0.875rem;">Cancelled / Rejected</h6>
+                                    <span class="text-slate-400" style="font-size: 0.75rem;">Order rejected</span>
                                 </div>
                             </li>
                         @else
-                            <li class="d-flex align-items-start {{ $order->status === 'completed' ? '' : 'opacity-50' }}">
-                                <span class="badge {{ $order->status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                    🏁
-                                </span>
+                            <li class="d-flex align-items-start gap-3 {{ $order->status === 'completed' ? '' : 'opacity-50' }}">
+                                <span class="rounded-circle bg-slate-100 text-slate-600 fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">🏁</span>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-dark">Completed</h6>
-                                    <small class="text-muted">Pesanan Selesai diserahkan</small>
+                                    <h6 class="fw-bold mb-0 text-slate-900" style="font-size: 0.875rem;">Completed</h6>
+                                    <span class="text-slate-400" style="font-size: 0.75rem;">Handed over</span>
                                 </div>
                             </li>
                         @endif
@@ -427,94 +405,92 @@
 
         </div>
 
-        {{-- Right Column: CARD 3 (Order Items) & Grand Total Summary --}}
+        {{-- Right Column: Items & Summary --}}
         <div class="col-12 col-md-7">
             
-            {{-- CARD 3: Order Items Table Card --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">🛒 Order Items</h5>
+            {{-- Order Items Table --}}
+            <div class="tokobii-table-container mb-4">
+                <div class="p-3 border-bottom border-slate-100 bg-white">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Order Items</h5>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle mb-0">
-                            <thead class="table-light border-bottom">
+                <div class="table-responsive">
+                    <table class="tokobii-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 14%;">Item</th>
+                                <th>Product Name</th>
+                                <th class="text-center" style="width: 12%;">Qty</th>
+                                <th class="text-end" style="width: 18%;">Price</th>
+                                <th class="text-end" style="width: 20%;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($order->items as $item)
                                 <tr>
-                                    <th scope="col" class="ps-4 py-3 text-secondary small text-uppercase" style="width: 5%;">No</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 15%;">Thumbnail</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase">Nama Produk</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 10%;">Qty</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 18%;">Harga</th>
-                                    <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 20%;">Subtotal</th>
+                                    <td class="fw-semibold text-slate-400">{{ $loop->iteration }}</td>
+                                    <td>
+                                        @if($item->product && $item->product->thumbnail)
+                                            <img src="{{ asset('storage/' . $item->product->thumbnail) }}" 
+                                                 alt="{{ $item->product_name }}" 
+                                                 class="rounded-3 border border-slate-200" 
+                                                 style="width: 44px; height: 44px; object-fit: cover;">
+                                        @else
+                                            <div class="rounded-3 bg-slate-100 d-flex align-items-center justify-content-center text-slate-400 border border-slate-200" style="width: 44px; height: 44px;">
+                                                📦
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold text-slate-900 d-block">{{ $item->product_name }}</span>
+                                        @if($item->product && $item->product->sku)
+                                            <span class="text-slate-400 font-monospace" style="font-size: 0.75rem;">SKU: {{ $item->product->sku }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center fw-bold text-slate-800 font-monospace">
+                                        {{ $item->qty }}
+                                    </td>
+                                    <td class="text-end text-slate-700 font-monospace">
+                                        Rp {{ number_format($item->price, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-end fw-bold text-slate-900 font-monospace">
+                                        Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($order->items as $item)
-                                    <tr>
-                                        <td class="ps-4 fw-semibold text-secondary">{{ $loop->iteration }}</td>
-                                        <td>
-                                            @if($item->product && $item->product->thumbnail)
-                                                <img src="{{ asset('storage/' . $item->product->thumbnail) }}" 
-                                                     alt="Thumbnail {{ $item->product_name }}" 
-                                                     class="rounded shadow-sm border" 
-                                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                            @else
-                                                <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 50px; height: 50px;">
-                                                    <span class="fs-4">📦</span>
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="fw-bold text-dark d-block">{{ $item->product_name }}</span>
-                                            @if($item->product && $item->product->sku)
-                                                <small class="text-muted font-monospace">SKU: {{ $item->product->sku }}</small>
-                                            @endif
-                                        </td>
-                                        <td class="text-center fw-bold text-dark font-monospace">
-                                            {{ $item->qty }}
-                                        </td>
-                                        <td class="text-end text-dark font-monospace">
-                                            Rp {{ number_format($item->price, 0, ',', '.') }}
-                                        </td>
-                                        <td class="pe-4 text-end fw-bold text-dark font-monospace">
-                                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            Tidak ada item pada pesanan ini.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-slate-400">
+                                        No items recorded for this order.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             {{-- Summary Card --}}
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Rincian Ringkasan Tagihan</h5>
+            <div class="tokobii-card">
+                <div class="tokobii-card-header">
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Payment Summary</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="row justify-content-end">
                         <div class="col-12 col-md-8">
                             <div class="table-responsive">
-                                <table class="table table-borderless align-middle mb-0">
+                                <table class="table table-borderless align-middle mb-0" style="font-size: 0.875rem;">
                                     <tbody>
                                         <tr>
-                                            <th class="ps-0 text-secondary fw-normal">Subtotal Produk:</th>
-                                            <td class="text-end font-monospace text-dark fw-semibold">: Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
+                                            <th class="ps-0 text-slate-500 fw-normal">Items Subtotal</th>
+                                            <td class="text-end font-monospace text-slate-800 fw-semibold">: Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
                                         </tr>
                                         <tr>
-                                            <th class="ps-0 text-secondary fw-normal">Ongkos Kirim (Pickup):</th>
-                                            <td class="text-end font-monospace text-success fw-semibold">: Rp 0</td>
+                                            <th class="ps-0 text-slate-500 fw-normal">Pickup Fee</th>
+                                            <td class="text-end font-monospace text-emerald-600 fw-semibold">: Rp 0</td>
                                         </tr>
-                                        <tr class="border-top fs-5">
-                                            <th class="ps-0 text-dark fw-bold pt-3">Grand Total:</th>
-                                            <td class="text-end font-monospace text-primary fw-bold pt-3">: Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
+                                        <tr class="border-top border-slate-200">
+                                            <th class="ps-0 text-slate-900 fw-bold pt-3 fs-6">Grand Total</th>
+                                            <td class="text-end font-monospace text-blue-600 fw-bold pt-3 fs-5">: Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -534,57 +510,56 @@
 @if($order->payment && $order->payment->proof_of_payment)
     <div class="modal fade" id="proofModal" tabindex="-1" aria-labelledby="proofModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold" id="proofModalLabel">📱 Bukti Pembayaran QRIS {{ $order->invoice_number }}</h5>
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-slate-900 text-white border-0">
+                    <h5 class="modal-title fw-bold text-white" id="proofModalLabel">QRIS Payment Proof {{ $order->invoice_number }}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-3 text-center bg-light">
+                <div class="modal-body p-3 text-center bg-slate-50">
                     <img src="{{ asset('storage/' . $order->payment->proof_of_payment) }}" 
-                         alt="Bukti Transfer {{ $order->invoice_number }}" 
-                         class="img-fluid rounded shadow border" 
+                         alt="Payment proof {{ $order->invoice_number }}" 
+                         class="img-fluid rounded-3 border border-slate-200" 
                          style="max-height: 80vh; object-fit: contain;">
                 </div>
-                <div class="modal-footer bg-light">
-                    <a href="{{ asset('storage/' . $order->payment->proof_of_payment) }}" target="_blank" class="btn btn-outline-primary btn-sm fw-semibold">
-                        🔗 Buka Tab Baru
+                <div class="modal-footer bg-slate-50 border-top border-slate-200">
+                    <a href="{{ asset('storage/' . $order->payment->proof_of_payment) }}" target="_blank" class="btn btn-tokobii-secondary">
+                        Open in New Tab
                     </a>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 @endif
 
-{{-- Bootstrap Confirmation Modals --}}
+{{-- Confirmation Modals --}}
 
 @if($order->payment_method === 'cash' && $order->order_status === 'ready_for_pickup' && $order->payment_status === 'pending')
     <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Konfirmasi Pembayaran Tunai</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-slate-900 text-white border-0"><h5 class="modal-title fw-bold text-white">Confirm Cash Payment</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="cashPaymentForm">
                 @csrf @method('PUT')
                 <input type="hidden" name="action" value="confirm_cash_payment">
-                <div class="modal-body p-4"><p class="mb-3">Total pesanan: <strong>Rp {{ number_format($order->grand_total_in_rupiah, 0, ',', '.') }}</strong></p>
-                    <label for="received_amount" class="form-label fw-semibold">Uang Diterima</label>
-                    <input id="received_amount" name="received_amount" type="number" min="{{ $order->grand_total_in_rupiah }}" step="1" inputmode="numeric" class="form-control @error('received_amount') is-invalid @enderror" value="{{ old('received_amount') }}" required>
-                    @error('received_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    <div class="mt-3 p-3 bg-light rounded">Kembalian: <strong id="cashChangePreview">Rp 0</strong></div>
-                    <small id="cashAmountError" class="text-danger d-none">Uang diterima kurang dari total pesanan.</small>
+                <div class="modal-body p-4"><p class="mb-3 text-slate-700">Grand Total: <strong class="font-monospace text-slate-900">Rp {{ number_format($order->grand_total_in_rupiah, 0, ',', '.') }}</strong></p>
+                    <label for="received_amount" class="form-label">Amount Received (Rp)</label>
+                    <input id="received_amount" name="received_amount" type="number" min="{{ $order->grand_total_in_rupiah }}" step="1" inputmode="numeric" class="tokobii-input w-100 @error('received_amount') is-invalid @enderror" value="{{ old('received_amount') }}" required>
+                    @error('received_amount')<div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>@enderror
+                    <div class="mt-3 p-3 bg-slate-50 rounded-3 border border-slate-200 text-slate-700">Change Due: <strong id="cashChangePreview" class="font-monospace text-blue-600">Rp 0</strong></div>
+                    <small id="cashAmountError" class="text-danger d-none mt-1">Received amount is less than total.</small>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button type="submit" id="cashPaymentSubmit" class="btn btn-success" disabled>Konfirmasi Pembayaran Tunai</button></div>
+                <div class="modal-footer border-top border-slate-100"><button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" id="cashPaymentSubmit" class="btn btn-tokobii-primary" disabled>Confirm Cash Payment</button></div>
             </form>
         </div></div>
     </div>
 @endif
 
 @if($order->payment_status === 'waiting_verification')
-    {{-- Modal Confirmation: Approve Payment --}}
     <div class="modal fade" id="approvePaymentModal" tabindex="-1" aria-labelledby="approvePaymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold" id="approvePaymentModalLabel">✅ Setujui Pembayaran</h5>
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-slate-900 text-white border-0">
+                    <h5 class="modal-title fw-bold text-white" id="approvePaymentModalLabel">Approve Payment</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="approveOrderForm">
@@ -593,19 +568,16 @@
                     <input type="hidden" name="action" value="approve_payment">
 
                     <div class="modal-body p-4 text-center">
-                        <div class="mb-3">
-                            <span class="fs-1 text-success">✅</span>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-2">Konfirmasi Persetujuan Pembayaran</h5>
-                        <p class="text-muted small mb-0">
-                            Pembayaran invoice <strong class="text-primary">{{ $order->invoice_number }}</strong> sebesar <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong> akan ditandai sebagai <span class="badge bg-success-subtle text-success border border-success-subtle">Paid</span> dan pesanan diproses.
+                        <h5 class="fw-bold text-slate-900 mb-2">Approve Order Payment?</h5>
+                        <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">
+                            Invoice <strong class="text-blue-600 font-monospace">{{ $order->invoice_number }}</strong> (Rp {{ number_format($order->grand_total, 0, ',', '.') }}) will be marked as <span class="tokobii-badge tokobii-badge-success">Paid</span>.
                         </p>
                     </div>
-                    <div class="modal-footer bg-light py-3 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success fw-semibold px-4" id="approveSubmitBtn">
+                    <div class="modal-footer bg-slate-50 border-top border-slate-100 py-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-tokobii-primary" id="approveSubmitBtn">
                             <span class="spinner-border spinner-border-sm me-1 d-none" id="approveSpinner" role="status" aria-hidden="true"></span>
-                            <span id="approveBtnText">Ya, Approve Payment</span>
+                            <span id="approveBtnText">Yes, Approve Payment</span>
                         </button>
                     </div>
                 </form>
@@ -613,12 +585,11 @@
         </div>
     </div>
 
-    {{-- Modal Confirmation: Reject Payment --}}
     <div class="modal fade" id="rejectPaymentModal" tabindex="-1" aria-labelledby="rejectPaymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold" id="rejectPaymentModalLabel">❌ Tolak Pembayaran</h5>
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-slate-900 text-white border-0">
+                    <h5 class="modal-title fw-bold text-white" id="rejectPaymentModalLabel">Reject Payment</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="rejectOrderForm">
@@ -627,29 +598,26 @@
                     <input type="hidden" name="action" value="reject_payment">
 
                     <div class="modal-body p-4">
-                        <div class="text-center mb-3">
-                            <span class="fs-1 text-danger">⚠️</span>
-                        </div>
-                        <h5 class="fw-bold text-dark text-center mb-3">Konfirmasi Penolakan Pembayaran</h5>
+                        <h5 class="fw-bold text-slate-900 text-center mb-3">Reject Payment Reason</h5>
                         
                         <div class="mb-3">
-                            <label for="reject_reason" class="form-label fw-semibold text-secondary small">Alasan Penolakan <span class="text-danger">*</span></label>
+                            <label for="reject_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
                             <textarea name="reject_reason" 
                                       id="reject_reason" 
                                       rows="3" 
-                                      class="form-control @error('reject_reason') is-invalid @enderror" 
-                                      placeholder="Contoh: Nominal tidak sesuai, Bukti pembayaran buram, QRIS gagal..." 
+                                      class="tokobii-input w-100 @error('reject_reason') is-invalid @enderror" 
+                                      placeholder="e.g. Amount mismatch, Blurry transfer proof..." 
                                       required></textarea>
                             @error('reject_reason')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
-                    <div class="modal-footer bg-light py-3 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger fw-semibold px-4" id="rejectSubmitBtn">
+                    <div class="modal-footer bg-slate-50 border-top border-slate-100 py-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="rejectSubmitBtn">
                             <span class="spinner-border spinner-border-sm me-1 d-none" id="rejectSpinner" role="status" aria-hidden="true"></span>
-                            <span id="rejectBtnText">Ya, Reject Payment</span>
+                            <span id="rejectBtnText">Yes, Reject Payment</span>
                         </button>
                     </div>
                 </form>
@@ -659,12 +627,11 @@
 @endif
 
 @if($order->payment_status === 'paid' || $order->order_status === 'processing')
-    {{-- Modal Confirmation: Mark Ready for Pickup --}}
     <div class="modal fade" id="readyForPickupModal" tabindex="-1" aria-labelledby="readyForPickupModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="readyForPickupModalLabel">📦 Set Ready for Pickup</h5>
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-slate-900 text-white border-0">
+                    <h5 class="modal-title fw-bold text-white" id="readyForPickupModalLabel">Set Ready for Pickup</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="readyOrderForm">
@@ -673,19 +640,16 @@
                     <input type="hidden" name="action" value="ready_for_pickup">
 
                     <div class="modal-body p-4 text-center">
-                        <div class="mb-3">
-                            <span class="fs-1 text-primary">📦</span>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-2">Tandai Ready for Pickup?</h5>
-                        <p class="text-muted small mb-0">
-                            Pesanan invoice <strong class="text-primary">{{ $order->invoice_number }}</strong> akan ditandai Siap Diambil di toko Tokobii.
+                        <h5 class="fw-bold text-slate-900 mb-2">Mark Ready for Pickup?</h5>
+                        <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">
+                            Invoice <strong class="text-blue-600 font-monospace">{{ $order->invoice_number }}</strong> will be marked as Ready for Pickup.
                         </p>
                     </div>
-                    <div class="modal-footer bg-light py-3 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary fw-semibold px-4" id="readySubmitBtn">
+                    <div class="modal-footer bg-slate-50 border-top border-slate-100 py-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-tokobii-primary" id="readySubmitBtn">
                             <span class="spinner-border spinner-border-sm me-1 d-none" id="readySpinner" role="status" aria-hidden="true"></span>
-                            <span id="readyBtnText">Ya, Ready for Pickup</span>
+                            <span id="readyBtnText">Yes, Ready for Pickup</span>
                         </button>
                     </div>
                 </form>
@@ -695,12 +659,11 @@
 @endif
 
 @if($order->order_status === 'ready_for_pickup')
-    {{-- Modal Confirmation: Mark Completed --}}
     <div class="modal fade" id="completeOrderModal" tabindex="-1" aria-labelledby="completeOrderModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold" id="completeOrderModalLabel">🏁 Mark as Completed</h5>
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-slate-900 text-white border-0">
+                    <h5 class="modal-title fw-bold text-white" id="completeOrderModalLabel">Mark as Completed</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.orders.update', $order) }}" method="POST" id="completeOrderForm">
@@ -709,19 +672,16 @@
                     <input type="hidden" name="action" value="complete">
 
                     <div class="modal-body p-4 text-center">
-                        <div class="mb-3">
-                            <span class="fs-1 text-dark">🏁</span>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-2">Selesaikan pesanan ini?</h5>
-                        <p class="text-muted small mb-0">
-                            Pesanan invoice <strong class="text-primary">{{ $order->invoice_number }}</strong> telah diserahkan dan dinyatakan <span class="badge bg-dark">Completed</span>.
+                        <h5 class="fw-bold text-slate-900 mb-2">Complete this Order?</h5>
+                        <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">
+                            Invoice <strong class="text-blue-600 font-monospace">{{ $order->invoice_number }}</strong> will be finalized as <span class="tokobii-badge tokobii-badge-success">Completed</span>.
                         </p>
                     </div>
-                    <div class="modal-footer bg-light py-3 d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-dark fw-semibold px-4" id="completeSubmitBtn">
+                    <div class="modal-footer bg-slate-50 border-top border-slate-100 py-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-tokobii-primary" id="completeSubmitBtn">
                             <span class="spinner-border spinner-border-sm me-1 d-none" id="completeSpinner" role="status" aria-hidden="true"></span>
-                            <span id="completeBtnText">Ya, Completed</span>
+                            <span id="completeBtnText">Yes, Completed</span>
                         </button>
                     </div>
                 </form>
@@ -750,10 +710,10 @@
             }
         }
 
-        setupSubmitHandler('approveOrderForm', 'approveSubmitBtn', 'approveSpinner', 'approveBtnText', 'Memproses...');
-        setupSubmitHandler('rejectOrderForm', 'rejectSubmitBtn', 'rejectSpinner', 'rejectBtnText', 'Memproses...');
-        setupSubmitHandler('readyOrderForm', 'readySubmitBtn', 'readySpinner', 'readyBtnText', 'Memproses...');
-        setupSubmitHandler('completeOrderForm', 'completeSubmitBtn', 'completeSpinner', 'completeBtnText', 'Memproses...');
+        setupSubmitHandler('approveOrderForm', 'approveSubmitBtn', 'approveSpinner', 'approveBtnText', 'Processing...');
+        setupSubmitHandler('rejectOrderForm', 'rejectSubmitBtn', 'rejectSpinner', 'rejectBtnText', 'Processing...');
+        setupSubmitHandler('readyOrderForm', 'readySubmitBtn', 'readySpinner', 'readyBtnText', 'Processing...');
+        setupSubmitHandler('completeOrderForm', 'completeSubmitBtn', 'completeSpinner', 'completeBtnText', 'Processing...');
 
         const receivedAmount = document.getElementById('received_amount');
         const changePreview = document.getElementById('cashChangePreview');

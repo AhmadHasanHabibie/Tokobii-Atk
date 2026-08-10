@@ -1,248 +1,225 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Tambah Product - Tokobii')
+@section('title', 'Tambah Produk - Tokobii')
 
 @section('content')
 <div class="container-fluid px-0">
 
     {{-- Breadcrumb --}}
     <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.products.index') }}" class="text-decoration-none text-secondary">Product Management</a>
+                <a href="{{ route('admin.products.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Produk</a>
             </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Tambah Product</li>
+            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Tambah</li>
         </ol>
     </nav>
 
     {{-- Page Header --}}
-    <div class="mb-4">
-        <h2 class="fw-bold mb-1 text-dark">Tambah Product Baru</h2>
-        <p class="text-muted mb-0">Isi formulir di bawah ini untuk menambahkan produk baru ke katalog Tokobii.</p>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Tambah Produk Baru</h1>
+            <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">Buat item baru dalam katalog inventaris Tokobii.</p>
+        </div>
+        <div>
+            <a href="{{ route('admin.products.index') }}" class="btn btn-tokobii-secondary d-inline-flex align-items-center gap-2">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <span>Kembali ke Produk</span>
+            </a>
+        </div>
     </div>
 
     {{-- Form Card --}}
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white border-bottom py-3 px-4">
-            <h5 class="fw-bold mb-0 text-dark">Formulir Produk</h5>
+    <div class="tokobii-card">
+        <div class="tokobii-card-header">
+            <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Form Spesifikasi Produk</h5>
         </div>
-        <div class="card-body p-4">
+        <div class="p-4">
 
             <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="productForm" novalidate>
                 @csrf
 
                 <div class="row g-4">
 
-                    {{-- Section 1: Informasi Utama --}}
-                    <div class="col-12 border-bottom pb-2">
-                        <h6 class="fw-bold text-primary mb-0">1. Informasi Produk</h6>
-                    </div>
-
-                    {{-- Nama Product --}}
+                    {{-- Product Name --}}
                     <div class="col-md-6">
-                        <label for="name" class="form-label fw-semibold text-dark">
-                            Nama Product <span class="text-danger">*</span>
+                        <label for="name" class="form-label">
+                            Nama Produk <span class="text-danger">*</span>
                         </label>
                         <input type="text" 
                                name="name" 
                                id="name" 
-                               class="form-control @error('name') is-invalid @enderror" 
+                               class="tokobii-input w-100 @error('name') is-invalid @enderror" 
                                value="{{ old('name') }}" 
-                               placeholder="Contoh: Buku Tulis Spiral A5" 
+                               placeholder="Contoh: Mouse Ergonomis Nirkabel..." 
                                autofocus 
-                               required
-                               aria-describedby="nameHelp">
-                        <small id="nameHelp" class="text-muted d-block mt-1">Nama lengkap produk (Maksimal 150 karakter).</small>
+                               required>
                         @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
                     </div>
 
                     {{-- Slug --}}
                     <div class="col-md-6">
-                        <label for="slug" class="form-label fw-semibold text-dark">
-                            Slug Product
+                        <label for="slug" class="form-label">
+                            Slug Produk
                         </label>
                         <input type="text" 
                                name="slug" 
                                id="slug" 
-                               class="form-control bg-light" 
+                               class="tokobii-input w-100 bg-slate-100" 
                                value="{{ old('slug') }}" 
-                               placeholder="Otomatis terisi dari nama..." 
-                               readonly
-                               aria-describedby="slugHelp">
-                        <small id="slugHelp" class="text-muted d-block mt-1">Slug URL dibuat secara otomatis berdasarkan nama produk.</small>
+                               placeholder="Dibuat otomatis dari nama..." 
+                               readonly>
                     </div>
 
                     {{-- Category --}}
                     <div class="col-md-6">
-                        <label for="category_id" class="form-label fw-semibold text-dark">
-                            Category <span class="text-danger">*</span>
+                        <label for="category_id" class="form-label">
+                            Kategori <span class="text-danger">*</span>
                         </label>
                         <select name="category_id" 
                                 id="category_id" 
-                                class="form-select @error('category_id') is-invalid @enderror" 
-                                required
-                                aria-describedby="categoryHelp">
-                            <option value="">-- Pilih Category --</option>
+                                class="tokobii-select w-100 @error('category_id') is-invalid @enderror" 
+                                required>
+                            <option value="">-- Pilih Kategori --</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                     {{ $category->name }}
                                 </option>
                             @endforeach
                         </select>
-                        <small id="categoryHelp" class="text-muted d-block mt-1">Pilih kategori yang sesuai untuk produk ini.</small>
                         @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
                     </div>
 
                     {{-- SKU --}}
                     <div class="col-md-6">
-                        <label for="sku" class="form-label fw-semibold text-dark">
-                            SKU (Stock Keeping Unit) <span class="text-danger">*</span>
+                        <label for="sku" class="form-label">
+                            SKU (Unit Penjualan/SKU) <span class="text-danger">*</span>
                         </label>
                         <input type="text" 
                                name="sku" 
                                id="sku" 
-                               class="form-control @error('sku') is-invalid @enderror" 
+                               class="tokobii-input w-100 @error('sku') is-invalid @enderror" 
                                value="{{ old('sku') }}" 
                                placeholder="PRD-001" 
-                               required
-                               aria-describedby="skuHelp">
-                        <small id="skuHelp" class="text-muted d-block mt-1">Kode unik identifikasi stok (Maksimal 50 karakter).</small>
+                               required>
                         @error('sku')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    {{-- Section 2: Harga & Stok --}}
-                    <div class="col-12 border-bottom pb-2 mt-4">
-                        <h6 class="fw-bold text-primary mb-0">2. Harga & Inventaris</h6>
                     </div>
 
                     {{-- Price --}}
                     <div class="col-md-6">
-                        <label for="price" class="form-label fw-semibold text-dark">
-                            Harga Product (Rp) <span class="text-danger">*</span>
+                        <label for="price" class="form-label">
+                            Harga (Rp) <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light text-secondary font-monospace">Rp</span>
+                            <span class="input-group-text bg-slate-100 text-slate-500 font-monospace border-slate-300" style="border-radius: 10px 0 0 10px;">Rp</span>
                             <input type="number" 
                                    name="price" 
                                    id="price" 
                                    step="0.01" 
                                    min="0" 
-                                   class="form-control @error('price') is-invalid @enderror" 
+                                   class="tokobii-input flex-1 @error('price') is-invalid @enderror" 
+                                   style="border-radius: 0 10px 10px 0;"
                                    value="{{ old('price') }}" 
                                    placeholder="0" 
-                                   required
-                                   aria-describedby="priceHelp">
+                                   required>
                         </div>
-                        <small id="priceHelp" class="text-muted d-block mt-1">Harga jual produk dalam mata uang Rupiah.</small>
                         @error('price')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
                     </div>
 
                     {{-- Stock --}}
                     <div class="col-md-6">
-                        <label for="stock" class="form-label fw-semibold text-dark">
-                            Jumlah Stock <span class="text-danger">*</span>
+                        <label for="stock" class="form-label">
+                            Jumlah Stok <span class="text-danger">*</span>
                         </label>
                         <input type="number" 
                                name="stock" 
                                id="stock" 
                                min="0" 
-                               class="form-control @error('stock') is-invalid @enderror" 
+                               class="tokobii-input w-100 @error('stock') is-invalid @enderror" 
                                value="{{ old('stock', 0) }}" 
                                placeholder="0" 
-                               required
-                               aria-describedby="stockHelp">
-                        <small id="stockHelp" class="text-muted d-block mt-1">Jumlah stok barang fisik yang tersedia saat ini.</small>
+                               required>
                         @error('stock')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
                     </div>
 
                     {{-- Description --}}
                     <div class="col-12">
-                        <label for="description" class="form-label fw-semibold text-dark">
-                            Deskripsi Product
+                        <label for="description" class="form-label">
+                            Deskripsi
                         </label>
                         <textarea name="description" 
                                   id="description" 
                                   rows="4" 
-                                  class="form-control @error('description') is-invalid @enderror" 
-                                  placeholder="Masukkan deskripsi spesifikasi dan keunggulan produk..."
-                                  aria-describedby="descHelp">{{ old('description') }}</textarea>
-                        <small id="descHelp" class="text-muted d-block mt-1">Deskripsi rinci mengenai produk (Maksimal 3000 karakter).</small>
+                                  class="tokobii-input w-100 @error('description') is-invalid @enderror" 
+                                  placeholder="Spesifikasi dan keunggulan detail produk...">{{ old('description') }}</textarea>
                         @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
-                    </div>
-
-                    {{-- Section 3: Media & Status --}}
-                    <div class="col-12 border-bottom pb-2 mt-4">
-                        <h6 class="fw-bold text-primary mb-0">3. Media & Status</h6>
                     </div>
 
                     {{-- Thumbnail --}}
                     <div class="col-md-6">
-                        <label for="thumbnail" class="form-label fw-semibold text-dark">
-                            Thumbnail Product
+                        <label for="thumbnail" class="form-label">
+                            Gambar Produk
                         </label>
                         <input type="file" 
                                name="thumbnail" 
                                id="thumbnail" 
-                               class="form-control @error('thumbnail') is-invalid @enderror" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp"
-                               aria-describedby="thumbHelp">
-                        <small id="thumbHelp" class="text-muted d-block mt-1">Format gambar: JPG, JPEG, PNG, WEBP (Ukuran maks: 2MB).</small>
+                               class="tokobii-input w-100 @error('thumbnail') is-invalid @enderror" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp">
+                        <span class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">Format yang didukung: JPG, PNG, WEBP (Maks 2MB).</span>
                         @error('thumbnail')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
 
                         {{-- Image Preview Container --}}
                         <div class="mt-3">
-                            <span class="d-none small text-muted d-block mb-1" id="previewLabel">Live Preview Thumbnail:</span>
+                            <span class="d-none text-slate-400 d-block mb-1" id="previewLabel" style="font-size: 0.75rem;">Pratinjau Gambar:</span>
                             <img id="thumbnail-preview" 
                                  src="#" 
-                                 alt="Thumbnail Preview" 
-                                 class="img-thumbnail rounded shadow-sm d-none" 
-                                 style="max-height: 160px; object-fit: cover;">
+                                 alt="Pratinjau Gambar" 
+                                 class="rounded-3 border border-slate-200 d-none" 
+                                 style="max-height: 140px; object-fit: cover;">
                         </div>
                     </div>
 
                     {{-- Status --}}
                     <div class="col-md-6">
-                        <label for="status" class="form-label fw-semibold text-dark">
+                        <label for="status" class="form-label">
                             Status Publikasi <span class="text-danger">*</span>
                         </label>
                         <select name="status" 
                                 id="status" 
-                                class="form-select @error('status') is-invalid @enderror" 
-                                required
-                                aria-describedby="statusHelp">
-                            <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active (Tampil di Toko)</option>
-                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive (Disembunyikan)</option>
+                                class="tokobii-select w-100 @error('status') is-invalid @enderror" 
+                                required>
+                            <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Aktif (Tampak di Toko)</option>
+                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Tidak Aktif (Tersembunyi)</option>
                         </select>
-                        <small id="statusHelp" class="text-muted d-block mt-1">Status menentukan ketersediaan produk di katalog publik.</small>
                         @error('status')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
                     </div>
 
                     {{-- Submit & Cancel Buttons --}}
-                    <div class="col-12 pt-3 border-top d-flex gap-2">
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold" id="submitBtn">
+                    <div class="col-12 pt-3 border-top border-slate-100 d-flex gap-2">
+                        <button type="submit" class="btn btn-tokobii-primary" id="submitBtn">
                             <span class="spinner-border spinner-border-sm me-1 d-none" id="btnSpinner" role="status" aria-hidden="true"></span>
-                            <span id="btnText">Simpan Product</span>
+                            <span id="btnText">Simpan Produk</span>
                         </button>
-                        <a href="{{ route('admin.products.index') }}" class="btn btn-secondary px-4 fw-semibold">
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-tokobii-secondary">
                             Batal
                         </a>
                     </div>
@@ -270,15 +247,14 @@
         const btnSpinner = document.getElementById('btnSpinner');
         const btnText = document.getElementById('btnText');
 
-        // Automatic slug generation from product name
         function slugify(text) {
             return text.toString().toLowerCase()
                 .trim()
-                .replace(/\s+/g, '-')           // Replace spaces with -
-                .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-                .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-                .replace(/^-+/, '')             // Trim - from start of text
-                .replace(/-+$/, '');            // Trim - from end of text
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
         }
 
         if (nameInput && slugInput) {
@@ -291,7 +267,6 @@
             });
         }
 
-        // Live image preview without page reload
         if (thumbnailInput && thumbnailPreview) {
             thumbnailInput.addEventListener('change', function (event) {
                 const file = event.target.files[0];
@@ -307,7 +282,6 @@
             });
         }
 
-        // Loading state on form submit to prevent double-submission
         if (productForm && submitBtn) {
             productForm.addEventListener('submit', function () {
                 submitBtn.disabled = true;

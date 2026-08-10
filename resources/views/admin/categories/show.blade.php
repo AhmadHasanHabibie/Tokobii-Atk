@@ -1,69 +1,68 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Detail Category - Tokobii')
+@section('title', 'Detail Kategori - Tokobii')
 
 @section('content')
 <div class="container-fluid px-0">
 
     {{-- Breadcrumb --}}
     <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{ route('admin.categories.index') }}" class="text-decoration-none text-secondary">Category Management</a>
+                <a href="{{ route('admin.categories.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Kategori</a>
             </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detail Category</li>
+            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Detail</li>
         </ol>
     </nav>
 
     {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-1 text-dark">Detail Category</h2>
-            <p class="text-muted mb-0">Informasi lengkap mengenai kategori <strong class="text-dark">{{ $category->name }}</strong>.</p>
+            <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">{{ $category->name }}</h1>
+            <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">Ikhtisar detail kategori dan status taksonomi.</p>
         </div>
-        <div class="mt-3 mt-md-0 d-flex gap-2">
-            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-warning text-white px-4 fw-semibold shadow-sm">
-                ✏️ Edit Kategori
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-tokobii-primary">
+                Edit Kategori
             </a>
-            <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary px-4 fw-semibold">
-                Kembali
+            <a href="{{ route('admin.categories.index') }}" class="btn btn-tokobii-secondary">
+                Kembali ke Kategori
             </a>
         </div>
     </div>
 
     {{-- Category Detail Card --}}
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white border-bottom py-3 px-4">
-            <h5 class="fw-bold mb-0 text-dark">Informasi Kategori</h5>
+    <div class="tokobii-card">
+        <div class="tokobii-card-header">
+            <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Informasi Kategori</h5>
         </div>
-        <div class="card-body p-4">
+        <div class="p-4">
 
             <div class="row g-4 align-items-start">
 
-                {{-- Left Column: Large Thumbnail & Quick Status --}}
+                {{-- Left Column: Thumbnail & Quick Status --}}
                 <div class="col-12 col-md-4 text-center">
-                    <div class="p-3 bg-light rounded-3 border">
+                    <div class="p-3 bg-slate-50 rounded-3 border border-slate-200">
                         @if($category->thumbnail)
                             <img src="{{ asset('storage/' . $category->thumbnail) }}" 
                                  alt="Thumbnail {{ $category->name }}" 
-                                 class="img-fluid rounded shadow-sm mb-3" 
-                                 style="max-height: 250px; width: 100%; object-fit: cover;">
+                                 class="img-fluid rounded-3 border border-slate-200 mb-3" 
+                                 style="max-height: 220px; width: 100%; object-fit: cover;">
                         @else
-                            <div class="d-flex flex-column align-items-center justify-content-center text-muted py-5 bg-white rounded border" style="min-height: 200px;">
-                                <span class="fs-1 mb-2">🖼️</span>
-                                <span class="small text-secondary fw-semibold">No Thumbnail Available</span>
+                            <div class="d-flex flex-column align-items-center justify-content-center text-slate-400 py-5 bg-white rounded-3 border border-slate-200" style="min-height: 180px;">
+                                <span class="small text-slate-400">Tidak Ada Gambar</span>
                             </div>
                         @endif
 
-                        <div class="mt-3">
-                            <span class="text-muted small d-block mb-1">Status Publikasi:</span>
+                        <div class="mt-2">
+                            <span class="text-slate-400 d-block mb-1" style="font-size: 0.75rem;">Status Publikasi</span>
                             @if($category->status === 'active')
-                                <span class="badge bg-success px-3 py-2 fw-normal fs-6">Active (Dipublikasikan)</span>
+                                <span class="tokobii-badge tokobii-badge-success">Aktif</span>
                             @else
-                                <span class="badge bg-secondary px-3 py-2 fw-normal fs-6">Inactive (Disembunyikan)</span>
+                                <span class="tokobii-badge tokobii-badge-neutral">Tidak Aktif</span>
                             @endif
                         </div>
                     </div>
@@ -75,28 +74,28 @@
                         <table class="table table-borderless align-middle mb-0">
                             <tbody>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 25%;">Nama Category</th>
-                                    <td class="fw-bold fs-5 text-dark">: {{ $category->name }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold" style="width: 28%;">Nama Kategori</th>
+                                    <td class="fw-bold text-slate-900 fs-5">: {{ $category->name }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Slug URL</th>
-                                    <td>: <code class="text-secondary bg-light px-2 py-1 rounded fs-6">{{ $category->slug }}</code></td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Slug URL</th>
+                                    <td>: <code class="text-slate-700 bg-slate-100 px-2 py-1 rounded font-monospace">{{ $category->slug }}</code></td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Jumlah Produk</th>
-                                    <td class="fw-semibold text-secondary">: {{ $category->products_count }} Produk</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Total Produk</th>
+                                    <td class="fw-semibold text-slate-800">: {{ $category->products_count }} Item</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold align-top">Deskripsi</th>
-                                    <td class="text-dark">: {{ $category->description ?? 'Tidak ada deskripsi.' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold align-top">Deskripsi</th>
+                                    <td class="text-slate-700">: {{ $category->description ?? 'Tidak ada deskripsi.' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Tanggal Dibuat</th>
-                                    <td class="text-muted">: {{ $category->created_at ? $category->created_at->format('d F Y, H:i:s') : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Tanggal Dibuat</th>
+                                    <td class="text-slate-500">: {{ $category->created_at ? $category->created_at->format('d M Y, H:i') : '-' }}</td>
                                 </tr>
                                 <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Terakhir Diperbarui</th>
-                                    <td class="text-muted">: {{ $category->updated_at ? $category->updated_at->format('d F Y, H:i:s') : '-' }}</td>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Terakhir Diperbarui</th>
+                                    <td class="text-slate-500">: {{ $category->updated_at ? $category->updated_at->format('d M Y, H:i') : '-' }}</td>
                                 </tr>
                             </tbody>
                         </table>

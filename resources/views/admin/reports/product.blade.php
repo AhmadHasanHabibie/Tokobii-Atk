@@ -1,6 +1,61 @@
 @extends('layouts.admin.app')
+
 @section('title', 'Reports ' . $product->name . ' - Tokobii')
+
 @section('content')
-<a href="{{ route('admin.reports.categories.show', $product->category) }}" class="btn btn-outline-secondary btn-sm mb-3">Kembali ke Kategori</a><h2 class="fw-bold">Reports: {{ $product->name }}</h2><p class="text-muted">{{ $product->reports_count }} laporan · {{ $product->category->name }}</p>
-@forelse($reports as $report)<div class="card border-0 shadow-sm mb-3"><div class="card-body d-flex justify-content-between align-items-center"><div><strong>{{ $report->user->name }}</strong><div class="text-muted small">{{ $report->order->invoice_number }} · {{ $report->created_at->format('d M Y') }}</div><div>{{ \Illuminate\Support\Str::limit($report->description, 110) }}</div></div><a class="btn btn-outline-primary btn-sm" href="{{ route('admin.reports.show', $report) }}">Detail</a></div></div>@empty<p class="text-muted">Belum ada laporan untuk produk ini.</p>@endforelse{{ $reports->links('pagination::bootstrap-5') }}
+<div class="container-fluid px-0">
+    {{-- Breadcrumb --}}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.reports.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Reports</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.reports.categories.show', $product->category) }}" class="text-decoration-none text-slate-500 hover-text-blue-600">{{ $product->category->name }}</a></li>
+            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">{{ $product->name }}</li>
+        </ol>
+    </nav>
+
+    {{-- Page Header --}}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Reports: {{ $product->name }}</h1>
+            <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">{{ $product->reports_count }} report tickets recorded for this product in {{ $product->category->name }}.</p>
+        </div>
+        <a href="{{ route('admin.reports.categories.show', $product->category) }}" class="btn btn-tokobii-secondary">
+            Back to Category
+        </a>
+    </div>
+
+    {{-- Reports List --}}
+    <div class="d-flex flex-column gap-3 mb-4">
+        @forelse($reports as $report)
+            <div class="tokobii-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <strong class="text-slate-900">👤 {{ $report->user->name }}</strong>
+                        <span class="text-slate-300">•</span>
+                        <code class="text-blue-600 font-monospace" style="font-size: 0.8125rem;">{{ $report->order->invoice_number }}</code>
+                    </div>
+                    <span class="text-slate-400" style="font-size: 0.8125rem;">{{ $report->created_at->format('d M Y, H:i') }}</span>
+                </div>
+                <p class="text-slate-700 mb-3" style="font-size: 0.875rem; line-height: 1.6;">{{ \Illuminate\Support\Str::limit($report->description, 120) }}</p>
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('admin.reports.show', $report) }}" class="btn btn-tokobii-secondary btn-sm">
+                        View Detail →
+                    </a>
+                </div>
+            </div>
+        @empty
+            <div class="tokobii-card p-5 text-center text-slate-400">
+                No reports submitted for this product yet.
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Pagination --}}
+    @if($reports->hasPages())
+        <div class="d-flex justify-content-end">
+            {{ $reports->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
+</div>
 @endsection
