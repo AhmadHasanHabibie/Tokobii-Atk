@@ -38,6 +38,14 @@ class OrderItem extends Model
     ];
 
     /**
+     * Quantity accessor for compatibility with both $item->quantity and $item->qty.
+     */
+    public function getQuantityAttribute(): int
+    {
+        return (int) ($this->attributes['qty'] ?? 0);
+    }
+
+    /**
      * Get the order that owns the item.
      */
     public function order(): BelongsTo

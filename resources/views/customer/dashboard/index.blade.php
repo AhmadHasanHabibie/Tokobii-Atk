@@ -1,309 +1,236 @@
 @extends('layouts.customer.app')
 
-@section('title', 'Dashboard Customer - Tokobii')
+@section('title', 'Dashboard Pelanggan - ' . config('app.name', 'Tokobii'))
 
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Welcome Header & Dynamic Greeting --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1 text-dark">
-                {{ $greeting }}, <span class="text-primary">{{ Auth::user()->name }}</span>! 👋
-            </h2>
-            <p class="text-muted mb-0">
-                Selamat datang di Tokobii. Pusat kebutuhan alat tulis, kantor, dan perlengkapan sekolah Anda.
-            </p>
+    {{-- Dedicated Welcome Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="tokobii-badge tokobii-badge-info">Pelanggan Tokobii</span>
+                    <span class="text-slate-400 small">{{ now()->translatedFormat('l, d F Y') }}</span>
+                </div>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">
+                    {{ $greeting }}, <span class="text-blue-600" style="color: #2563eb;">{{ Auth::user()->name }}</span>
+                </h1>
+                <p class="text-slate-500 mb-0 small">
+                    Pusat belanja alat tulis kantor dan perlengkapan kerja terpercaya dengan kemudahan ambil di toko.
+                </p>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('customer.shop.index') }}" class="btn btn-tokobii-primary btn-tokobii-sm shadow-sm">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span>Mulai Belanja</span>
+                </a>
+                <a href="{{ route('customer.orders.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span>Riwayat Pesanan</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    {{-- Search Bar UI --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-body p-3">
-            <form action="{{ route('customer.shop.index') }}" method="GET" class="row g-2 align-items-center">
-                <div class="col-12 col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted" id="search-addon">🔍</span>
-                        <input type="text" 
-                               name="search" 
-                               class="form-control border-start-0 ps-0" 
-                               placeholder="Cari alat tulis, buku, pulpen, atau perlengkapan kantor..." 
-                               aria-label="Cari alat tulis"
-                               aria-describedby="search-addon">
+    {{-- Hero Banner Card Section --}}
+    <div class="tokobii-card mb-4 overflow-hidden border-0 text-white" style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);">
+        <div class="p-4 p-md-5">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8 mb-4 mb-md-0">
+                    <span class="tokobii-badge bg-white text-blue-700 fw-bold px-3 py-1.5 text-uppercase mb-3 shadow-sm" style="font-size: 0.75rem; background-color: #ffffff; color: #1d4ed8;">
+                        Pusat Alat Tulis & Perlengkapan Kantor
+                    </span>
+                    <h2 class="fw-bold display-6 mb-2 text-white">Lengkapi Kebutuhan ATK Anda</h2>
+                    <p class="lead mb-4 text-blue-100 small" style="max-width: 580px; opacity: 0.95; line-height: 1.6;">
+                        Temukan ratusan produk alat tulis kantor, kertas, buku, dan perlengkapan kerja berkualitas tinggi dengan kemudahan pemesanan serta pengambilan langsung di toko.
+                    </p>
+                    
+                    {{-- Quick Search Form inside Hero --}}
+                    <form action="{{ route('customer.shop.index') }}" method="GET" class="d-flex flex-column flex-sm-row gap-2" style="max-width: 500px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-0 text-slate-400 ps-3">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </span>
+                            <input type="text" 
+                                   name="search" 
+                                   class="form-control border-0 py-2.5 ps-1 shadow-none" 
+                                   placeholder="Cari buku, pulpen, kertas, spidol..." 
+                                   aria-label="Cari Produk">
+                        </div>
+                        <button type="submit" class="btn btn-dark fw-bold px-4 py-2.5 shadow-sm" style="background-color: #0f172a; border-color: #0f172a; border-radius: 12px;">
+                            Cari
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="col-12 col-md-4 text-center d-none d-md-block">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-20 backdrop-blur d-inline-flex flex-column align-items-center justify-content-center">
+                        <div class="rounded-circle bg-white text-blue-600 p-3 mb-2 shadow-sm" style="background-color: #ffffff; color: #2563eb;">
+                            <svg width="42" height="42" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                        <span class="fw-bold text-white fs-6">Tokobii Official</span>
+                        <span class="text-blue-100 small" style="font-size: 0.75rem;">Stok Lengkap & Terverifikasi</span>
                     </div>
                 </div>
-                <div class="col-12 col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
-                        Cari Produk
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Hero Banner Section --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4 bg-primary text-white overflow-hidden" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-        <div class="card-body p-4 p-md-5">
-            <div class="row align-items-center">
-                <div class="col-12 col-md-8 mb-3 mb-md-0">
-                    <span class="badge bg-white text-primary fw-bold px-3 py-2 text-uppercase mb-2">Pusat Alat Tulis Terlengkap</span>
-                    <h1 class="fw-bold display-6 mb-2">Lengkapi Kebutuhan Alat Tulis Anda</h1>
-                    <p class="lead mb-4 opacity-90">
-                        Temukan koleksi perlengkapan kantor, sekolah, dan alat tulis kualitas terbaik dengan harga terjangkau dan pelayanan terbaik di Tokobii.
-                    </p>
-                    <a href="{{ route('customer.shop.index') }}" class="btn btn-light text-primary btn-lg fw-bold px-4 shadow-sm">
-                        🛍️ Belanja Sekarang
-                    </a>
-                </div>
-                <div class="col-12 col-md-4 text-center d-none d-md-block">
-                    <span class="display-1">📚✏️</span>
-                </div>
             </div>
         </div>
     </div>
 
-    {{-- Category Section --}}
-    <div class="mb-5">
+    {{-- Category Section Card Container --}}
+    <div class="tokobii-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="fw-bold mb-0 text-dark">📂 Kategori Produk</h4>
-                <p class="text-muted small mb-0">Pilih kategori alat tulis yang Anda butuhkan.</p>
+                <h4 class="fw-bold mb-0 text-slate-900" style="font-size: 1.15rem;">Kategori Produk</h4>
+                <p class="text-slate-500 small mb-0">Pilih kategori alat tulis yang Anda butuhkan.</p>
             </div>
-            <a href="{{ route('customer.shop.index') }}" class="btn btn-outline-primary btn-sm fw-semibold">
-                Lihat Semua Kategori →
+            <a href="{{ route('customer.shop.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                <span>Lihat Semua ({{ $totalCategories }})</span>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
             </a>
         </div>
 
         <div class="row g-3">
             @forelse($categories as $category)
                 <div class="col-6 col-sm-4 col-md-3 col-lg-3">
-                    <a href="{{ route('customer.shop.category', $category->slug) }}" class="card border-0 shadow-sm rounded-3 text-decoration-none text-dark h-100 card-hover transition">
-                        <div class="card-body p-3 text-center">
-                            <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
-                                <span class="fs-4">📂</span>
-                            </div>
-                            <h6 class="fw-bold mb-1 text-truncate" title="{{ $category->name }}">{{ $category->name }}</h6>
-                            <small class="text-muted">{{ $category->products_count ?? $category->products()->count() }} Produk</small>
+                    <a href="{{ route('customer.shop.category', $category->slug) }}" class="tokobii-card p-3 text-decoration-none text-slate-800 d-flex flex-column align-items-center text-center h-100 tokobii-card-interactive">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; background-color: #eff6ff; color: #2563eb;">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
                         </div>
+                        <h6 class="fw-bold mb-1 text-truncate w-100" style="font-size: 0.875rem;" title="{{ $category->name }}">{{ $category->name }}</h6>
+                        <span class="text-slate-400" style="font-size: 0.75rem;">{{ $category->products_count ?? $category->products()->count() }} Produk</span>
                     </a>
                 </div>
             @empty
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-3 p-4 text-center text-muted">
-                        <span>Belum ada kategori yang tersedia saat ini.</span>
+                    <div class="tokobii-empty-state">
+                        <span class="text-slate-400 small">Belum ada kategori yang tersedia saat ini.</span>
                     </div>
                 </div>
             @endforelse
         </div>
     </div>
 
-    {{-- New Product Section --}}
-    <div class="mb-5">
+    {{-- New Product Section Card Container --}}
+    <div class="tokobii-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="fw-bold mb-0 text-dark">✨ Produk Terbaru</h4>
-                <p class="text-muted small mb-0">Koleksi alat tulis terbaru yang baru saja hadir.</p>
+                <h4 class="fw-bold mb-0 text-slate-900" style="font-size: 1.15rem;">Produk Rekomendasi</h4>
+                <p class="text-slate-500 small mb-0">Rekomendasi perlengkapan ATK terpopuler minggu ini.</p>
             </div>
-            <a href="{{ route('customer.shop.index') }}" class="btn btn-outline-primary btn-sm fw-semibold">
-                Lihat Semua Produk →
+            <a href="{{ route('customer.shop.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                <span>Semua Produk</span>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
             </a>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-3 g-md-4">
             @forelse($newProducts as $product)
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm rounded-3 h-100">
-                        <div class="position-relative">
-                            <a href="{{ route('customer.shop.show', $product->slug) }}">
-                                @if($product->thumbnail)
-                                    <img src="{{ asset('storage/' . $product->thumbnail) }}" 
-                                         alt="Gambar {{ $product->name }}" 
-                                         class="card-img-top rounded-top-3" 
-                                         style="height: 180px; object-fit: cover;">
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="tokobii-product-card">
+                        {{-- Thumbnail Container --}}
+                        <div class="product-image-container position-relative bg-slate-100 d-flex align-items-center justify-content-center p-3" style="height: 180px;">
+                            @if($product->thumbnail)
+                                <img src="{{ asset('storage/' . $product->thumbnail) }}" 
+                                     alt="{{ $product->name }}" 
+                                     class="product-image img-fluid object-fit-contain h-100 w-100" 
+                                     loading="lazy">
+                            @else
+                                <div class="text-slate-400 text-center">
+                                    <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-1">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    <span class="d-block" style="font-size: 0.7rem;">Tanpa Foto</span>
+                                </div>
+                            @endif
+
+                            {{-- Stock Badge --}}
+                            <div class="position-absolute top-0 end-0 m-2">
+                                @if($product->stock > 0)
+                                    <span class="tokobii-badge tokobii-badge-success" style="font-size: 0.6875rem;">
+                                        Stok: {{ $product->stock }}
+                                    </span>
                                 @else
-                                    <div class="bg-light rounded-top-3 d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
-                                        <span class="fs-1">📦</span>
-                                    </div>
+                                    <span class="tokobii-badge tokobii-badge-danger" style="font-size: 0.6875rem;">
+                                        Habis
+                                    </span>
                                 @endif
+                            </div>
+                        </div>
+
+                        {{-- Details --}}
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="text-slate-400 text-uppercase fw-semibold mb-1" style="font-size: 0.6875rem; letter-spacing: 0.05em;">
+                                {{ $product->category->name ?? 'Umum' }}
+                            </span>
+                            <a href="{{ route('customer.shop.show', $product->slug) }}" class="fw-bold text-slate-900 text-decoration-none mb-1 text-truncate hover-text-blue-600" title="{{ $product->name }}" style="font-size: 0.9rem;">
+                                {{ $product->name }}
                             </a>
 
-                            @if($product->category)
-                                <a href="{{ route('customer.shop.category', $product->category->slug) }}" class="badge bg-dark text-decoration-none position-absolute top-0 start-0 m-2 px-2.5 py-1 small">
-                                    {{ $product->category->name }}
-                                </a>
-                            @endif
-                        </div>
-
-                        <div class="card-body p-3 d-flex flex-column justify-content-between">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ $product->name }}">
-                                    <a href="{{ route('customer.shop.show', $product->slug) }}" class="text-decoration-none text-dark">
-                                        {{ $product->name }}
-                                    </a>
-                                </h6>
-                                <p class="text-primary fw-bold mb-2 font-monospace">
-                                    Rp {{ number_format($product->price, 0, ',', '.') }}
-                                </p>
-                                <small class="text-warning d-block mb-2">@if($product->reviews_count)★ {{ number_format($product->reviews_avg_rating, 1) }} <span class="text-muted">({{ $product->reviews_count }})</span>@else<span class="text-muted">Belum ada rating</span>@endif</small>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                <small class="{{ $product->stock > 0 ? 'text-success' : 'text-danger' }} fw-semibold">
-                                    {{ $product->stock > 0 ? 'Stok: ' . $product->stock : 'Stok Habis' }}
-                                </small>
-                                <a href="{{ route('customer.shop.show', $product->slug) }}" class="btn btn-sm btn-outline-primary fw-semibold" aria-label="Detail {{ $product->name }}">
-                                    Detail
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-3 p-4 text-center text-muted">
-                        <span>Belum ada produk terbaru saat ini.</span>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- Popular Product Section --}}
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h4 class="fw-bold mb-0 text-dark">🔥 Produk Populer</h4>
-                <p class="text-muted small mb-0">Pilihan favorit pelanggan Tokobii.</p>
-            </div>
-        </div>
-
-        <div class="row g-3">
-            @forelse($popularProducts as $product)
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="card border-0 shadow-sm rounded-3 h-100">
-                        <div class="card-body p-3">
-                            <div class="d-flex gap-3 align-items-center">
-                                <a href="{{ route('customer.shop.show', $product->slug) }}">
-                                    @if($product->thumbnail)
-                                        <img src="{{ asset('storage/' . $product->thumbnail) }}" 
-                                             alt="Thumbnail {{ $product->name }}" 
-                                             class="rounded border" 
-                                             style="width: 60px; height: 60px; object-fit: cover;">
-                                    @else
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 60px; height: 60px;">
-                                            <span class="fs-4">📦</span>
-                                        </div>
-                                    @endif
-                                </a>
-                                <div class="overflow-hidden">
-                                    <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ $product->name }}">
-                                        <a href="{{ route('customer.shop.show', $product->slug) }}" class="text-decoration-none text-dark">
-                                            {{ $product->name }}
-                                        </a>
-                                    </h6>
-                                    <p class="text-primary fw-bold mb-0 small font-monospace">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                            {{-- Rating --}}
+                            <div class="d-flex align-items-center gap-1 mb-2">
+                                <div class="d-flex text-amber-500">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <svg width="13" height="13" fill="{{ $i <= round($product->reviews_avg_rating ?? 0) ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                        </svg>
+                                    @endfor
                                 </div>
+                                <span class="text-slate-400" style="font-size: 0.75rem;">
+                                    ({{ $product->reviews_count ?? 0 }})
+                                </span>
+                            </div>
+
+                            {{-- Price & Add to Cart Action --}}
+                            <div class="d-flex align-items-center justify-content-between mt-auto pt-2 border-top border-slate-100">
+                                <span class="fw-bold text-blue-600 font-monospace" style="font-size: 0.9375rem; color: #2563eb;">
+                                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                                </span>
+
+                                @if($product->stock > 0)
+                                    <form action="{{ route('customer.cart.add') }}" method="POST" class="m-0">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        <input type="hidden" name="qty" value="1">
+                                        <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm p-1.5 rounded-3" title="Tambah ke Keranjang">
+                                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
             @empty
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 text-center text-muted small">
-                        <span>Belum ada data produk populer.</span>
+                    <div class="tokobii-empty-state">
+                        <div class="tokobii-empty-icon">
+                            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <h6 class="fw-bold text-slate-800 mb-1">Belum Ada Produk Tersedia</h6>
+                        <p class="text-slate-400 small mb-0">Silakan kembali lagi nanti untuk melihat produk terbaru dari Tokobii.</p>
                     </div>
                 </div>
             @endforelse
-        </div>
-    </div>
-
-    {{-- Store Information Section ("Kenapa Belanja di Tokobii?") --}}
-    <div class="mb-5">
-        <div class="text-center mb-4">
-            <h4 class="fw-bold mb-1 text-dark">Kenapa Belanja di Tokobii?</h4>
-            <p class="text-muted small mb-0">Komitmen kami dalam memberikan kenyamanan dan kualitas terbaik.</p>
-        </div>
-
-        <div class="row g-3">
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
-                    <div class="card-body p-2">
-                        <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <span class="fs-3">✅</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">Produk Berkualitas</h6>
-                        <p class="text-muted small mb-0">Seluruh alat tulis dijamin orisinal dan siap pakai.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
-                    <div class="card-body p-2">
-                        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <span class="fs-3">💰</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">Harga Terjangkau</h6>
-                        <p class="text-muted small mb-0">Penawaran harga terbaik untuk eceran maupun grosir.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
-                    <div class="card-body p-2">
-                        <div class="bg-info-subtle text-info-emphasis rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <span class="fs-3">📦</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">Pickup Cepat</h6>
-                        <p class="text-muted small mb-0">Pesanan disiapkan instan untuk diambil langsung di toko.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
-                    <div class="card-body p-2">
-                        <div class="bg-warning-subtle text-warning-emphasis rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <span class="fs-3">😊</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">Pelayanan Ramah</h6>
-                        <p class="text-muted small mb-0">Tim Tokobii siap membantu seluruh kebutuhan Anda.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Store Profile Card --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4 bg-light">
-        <div class="card-body p-4">
-            <div class="row g-4 align-items-center">
-                <div class="col-12 col-md-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary text-white rounded-3 p-3 text-center">
-                            <span class="fs-2">🏪</span>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Toko Tokobii Store</h5>
-                            <small class="text-muted">Pusat Alat Tulis & Kantor</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-8">
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-4">
-                            <span class="text-secondary small d-block">🕒 Jam Operasional</span>
-                            <strong class="text-dark small">Senin - Sabtu: 08.00 - 20.00 WIB</strong>
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <span class="text-secondary small d-block">📍 Alamat Toko</span>
-                            <strong class="text-dark small">Jl. Utama Tokobii No. 88, Jakarta</strong>
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <span class="text-secondary small d-block">📞 Kontak CS</span>
-                            <strong class="text-dark small">+62 812-3456-7890</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

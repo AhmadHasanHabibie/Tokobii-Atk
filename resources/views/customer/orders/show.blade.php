@@ -1,440 +1,223 @@
 @extends('layouts.customer.app')
 
-@section('title', 'Detail Pesanan ' . $order->invoice_number . ' - Tokobii')
+@section('title', 'Detail Pesanan ' . $order->invoice_number . ' - ' . config('app.name', 'Tokobii'))
 
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
-            <li class="breadcrumb-item">
-                <a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('customer.orders.index') }}" class="text-decoration-none text-secondary">Riwayat Pesanan</a>
-            </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Detail Pesanan</li>
-        </ol>
-    </nav>
+    {{-- Dedicated Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item"><a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('customer.orders.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Riwayat Pesanan</a></li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">{{ $order->invoice_number }}</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <h1 class="h3 fw-bold text-slate-900 mb-0" style="color: #0f172a;">Detail Pesanan:</h1>
+                    <span class="fw-bold text-blue-600 font-monospace fs-5">{{ $order->invoice_number }}</span>
+                </div>
+                <p class="text-slate-500 mb-0 small">Informasi rincian produk, status verifikasi, dan bukti pengambilan pesanan Anda.</p>
+            </div>
 
-    {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
-            <strong>✅ Sukses!</strong> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @if(in_array($order->status, ['ready_for_pickup', 'completed']) || in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']))
+                    <a href="{{ route('customer.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary btn-tokobii-sm shadow-sm">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        <span>Cetak Struk</span>
+                    </a>
+                @endif
 
-    @if(session('info'))
-        <div class="alert alert-info alert-dismissible fade show mb-4 shadow-sm" role="alert">
-            <strong>ℹ️ Info:</strong> {{ session('info') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+                @if($order->status === 'pending' && $order->payment_method === 'qris')
+                    <a href="{{ route('customer.orders.pay', $order) }}" class="btn btn-tokobii-warning btn-tokobii-sm shadow-sm">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        <span>Bayar QRIS</span>
+                    </a>
+                @endif
 
-    @if(session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm" role="alert">
-            <strong>⚠️ Perhatian!</strong> {{ session('warning') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
-            <strong>❌ Terjadi Kesalahan!</strong> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
-            <strong>❌ Gagal Upload:</strong>
-            <ul class="mb-0 mt-1 ps-3">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1 text-dark">Detail Pesanan: <span class="text-primary">{{ $order->invoice_number }}</span></h2>
-            <p class="text-muted mb-0">Informasi rincian item, status verifikasi pembayaran, dan resi pengambilan pesanan Anda.</p>
-        </div>
-        <div class="mt-3 mt-md-0 d-flex gap-2">
-            @if(in_array($order->order_status, ['ready_for_pickup', 'completed']) || in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']))
-                <a href="{{ route('customer.orders.receipt', $order) }}" target="_blank" class="btn btn-outline-primary fw-semibold shadow-sm">
-                    🖨 Cetak Pickup Receipt
+                <a href="{{ route('customer.orders.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    <span>Kembali</span>
                 </a>
-            @endif
-            <a href="{{ route('customer.orders.index') }}" class="btn btn-secondary px-4 fw-semibold shadow-sm">
-                ← Kembali
-            </a>
+            </div>
         </div>
     </div>
 
-    {{-- Customer Status Notification Alerts --}}
-    @if($order->payment_status === 'paid' && $order->order_status === 'processing')
-        <div class="alert alert-success border-success-subtle shadow-sm mb-4" role="alert">
-            ✅ <strong>Pembayaran berhasil diverifikasi.</strong> Pesanan Anda sedang diproses oleh tim Tokobii.
+    {{-- Order Status Announcement --}}
+    @if($order->status === 'ready_for_pickup')
+        <div class="alert alert-success border-0 bg-emerald-50 text-emerald-900 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-emerald-100 text-emerald-700 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background-color: #d1fae5; color: #059669;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <div>
+                <strong class="d-block" style="font-size: 0.9rem;">Pesanan Anda Siap Diambil di Toko!</strong>
+                <span class="small text-emerald-800">Tunjukkan kode QR pengambilan atau sebutkan nomor invoice ke kasir saat datang ke toko.</span>
+            </div>
         </div>
-    @elseif($order->order_status === 'ready_for_pickup')
-        <div class="alert alert-info border-info-subtle shadow-sm mb-4" role="alert">
-            📦 <strong>Pesanan siap diambil.</strong> Silakan tunjukkan QR Code atau Struk Pengambilan saat datang ke kasir toko.
-        </div>
-    @elseif($order->order_status === 'completed')
-        <div class="alert alert-success border-success-subtle shadow-sm mb-4" role="alert">
-            🏁 <strong>Pesanan telah selesai.</strong> Terima kasih telah berbelanja kebutuhan alat tulis di Tokobii!
+    @elseif($order->status === 'pending' && $order->payment_method === 'qris')
+        <div class="alert alert-warning border-0 bg-amber-50 text-amber-900 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-amber-100 text-amber-700 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background-color: #fef3c7; color: #d97706;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <strong class="d-block" style="font-size: 0.9rem;">Menunggu Pembayaran QRIS</strong>
+                <span class="small text-amber-800">Silakan selesaikan pembayaran via QRIS dan unggah bukti transfer agar pesanan dapat segera disiapkan.</span>
+            </div>
         </div>
     @endif
 
     <div class="row g-4">
 
-        {{-- Left Column: Order Info & Payment Verification Card & Pickup Receipt Card & Timeline & Review --}}
-        <div class="col-12 col-md-5">
+        {{-- Left Column: Order Meta, QR Pickup, Proof Upload --}}
+        <div class="col-12 col-lg-5">
             
-            {{-- Section 1: Order Information Card --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Informasi Pesanan</h5>
+            {{-- Order Summary Info Card --}}
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header d-flex align-items-center gap-2">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Informasi Pesanan</h5>
                 </div>
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-borderless align-middle mb-0 small">
-                            <tbody>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold" style="width: 40%;">Invoice Number</th>
-                                    <td>: <code class="text-primary bg-primary-subtle px-2 py-1 rounded fw-bold">{{ $order->invoice_number }}</code></td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Tanggal Pesanan</th>
-                                    <td class="text-dark">: {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Metode Pembayaran</th>
-                                    <td>: 
-                                        @if($order->payment_method === 'qris')
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 fw-normal">📱 QRIS</span>
-                                        @else
-                                            <span class="badge bg-light text-dark border border-dark-subtle px-2.5 py-1 fw-normal">💵 Cash</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Status Pembayaran</th>
-                                    <td>: 
-                                        @if($order->payment_status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
-                                        @elseif($order->payment_status === 'waiting_verification')
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
-                                        @elseif($order->payment_status === 'rejected')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 fw-normal">Rejected</span>
-                                        @else
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 fw-normal">Waiting Payment</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0 text-secondary fw-semibold">Status Pesanan</th>
-                                    <td>: 
-                                        @if($order->status === 'completed')
-                                            <span class="badge bg-dark px-2.5 py-1 fw-normal">🏁 Completed</span>
-                                        @elseif($order->status === 'ready_for_pickup')
-                                            <span class="badge bg-primary px-2.5 py-1 fw-normal">📦 Ready for Pickup</span>
-                                        @elseif($order->status === 'processing')
-                                            <span class="badge bg-info px-2.5 py-1 fw-normal">⚙️ Processing</span>
-                                        @elseif($order->status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-normal">Paid</span>
-                                        @elseif($order->status === 'cancelled')
-                                            <span class="badge bg-danger px-2.5 py-1 fw-normal">🔴 Cancelled / Rejected</span>
-                                        @elseif($order->status === 'waiting_verification')
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1 fw-normal">Waiting Verification</span>
-                                        @else
-                                            <span class="badge bg-warning text-dark px-2.5 py-1 fw-normal">⏳ Waiting Payment</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {{-- PAYMENT VERIFICATION CARD (QRIS vs CASH) --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">
-                        {{ $order->payment_method === 'qris' ? 'PAYMENT VERIFICATION' : '💵 Pembayaran Tunai (Cash)' }}
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    @if($order->payment_method === 'qris')
-                        {{-- QRIS Payment Flow --}}
-
-                        @if($order->payment_status === 'pending')
-                            {{-- State 1: Pending Payment (Prompt to go to Lakukan Pembayaran page) --}}
-                            <div class="p-3 bg-light rounded border text-center">
-                                <span class="fs-2 d-block mb-2">📱</span>
-                                <h6 class="fw-bold text-dark mb-2">Belum Menyelesaikan Pembayaran QRIS</h6>
-                                <p class="text-muted small mb-3">Pesanan telah dibuat tetapi Anda belum mengunggah bukti pembayaran QRIS.</p>
-                                <a href="{{ route('customer.orders.pay', $order) }}" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
-                                    👉 Lakukan Pembayaran QRIS Sekarang
-                                </a>
-                            </div>
-
-                        @elseif($order->payment_status === 'waiting_verification')
-                            {{-- State 2: Waiting Verification Card --}}
-                            <div class="p-3 bg-light rounded border mb-3">
-                                <div class="mb-3">
-                                    <span class="text-secondary small d-block">Status:</span>
-                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-3 py-1.5 fs-6 fw-normal">Waiting Verification</span>
-                                </div>
-                                <div class="mb-3">
-                                    <span class="text-secondary small d-block">Upload Time:</span>
-                                    <strong class="text-dark small">{{ $order->payment && $order->payment->payment_date ? $order->payment->payment_date->format('d M Y, H:i:s') : '-' }}</strong>
-                                </div>
-                                <div>
-                                    <span class="text-secondary small d-block mb-1">Preview Bukti Pembayaran:</span>
-                                    @if($order->payment && $order->payment->proof_of_payment)
-                                        @if(\Illuminate\Support\Str::endsWith(strtolower($order->payment->proof_of_payment), '.pdf'))
-                                            <a href="{{ asset('storage/' . $order->payment->proof_of_payment) }}" target="_blank" class="btn btn-sm btn-outline-primary fw-semibold w-100 py-2">
-                                                📄 Lihat PDF Bukti Pembayaran
-                                            </a>
-                                        @else
-                                            <img src="{{ asset('storage/' . $order->payment->proof_of_payment) }}" alt="Preview Bukti Transfer" class="img-fluid rounded border shadow-sm" style="max-height: 160px; object-fit: contain;">
-                                        @endif
+                <div class="p-4">
+                    <table class="table table-borderless align-middle mb-0 small">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold" style="width: 42%;">No. Invoice</th>
+                                <td>: <span class="fw-bold text-blue-600 font-monospace">{{ $order->invoice_number }}</span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Tanggal Pesanan</th>
+                                <td class="text-slate-800">: {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : $order->created_at->format('d M Y, H:i') }} WIB</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Metode Bayar</th>
+                                <td>: 
+                                    @if($order->payment_method === 'qris')
+                                        <span class="tokobii-badge tokobii-badge-info">QRIS Tokobii</span>
+                                    @else
+                                        <span class="tokobii-badge tokobii-badge-neutral">Tunai di Kasir</span>
                                     @endif
-                                </div>
-                            </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Status Pesanan</th>
+                                <td>: 
+                                    @if($order->status === 'pending')
+                                        <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
+                                    @elseif($order->status === 'paid')
+                                        <span class="tokobii-badge tokobii-badge-info">Menunggu Verifikasi Kasir</span>
+                                    @elseif($order->status === 'ready_for_pickup')
+                                        <span class="tokobii-badge tokobii-badge-success">Siap Diambil</span>
+                                    @elseif($order->status === 'completed')
+                                        <span class="tokobii-badge tokobii-badge-success">Selesai</span>
+                                    @elseif($order->status === 'rejected')
+                                        <span class="tokobii-badge tokobii-badge-danger">Dibatalkan</span>
+                                    @else
+                                        <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($order->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Metode Ambil</th>
+                                <td class="text-slate-800">: Ambil di Toko Fisik</td>
+                            </tr>
+                            @if($order->notes)
+                                <tr>
+                                    <th class="ps-0 text-slate-500 fw-semibold">Catatan Anda</th>
+                                    <td class="text-slate-800">: {{ $order->notes }}</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                            <div class="alert alert-info border-info-subtle text-center p-3 mb-0 small" role="alert">
-                                💬 Pembayaran Anda sedang diperiksa Admin. Proses verifikasi maksimal 1 x 24 jam.
-                            </div>
+            {{-- Pickup QR Code Card --}}
+            <div class="tokobii-card p-4 text-center mb-4">
+                <h6 class="fw-bold text-slate-900 mb-2">Kode QR Struk Pengambilan</h6>
+                <p class="text-slate-400 small mb-3">Tunjukkan QR ini ke kasir untuk proses verifikasi pengambilan cepat.</p>
+                
+                <div class="d-inline-block bg-white p-3 border border-slate-200 rounded-3 shadow-sm mb-2">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($order->invoice_number) }}" 
+                         alt="QR Pengambilan {{ $order->invoice_number }}" 
+                         class="img-fluid" style="width: 130px; height: 130px;">
+                </div>
+                <div class="fw-bold font-monospace text-blue-600 small">{{ $order->invoice_number }}</div>
+            </div>
 
-                        @elseif($order->payment_status === 'rejected')
-                            {{-- State 3: Rejected State with Alert & Re-Upload Form --}}
-                            <div class="alert alert-danger border-danger-subtle p-3 mb-3 small" role="alert">
-                                <h6 class="fw-bold mb-1">❌ Pembayaran ditolak.</h6>
-                                <p class="mb-0 mt-1">
-                                    <strong>Alasan Penolakan:</strong><br>
-                                    <span class="font-monospace text-dark bg-white p-2 rounded border border-danger-subtle d-block mt-1">
-                                        {{ $order->payment->reject_reason ?? 'Bukti pembayaran buram atau nominal tidak sesuai.' }}
-                                    </span>
-                                </p>
-                            </div>
+            {{-- Payment Proof Box / Upload --}}
+            @if($order->payment_method === 'qris')
+                <div class="tokobii-card mb-4">
+                    <div class="tokobii-card-header d-flex align-items-center gap-2">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Bukti Pembayaran QRIS</h5>
+                    </div>
+                    <div class="p-4">
+                        @php
+                            $proofPath = $order->payment?->proof_of_payment ?? $order->payment_proof;
+                            $isPdf = $proofPath && str_ends_with(strtolower($proofPath), '.pdf');
+                        @endphp
 
-                            <div class="p-3 bg-light rounded border border-warning">
-                                <h6 class="fw-bold text-dark mb-2">🔄 Upload Bukti Pembayaran Baru</h6>
-                                <p class="text-muted small mb-3">Silakan unggah kembali file bukti pembayaran baru yang valid untuk mengubah status menjadi Waiting Verification.</p>
-                                
-                                <form action="{{ route('customer.orders.upload-proof', $order) }}" method="POST" enctype="multipart/form-data">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="proof_of_payment_re" class="form-label text-secondary small fw-semibold">Upload Bukti Pembayaran Baru (JPG, PNG, PDF, Maks 2MB):</label>
-                                        <input type="file" name="proof_of_payment" id="proof_of_payment_re" class="form-control @error('proof_of_payment') is-invalid @enderror" accept=".jpg,.jpeg,.png,.pdf" required>
-                                        @error('proof_of_payment')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                        @if($proofPath)
+                            <div class="mb-3 text-center">
+                                @if($isPdf)
+                                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-3 mb-2">
+                                        <span class="fw-bold text-slate-800 small d-block mb-2">Dokumen Bukti Transfer (PDF)</span>
+                                        <a href="{{ asset('storage/' . $proofPath) }}" target="_blank" class="btn btn-tokobii-primary btn-tokobii-sm">
+                                            <span>Buka Dokumen PDF</span>
+                                        </a>
                                     </div>
-                                    <button type="submit" class="btn btn-warning fw-bold text-dark w-100 shadow-sm">
-                                        🔄 Upload Bukti Pembayaran Baru
-                                    </button>
-                                </form>
+                                @else
+                                    <a href="{{ asset('storage/' . $proofPath) }}" target="_blank" title="Klik untuk memperbesar">
+                                        <img src="{{ asset('storage/' . $proofPath) }}" alt="Bukti Transfer" class="img-fluid rounded-3 border border-slate-200 shadow-sm" style="max-height: 220px; object-fit: contain; background: #f8fafc;">
+                                    </a>
+                                    <small class="text-slate-400 d-block mt-1.5">Klik gambar untuk melihat ukuran penuh</small>
+                                @endif
                             </div>
-
-                        @elseif(in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']))
-                            {{-- State 4: Paid / Verified State --}}
-                            <div class="alert alert-success border-success-subtle text-center p-3 mb-0 small" role="alert">
-                                ✅ <strong>Pembayaran berhasil diverifikasi.</strong>
+                        @else
+                            <div class="p-3 bg-slate-50 text-slate-600 rounded-3 border border-slate-200 small mb-3">
+                                Bukti pembayaran QRIS belum diunggah. Silakan pilih foto struk transfer Anda di bawah ini.
                             </div>
                         @endif
 
-                    @else
-                        {{-- Cash Section --}}
-                        <div class="p-3 bg-light rounded border text-center">
-                            <span class="fs-2 d-block mb-2">💵</span>
-                            <h6 class="fw-bold text-dark mb-1">Pembayaran Tunai di Kasir</h6>
-                            <p class="text-muted small mb-0">Anda memilih metode Cash. Lakukan pembayaran secara tunai di kasir toko Tokobii saat mengambil pesanan Anda.</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Pickup Receipt Card (If Paid / Ready for Pickup / Completed) --}}
-            @if(in_array($order->order_status, ['ready_for_pickup', 'completed']) || in_array($order->payment_status, ['paid', 'ready_for_pickup', 'completed']))
-                <div class="card border-0 shadow-sm rounded-3 mb-4 border-start border-primary border-4">
-                    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0 text-dark">🖨 Struk Pengambilan (Pickup Receipt)</h5>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">Ready</span>
-                    </div>
-                    <div class="card-body p-4 text-center">
-                        <p class="text-muted small mb-3">Tunjukkan QR Code / Invoice di bawah ini kepada kasir saat mengambil pesanan Anda:</p>
-                        <div class="mb-3">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ urlencode($order->invoice_number) }}" 
-                                 alt="QR Code {{ $order->invoice_number }}" 
-                                 class="border rounded p-2 shadow-sm bg-white mb-2" style="width: 110px; height: 110px;">
-                            <code class="d-block fs-6 font-monospace fw-bold text-primary">{{ $order->invoice_number }}</code>
-                        </div>
-                        <a href="{{ route('customer.orders.receipt', $order) }}" target="_blank" class="btn btn-primary fw-semibold btn-sm w-100 shadow-sm">
-                            🖨 Buka Halaman Cetak Receipt
-                        </a>
-                    </div>
-                </div>
-            @endif
-
-            {{-- 7-Step Active Timeline Card --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">⏳ Timeline Pesanan</h5>
-                </div>
-                <div class="card-body p-4">
-                    <ul class="timeline list-unstyled mb-0 position-relative">
-                    @if($order->payment_method === 'cash')
-                        <li class="mb-3 d-flex align-items-start"><span class="badge bg-success rounded-circle p-2 me-3">✓</span><div><h6 class="fw-bold mb-0 text-dark">Order Created</h6><small class="text-muted">{{ $order->created_at?->format('d M Y, H:i') }}</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Processing</h6><small class="text-muted">Pesanan sedang dikemas</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">📦</span><div><h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6><small class="text-muted">Bayar tunai saat mengambil pesanan</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6><small class="text-muted">Customer hadir di kasir untuk pembayaran tunai</small></div></li>
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['completed']) ? '' : 'opacity-50' }}"><span class="badge {{ in_array($order->status, ['completed']) ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">💵</span><div><h6 class="fw-bold mb-0 text-dark">Paid</h6><small class="text-muted">Pembayaran tunai diterima kasir</small></div></li>
-                        <li class="d-flex align-items-start {{ $order->status === 'completed' ? '' : 'opacity-50' }}"><span class="badge {{ $order->status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">🏁</span><div><h6 class="fw-bold mb-0 text-dark">Completed</h6><small class="text-muted">Pesanan telah diserahkan</small></div></li>
-                    @else
-                        {{-- 1. Order Created --}}
-                        <li class="mb-3 d-flex align-items-start">
-                            <span class="badge bg-success rounded-circle p-2 me-3">✓</span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Order Created</h6>
-                                <small class="text-muted">{{ $order->created_at ? $order->created_at->format('d M Y, H:i') : '-' }}</small>
-                            </div>
-                        </li>
-
-                        {{-- 2. Waiting Payment --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_payment', 'waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_payment' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '💳' }}
-                            </span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Waiting Payment</h6>
-                                <small class="text-muted">Menunggu pembayaran / unggah bukti</small>
-                            </div>
-                        </li>
-
-                        {{-- 3. Waiting Verification --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['waiting_verification', 'paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'waiting_verification' ? 'bg-warning text-dark' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '✓' : '🔍' }}
-                            </span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Waiting Verification</h6>
-                                <small class="text-muted">Proses verifikasi oleh Admin Tokobii</small>
-                            </div>
-                        </li>
-
-                        {{-- 4. Paid --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['paid', 'processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'paid' ? 'bg-success' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '✓' : '🟢' }}
-                            </span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Paid</h6>
-                                <small class="text-muted">Pembayaran dikonfirmasi Lunas</small>
-                            </div>
-                        </li>
-
-                        {{-- 5. Processing --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['processing', 'ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? 'bg-success' : ($order->status === 'processing' ? 'bg-info' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '✓' : '⚙️' }}
-                            </span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Processing</h6>
-                                <small class="text-muted">Pesanan sedang dikemas</small>
-                            </div>
-                        </li>
-
-                        {{-- 6. Ready for Pickup --}}
-                        <li class="mb-3 d-flex align-items-start {{ in_array($order->status, ['ready_for_pickup', 'completed']) ? '' : 'opacity-50' }}">
-                            <span class="badge {{ $order->status === 'completed' ? 'bg-success' : ($order->status === 'ready_for_pickup' ? 'bg-primary' : 'bg-secondary') }} rounded-circle p-2 me-3">
-                                {{ $order->status === 'completed' ? '✓' : '📦' }}
-                            </span>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">Ready for Pickup</h6>
-                                <small class="text-muted">Pesanan siap diambil di toko</small>
-                            </div>
-                        </li>
-
-                        {{-- 7. Completed or Cancelled/Rejected --}}
-                        @if($order->status === 'cancelled')
-                            <li class="d-flex align-items-start">
-                                <span class="badge bg-danger rounded-circle p-2 me-3">🔴</span>
-                                <div>
-                                    <h6 class="fw-bold mb-0 text-danger">Cancelled / Rejected</h6>
-                                    <small class="text-muted">Pembayaran/Pesanan ditolak Admin atau dibatalkan</small>
-                                </div>
-                            </li>
-                        @else
-                            <li class="d-flex align-items-start {{ $order->status === 'completed' ? '' : 'opacity-50' }}">
-                                <span class="badge {{ $order->status === 'completed' ? 'bg-success' : 'bg-secondary' }} rounded-circle p-2 me-3">
-                                    🏁
-                                </span>
-                                <div>
-                                    <h6 class="fw-bold mb-0 text-dark">Completed</h6>
-                                    <small class="text-muted">Pesanan telah diserahkan & selesai</small>
-                                </div>
-                            </li>
-                        @endif
-                    @endif
-                    </ul>
-                </div>
-            </div>
-
-            {{-- Module 5: Rating & Review Card (Only if Completed) --}}
-            @if(false)
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-white border-bottom py-3 px-4">
-                        <h5 class="fw-bold mb-0 text-dark">⭐ Rating & Ulasan Produk</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        @if(str_contains($order->notes ?? '', '[RATING_REVIEW]'))
-                            <div class="p-3 bg-light rounded border text-dark">
-                                <span class="badge bg-warning text-dark mb-2 fs-6">Sudah Diulas</span>
-                                <p class="mb-0 text-secondary small font-monospace">
-                                    {{ Str::after($order->notes, '[RATING_REVIEW]') }}
-                                </p>
-                            </div>
-                        @else
-                            <form action="{{ route('customer.orders.review', $order) }}" method="POST">
+                        @if(in_array($order->payment_status, ['pending', 'rejected']))
+                            <form action="{{ route('customer.orders.upload-proof', $order) }}" method="POST" enctype="multipart/form-data" id="uploadProofForm" onsubmit="return validateAndSubmitProof();">
                                 @csrf
                                 <div class="mb-3">
-                                    <label class="form-label text-secondary small fw-semibold">Beri Rating Pesanan <span class="text-danger">*</span></label>
-                                    <select name="rating" class="form-select @error('rating') is-invalid @enderror" required>
-                                        <option value="">-- Pilih Rating Bintang --</option>
-                                        <option value="5">★★★★★ (5 Bintang - Sangat Memuaskan)</option>
-                                        <option value="4">★★★★☆ (4 Bintang - Bagus)</option>
-                                        <option value="3">★★★☆☆ (3 Bintang - Cukup)</option>
-                                        <option value="2">★★☆☆☆ (2 Bintang - Kurang)</option>
-                                        <option value="1">★☆☆☆☆ (1 Bintang - Buruk)</option>
-                                    </select>
-                                    @error('rating')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <label class="form-label small fw-semibold text-slate-700">Pilih Foto Bukti Transfer QRIS:</label>
+                                    <input type="file" name="proof_of_payment" id="proofInput" accept="image/jpeg,image/png,image/jpg,application/pdf" class="form-control tokobii-input" required onchange="previewProofFile(this)">
+                                    <small class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">Format: JPG, PNG, PDF (Maks. 2MB)</small>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="review" class="form-label text-secondary small fw-semibold">Ulasan & Kesan Anda <span class="text-danger">*</span></label>
-                                    <textarea name="review" 
-                                              id="review" 
-                                              rows="3" 
-                                              class="form-control @error('review') is-invalid @enderror" 
-                                              placeholder="Tulis ulasan Anda mengenai produk dan pelayanan Tokobii..." 
-                                              required></textarea>
-                                    @error('review')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+
+                                {{-- Live Preview Box --}}
+                                <div id="liveProofPreviewBox" class="mb-3 p-3 bg-slate-50 border border-blue-200 rounded-3 text-center d-none">
+                                    <span class="text-slate-500 small d-block mb-2 fw-semibold">Pratinjau File Terpilih:</span>
+                                    <img id="liveProofImage" src="" alt="Pratinjau" class="img-fluid rounded-2 border border-slate-200 shadow-sm mb-2" style="max-height: 160px; display: none;">
+                                    <div id="liveProofFileName" class="text-blue-600 small fw-bold font-monospace text-truncate"></div>
                                 </div>
-                                <button type="submit" class="btn btn-warning fw-bold text-dark w-100 shadow-sm">
-                                    🌟 Kirim Rating & Review
+
+                                <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm w-100" id="submitProofBtn">
+                                    <span class="spinner-border spinner-border-sm d-none me-1" id="proofSpinner" role="status" aria-hidden="true"></span>
+                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="proofBtnIcon">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                    </svg>
+                                    <span id="proofBtnText">Kirim Bukti Pembayaran</span>
                                 </button>
                             </form>
                         @endif
@@ -444,102 +227,167 @@
 
         </div>
 
-        {{-- Right Column: Items Table & Order Summary --}}
-        <div class="col-12 col-md-7">
+        {{-- Right Column: Items Table & Actions --}}
+        <div class="col-12 col-lg-7">
             
-            {{-- Order Items Table Card --}}
-            <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Daftar Item Pesanan</h5>
+            <div class="tokobii-card mb-4">
+                <div class="tokobii-card-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Daftar Item Pesanan</h5>
+                    </div>
+                    <span class="tokobii-badge tokobii-badge-info">{{ $order->items->count() }} Macam Produk</span>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-0">
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle mb-0">
-                            <thead class="table-light border-bottom">
+                        <table class="tokobii-table mb-0">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="ps-4 py-3 text-secondary small text-uppercase" style="width: 5%;">No</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 15%;">Thumbnail</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase">Nama Produk</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 10%;">Qty</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 18%;">Harga</th>
-                                    <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 20%;">Subtotal</th>
-                                    @if($order->order_status === 'completed')<th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end">Review / Report</th>@endif
+                                    <th>Produk</th>
+                                    <th class="text-end" style="width: 22%;">Harga Satuan</th>
+                                    <th class="text-center" style="width: 14%;">Qty</th>
+                                    <th class="text-end" style="width: 24%;">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($order->items as $item)
                                     <tr>
-                                        <td class="ps-4 fw-semibold text-secondary">{{ $loop->iteration }}</td>
                                         <td>
-                                            @if($item->product && $item->product->thumbnail)
-                                                <img src="{{ asset('storage/' . $item->product->thumbnail) }}" 
-                                                     alt="Thumbnail {{ $item->product_name }}" 
-                                                     class="rounded border shadow-sm" 
-                                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                            @else
-                                                <div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted" style="width: 50px; height: 50px;">
-                                                    <span class="fs-4">📦</span>
+                                            <div class="fw-bold text-slate-900">{{ $item->product_name }}</div>
+                                            @if($item->product && $item->product->category)
+                                                <span class="text-slate-400" style="font-size: 0.75rem;">{{ $item->product->category->name }}</span>
+                                            @endif
+
+                                            {{-- Review and Report Action Buttons --}}
+                                            @if(in_array($order->order_status, ['completed', 'ready_for_pickup']))
+                                                <div class="d-flex align-items-center gap-2 mt-2">
+                                                    @php($existingReview = $item->product ? $item->product->reviews()->where('user_id', Auth::id())->where('order_id', $order->id)->first() : null)
+                                                    @if($existingReview)
+                                                        <a href="{{ route('customer.reviews.edit', $existingReview) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2" style="font-size: 0.7rem;">
+                                                            <svg width="12" height="12" fill="#f59e0b" stroke="#f59e0b" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                                            </svg>
+                                                            <span>Edit Ulasan</span>
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('customer.orders.reviews.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2" style="font-size: 0.7rem;">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                                            </svg>
+                                                            <span>Beri Ulasan</span>
+                                                        </a>
+                                                    @endif
+
+                                                    <a href="{{ route('customer.orders.reports.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2 text-rose-600 border-rose-200" style="font-size: 0.7rem;">
+                                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                        </svg>
+                                                        <span>Laporkan Masalah</span>
+                                                    </a>
                                                 </div>
                                             @endif
                                         </td>
-                                        <td>
-                                            <span class="fw-bold text-dark d-block">{{ $item->product_name }}</span>
-                                            @if($item->product && $item->product->sku)
-                                                <small class="text-muted font-monospace">SKU: {{ $item->product->sku }}</small>
-                                            @endif
-                                        </td>
-                                        <td class="text-center fw-bold text-dark font-monospace">
-                                            {{ $item->qty }}
-                                        </td>
-                                        <td class="text-end font-monospace text-dark">
+                                        <td class="text-end font-monospace text-slate-700">
                                             Rp {{ number_format($item->price, 0, ',', '.') }}
                                         </td>
-                                        <td class="pe-4 text-end font-monospace fw-bold text-primary">
+                                        <td class="text-center fw-semibold text-slate-800">
+                                            {{ $item->qty }}
+                                        </td>
+                                        <td class="text-end fw-bold text-blue-600 font-monospace">
                                             Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
-                                        @if($order->order_status === 'completed')<td class="pe-4 text-end">@if($item->review)<span class="badge bg-success">Sudah Direview</span>@if($item->review->canBeEdited())<a class="btn btn-sm btn-outline-secondary mt-1" href="{{ route('customer.reviews.edit', $item->review) }}">Edit Review</a><small class="d-block text-muted">Edit tersedia sampai {{ $item->review->created_at->copy()->addHours(24)->format('d M Y H:i') }}</small>@else<button class="btn btn-sm btn-secondary mt-1" disabled>Edit Terkunci</button><small class="d-block text-muted">Periode edit 24 jam telah berakhir.</small>@endif @elseif($item->product_id)<a class="btn btn-sm btn-outline-primary" href="{{ route('customer.orders.reviews.create', [$order, $item]) }}">Review Produk</a>@endif @if($item->product_id)<div class="mt-1">@if($item->reports->isNotEmpty())<span class="badge bg-secondary">Sudah Dilaporkan</span>@else<a class="btn btn-sm btn-outline-danger" href="{{ route('customer.orders.reports.create', [$order, $item]) }}">Report Product</a>@endif</div>@endif</td>@endif
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
 
-            {{-- Summary Card --}}
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="fw-bold mb-0 text-dark">Rincian Pembayaran</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row justify-content-end">
-                        <div class="col-12 col-md-8">
-                            <div class="table-responsive">
-                                <table class="table table-borderless align-middle mb-0">
-                                    <tbody>
-                                        <tr>
-                                            <th class="ps-0 text-secondary fw-normal">Subtotal Item:</th>
-                                            <td class="text-end font-monospace text-dark fw-bold">: Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="ps-0 text-secondary fw-normal">Biaya Layanan/Kirim:</th>
-                                            <td class="text-end font-monospace text-success fw-bold">: Rp 0</td>
-                                        </tr>
-                                        <tr class="border-top fs-5">
-                                            <th class="ps-0 text-dark fw-bold pt-3">Grand Total:</th>
-                                            <td class="text-end font-monospace text-primary fw-bold pt-3">: Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                {{-- Total Calculation Block --}}
+                <div class="p-4 bg-slate-50 border-top border-slate-100">
+                    <div class="d-flex flex-column gap-2 small text-slate-600" style="max-width: 320px; margin-left: auto;">
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span class="fw-semibold font-monospace text-slate-800">Rp {{ number_format($order->subtotal ?? $order->grand_total, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Biaya Pengambilan Toko:</span>
+                            <span class="text-emerald-600 fw-semibold">Gratis</span>
+                        </div>
+                        <hr class="my-1 border-slate-200">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-slate-900 fs-6">Total Pembayaran:</span>
+                            <span class="h5 fw-bold text-blue-600 font-monospace mb-0" style="color: #2563eb;">
+                                Rp {{ number_format($order->grand_total, 0, ',', '.') }}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+    function previewProofFile(input) {
+        var box = document.getElementById('liveProofPreviewBox');
+        var img = document.getElementById('liveProofImage');
+        var nameLabel = document.getElementById('liveProofFileName');
+
+        if (input.files && input.files[0]) {
+            var file = input.files[0];
+            
+            // Check size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran file maksimal adalah 2MB. Silakan pilih file yang lebih kecil.');
+                input.value = '';
+                if (box) box.classList.add('d-none');
+                return;
+            }
+
+            if (box) box.classList.remove('d-none');
+            if (nameLabel) nameLabel.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+
+            if (file.type.match('image.*')) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    if (img) {
+                        img.src = e.target.result;
+                        img.style.display = 'inline-block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                if (img) img.style.display = 'none';
+            }
+        } else {
+            if (box) box.classList.add('d-none');
+        }
+    }
+
+    function validateAndSubmitProof() {
+        var input = document.getElementById('proofInput');
+        if (!input || !input.files || input.files.length === 0) {
+            alert('Pilih file bukti pembayaran terlebih dahulu.');
+            return false;
+        }
+
+        var btn = document.getElementById('submitProofBtn');
+        var spinner = document.getElementById('proofSpinner');
+        var icon = document.getElementById('proofBtnIcon');
+        var text = document.getElementById('proofBtnText');
+
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+        if (icon) icon.classList.add('d-none');
+        if (text) text.textContent = 'Mengunggah Bukti...';
+
+        return true;
+    }
+</script>
+@endpush
 @endsection

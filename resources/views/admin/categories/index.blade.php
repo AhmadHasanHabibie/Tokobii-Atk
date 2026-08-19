@@ -5,62 +5,39 @@
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}"
-                   class="text-decoration-none text-slate-500 hover-text-blue-600">
-                    Dashboard
+    {{-- Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">
+                            Kategori
+                        </li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">
+                    Manajemen Kategori Produk
+                </h1>
+                <p class="text-slate-500 mb-0 small">
+                    Kelola kategori produk dan taksonomi inventaris ATK Tokobii.
+                </p>
+            </div>
+
+            <div>
+                <a href="{{ route('admin.categories.create') }}" class="btn btn-tokobii-primary d-inline-flex align-items-center gap-2">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Tambah Kategori</span>
                 </a>
-            </li>
-
-            <li class="breadcrumb-item active text-slate-800 fw-semibold"
-                aria-current="page">
-                Kategori
-            </li>
-        </ol>
-    </nav>
-
-
-    {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-
-        <div>
-            <h1 class="h3 fw-bold text-slate-900 mb-1"
-                style="color: #0f172a;">
-                Kategori
-            </h1>
-
-            <p class="text-slate-500 mb-0"
-               style="font-size: 0.875rem;">
-                Kelola kategori produk dan taksonomi inventaris.
-            </p>
+            </div>
         </div>
-
-        <div>
-            <a href="{{ route('admin.categories.create') }}"
-               class="btn btn-tokobii-primary d-inline-flex align-items-center gap-2">
-
-                <svg width="16"
-                     height="16"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 4v16m8-8H4">
-                    </path>
-
-                </svg>
-
-                <span>Tambah Kategori</span>
-
-            </a>
-        </div>
-
     </div>
 
 

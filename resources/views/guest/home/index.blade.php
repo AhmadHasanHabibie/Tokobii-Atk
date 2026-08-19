@@ -1,368 +1,49 @@
 @extends('layouts.guest.app')
 
-@section('title', 'Tokobii - Home')
+@section('title', 'Tokobii - Pusat Alat Tulis Kantor & Sekolah')
 
 @section('content')
+<div class="container py-4">
 
-{{-- Hero --}}
-<section class="bg-primary text-white py-5">
+    {{-- Hero Section --}}
+    <div class="tokobii-card mb-5 overflow-hidden border-0 text-white" style="background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);">
+        <div class="p-4 p-md-5">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8 mb-4 mb-md-0">
+                    <span class="tokobii-badge bg-white text-blue-700 fw-bold px-3 py-1.5 text-uppercase mb-3 shadow-sm" style="font-size: 0.75rem; background-color: #ffffff; color: #1d4ed8;">
+                        Selamat Datang di Tokobii
+                    </span>
+                    <h1 class="fw-bold display-5 mb-3 text-white">Pusat Alat Tulis & Perlengkapan Kantor</h1>
+                    <p class="lead mb-4 text-blue-100 small" style="max-width: 580px; opacity: 0.95; line-height: 1.7;">
+                        Temukan berbagai kebutuhan perlengkapan kantor dan sekolah dengan kualitas terjamin, harga bersaing, dan proses pemesanan yang mudah.
+                    </p>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="{{ route('shop') }}" class="btn btn-light text-blue-700 fw-bold px-4 py-2.5 shadow-sm rounded-3">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            Mulai Belanja
+                        </a>
+                        <a href="{{ route('about') }}" class="btn btn-outline-light fw-semibold px-4 py-2.5 rounded-3">
+                            Tentang Kami
+                        </a>
+                    </div>
+                </div>
 
-    <div class="container">
-
-        <div class="row align-items-center">
-
-            <div class="col-lg-6">
-
-                <h1 class="display-4 fw-bold">
-
-                    Selamat Datang di Tokobii
-
-                </h1>
-
-                <p class="lead my-4">
-
-                    Temukan berbagai kebutuhan alat tulis kantor dengan
-                    harga terbaik, kualitas terjamin, dan proses pembelian
-                    yang mudah.
-
-                </p>
-
-                <a href="{{ route('shop') }}"
-                   class="btn btn-light btn-lg">
-
-                    🛍️ Mulai Belanja
-
-                </a>
-
+                <div class="col-12 col-md-4 text-center d-none d-md-block">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-20 backdrop-blur d-inline-flex flex-column align-items-center justify-content-center">
+                        <div class="rounded-circle bg-white text-blue-600 p-3 mb-2 shadow-sm" style="background-color: #ffffff; color: #2563eb;">
+                            <svg width="42" height="42" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                        <span class="fw-bold text-white fs-6">Tokobii Official</span>
+                        <span class="text-blue-100 small" style="font-size: 0.75rem;">Stok Lengkap & Terverifikasi</span>
+                    </div>
+                </div>
             </div>
-
-            <div class="col-lg-6 text-center">
-
-                <img
-                    src="https://placehold.co/600x400?text=Tokobii"
-                    class="img-fluid rounded shadow"
-                    alt="Tokobii">
-
-            </div>
-
         </div>
-
     </div>
 
-</section>
-
-{{-- Categories --}}
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="text-center mb-5">
-
-            <h2 class="fw-bold">
-
-                Kategori Produk
-
-            </h2>
-
-            <p class="text-muted">
-
-                Pilih kategori favorit Anda.
-
-            </p>
-
-        </div>
-
-        <div class="row g-4">
-
-            @foreach([
-                ['Pensil','✏️'],
-                ['Pulpen','🖊️'],
-                ['Buku','📚'],
-                ['Kertas','📄'],
-                ['Map','🗂️'],
-                ['Spidol','🖍️']
-            ] as $category)
-
-                <div class="col-md-4 col-lg-2">
-
-                    <div class="card border-0 shadow-sm h-100">
-
-                        <div class="card-body text-center">
-
-                            <div class="display-5 mb-3">
-
-                                {{ $category[1] }}
-
-                            </div>
-
-                            <h6 class="fw-bold">
-
-                                {{ $category[0] }}
-
-                            </h6>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            @endforeach
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- Featured Products --}}
-<section class="bg-light py-5">
-
-    <div class="container">
-
-        <div class="text-center mb-5">
-
-            <h2 class="fw-bold">
-
-                Produk Unggulan
-
-            </h2>
-
-            <p class="text-muted">
-
-                Produk yang paling banyak diminati pelanggan.
-
-            </p>
-
-        </div>
-
-        <div class="row g-4">
-
-            @for($i = 1; $i <= 4; $i++)
-
-                <div class="col-md-6 col-lg-3">
-
-                    <div class="card shadow-sm border-0 h-100">
-
-                        <img
-                            src="https://placehold.co/300x250"
-                            class="card-img-top"
-                            alt="Product">
-
-                        <div class="card-body">
-
-                            <h5 class="fw-bold">
-
-                                Produk {{ $i }}
-
-                            </h5>
-
-                            <p class="text-muted">
-
-                                Deskripsi singkat produk.
-
-                            </p>
-
-                            <h5 class="text-primary fw-bold">
-
-                                Rp 25.000
-
-                            </h5>
-
-                        </div>
-
-                        <div class="card-footer bg-white border-0">
-
-                            <a href="#"
-                               class="btn btn-outline-primary w-100">
-
-                                Lihat Detail
-
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            @endfor
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- Why Choose Us --}}
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="text-center mb-5">
-
-            <h2 class="fw-bold">
-
-                Kenapa Memilih Tokobii?
-
-            </h2>
-
-        </div>
-
-        <div class="row g-4">
-
-            <div class="col-md-3">
-
-                <div class="card border-0 shadow-sm text-center h-100">
-
-                    <div class="card-body">
-
-                        <div class="display-4">
-
-                            📦
-
-                        </div>
-
-                        <h5 class="fw-bold mt-3">
-
-                            Produk Lengkap
-
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Ribuan produk alat tulis tersedia.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-3">
-
-                <div class="card border-0 shadow-sm text-center h-100">
-
-                    <div class="card-body">
-
-                        <div class="display-4">
-
-                            💰
-
-                        </div>
-
-                        <h5 class="fw-bold mt-3">
-
-                            Harga Terjangkau
-
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Harga bersaing dan ramah di kantong.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-3">
-
-                <div class="card border-0 shadow-sm text-center h-100">
-
-                    <div class="card-body">
-
-                        <div class="display-4">
-
-                            🚚
-
-                        </div>
-
-                        <h5 class="fw-bold mt-3">
-
-                            Pengiriman Cepat
-
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Pesanan diproses dengan cepat.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-md-3">
-
-                <div class="card border-0 shadow-sm text-center h-100">
-
-                    <div class="card-body">
-
-                        <div class="display-4">
-
-                            ⭐
-
-                        </div>
-
-                        <h5 class="fw-bold mt-3">
-
-                            Pelayanan Terbaik
-
-                        </h5>
-
-                        <p class="text-muted">
-
-                            Kepuasan pelanggan menjadi prioritas.
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-{{-- CTA --}}
-<section class="bg-dark text-white py-5">
-
-    <div class="container text-center">
-
-        <h2 class="fw-bold">
-
-            Siap Memulai Belanja?
-
-        </h2>
-
-        <p class="lead my-3">
-
-            Jelajahi berbagai produk alat tulis kantor sekarang juga.
-
-        </p>
-
-        <a href="{{ route('shop') }}"
-           class="btn btn-warning btn-lg">
-
-            🛒 Belanja Sekarang
-
-        </a>
-
-    </div>
-
-</section>
-
+</div>
 @endsection

@@ -164,7 +164,26 @@ class OrderController extends Controller
                 'order_status' => 'pending',
             ]);
 
+            $guidance = [
+                'type' => 'success',
+                'title' => 'Bukti Transfer Berhasil Dikirim!',
+                'message' => 'Bukti pembayaran untuk pesanan ' . $order->invoice_number . ' telah diterima sistem Tokobii.',
+                'invoice' => $order->invoice_number,
+                'amount' => $order->grand_total,
+                'method' => 'qris',
+                'steps' => [
+                    'Admin Tokobii akan memeriksa dan memvalidasi keaslian bukti transfer Anda (estimasi 5-15 menit).',
+                    'Setelah diverifikasi lunas, status pesanan akan otomatis berubah menjadi <strong>Lunas / Siap Diambil</strong>.',
+                    'Kunjungi toko Tokobii saat status sudah siap diambil dengan membawa kode QR invoice Anda.',
+                ],
+                'primary_btn_text' => 'Pantau Status Pesanan',
+                'primary_btn_url' => null,
+                'secondary_btn_text' => 'Riwayat Pesanan',
+                'secondary_btn_url' => route('customer.orders.index'),
+            ];
+
             return redirect()->route('customer.orders.show', $order)
+                ->with('guidance', $guidance)
                 ->with('success', 'Bukti pembayaran QRIS berhasil diunggah. Menunggu verifikasi dari Admin Tokobii.');
         }
 

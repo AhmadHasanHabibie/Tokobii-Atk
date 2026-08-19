@@ -218,7 +218,22 @@ class OrderController extends Controller
                 ]);
             }
 
+            $guidance = [
+                'type' => 'success',
+                'title' => 'Pembayaran Berhasil Diverifikasi!',
+                'message' => 'Pembayaran QRIS untuk pesanan ' . $order->invoice_number . ' telah diverifikasi lunas.',
+                'invoice' => $order->invoice_number,
+                'amount' => $order->grand_total,
+                'steps' => [
+                    'Status pesanan saat ini berubah menjadi <strong>Diproses</strong>.',
+                    'Silakan ambil dan siapkan produk yang dipesan pelanggan dari stok toko.',
+                    'Setelah produk siap di kasir, klik tombol <strong>Set Siap Diambil</strong>.',
+                ],
+                'primary_btn_text' => 'Tutup & Siapkan Pesanan',
+            ];
+
             return redirect()->route('admin.orders.show', $order)
+                ->with('guidance', $guidance)
                 ->with('success', 'Pembayaran pesanan ' . $order->invoice_number . ' telah disetujui & mulai diproses.');
         }
 
@@ -248,7 +263,20 @@ class OrderController extends Controller
                 ]);
             }
 
+            $guidance = [
+                'type' => 'warning',
+                'title' => 'Pembayaran Ditolak',
+                'message' => 'Pembayaran untuk pesanan ' . $order->invoice_number . ' telah ditolak.',
+                'invoice' => $order->invoice_number,
+                'steps' => [
+                    'Alasan penolakan: <em>' . e($request->input('reject_reason')) . '</em>',
+                    'Pelanggan dapat melihat alasan penolakan dan mengunggah ulang bukti transfer valid jika diperlukan.',
+                ],
+                'primary_btn_text' => 'Mengerti',
+            ];
+
             return redirect()->route('admin.orders.show', $order)
+                ->with('guidance', $guidance)
                 ->with('warning', 'Pembayaran pesanan ' . $order->invoice_number . ' ditolak dan pesanan dibatalkan.');
         }
 
@@ -263,7 +291,21 @@ class OrderController extends Controller
 
             $order->update(['order_status' => 'ready_for_pickup']);
 
+            $guidance = [
+                'type' => 'info',
+                'title' => 'Pesanan Siap Diambil!',
+                'message' => 'Pesanan ' . $order->invoice_number . ' kini berstatus Siap Diambil (Ready for Pickup).',
+                'invoice' => $order->invoice_number,
+                'steps' => [
+                    'Struk pengambilan dapat dicetak melalui tombol <strong>Cetak Struk</strong>.',
+                    'Saat pelanggan datang, cocokkan kode QR atau nomor invoice pesanan.',
+                    'Setelah produk diserahkan ke pelanggan, klik tombol <strong>Selesaikan Pesanan</strong>.',
+                ],
+                'primary_btn_text' => 'Mengerti',
+            ];
+
             return redirect()->route('admin.orders.show', $order)
+                ->with('guidance', $guidance)
                 ->with('success', 'Pesanan ' . $order->invoice_number . ' kini Siap Diambil di toko (Ready for Pickup).');
         }
 
@@ -274,7 +316,22 @@ class OrderController extends Controller
 
             $order->update(['order_status' => 'completed']);
 
+            $guidance = [
+                'type' => 'success',
+                'title' => 'Pesanan Telah Selesai!',
+                'message' => 'Pesanan ' . $order->invoice_number . ' telah berhasil diselesaikan dan diserahkan kepada pelanggan.',
+                'invoice' => $order->invoice_number,
+                'steps' => [
+                    'Transaksi tuntas dan tercatat rapi di laporan pendapatan toko.',
+                    'Pelanggan sekarang dapat memberikan rating serta ulasan kepuasan produk.',
+                ],
+                'primary_btn_text' => 'Kembali ke Daftar Pesanan',
+                'primary_btn_url' => route('admin.orders.index'),
+                'secondary_btn_text' => 'Tetap di Halaman Ini',
+            ];
+
             return redirect()->route('admin.orders.show', $order)
+                ->with('guidance', $guidance)
                 ->with('success', 'Pesanan ' . $order->invoice_number . ' telah Selesai (Completed).');
         }
 

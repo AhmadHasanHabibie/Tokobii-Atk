@@ -92,7 +92,7 @@ class GuestController extends Controller
             ->take(4)
             ->get();
 
-        return view('customer.shop.show', compact('product', 'relatedProducts', 'reviews'));
+        return view('guest.product.show', compact('product', 'relatedProducts', 'reviews'));
     }
 
     /**

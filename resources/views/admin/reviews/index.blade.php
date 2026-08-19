@@ -4,49 +4,24 @@
 
 @section('content')
 
-{{-- Header Halaman --}}
-<div class="mb-4">
-
-    <div class="d-flex align-items-center gap-2 mb-2">
-
-        <div class="d-flex align-items-center justify-content-center rounded-3"
-             style="
-                width: 38px;
-                height: 38px;
-                background: #eff6ff;
-                color: #2563eb;
-             ">
-
-            <svg width="19"
-                 height="19"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24">
-
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
-                </path>
-
-            </svg>
-
-        </div>
-
-        <div>
-            <h1 class="h3 fw-bold text-slate-900 mb-0"
-                style="color: #0f172a;">
-                Ulasan Produk
-            </h1>
-        </div>
-
+{{-- Header Card --}}
+<div class="tokobii-header-card">
+    <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+            <li class="breadcrumb-item">
+                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Ulasan Produk</li>
+        </ol>
+    </nav>
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <h1 class="h3 fw-bold text-slate-900 mb-0" style="color: #0f172a;">
+            Ulasan & Penilaian Produk
+        </h1>
     </div>
-
-    <p class="text-slate-500 mb-0"
-       style="font-size: 0.875rem;">
-        Pilih kategori untuk melihat rating dan ulasan produk dari pelanggan.
+    <p class="text-slate-500 mb-0 small">
+        Pilih kategori untuk melihat rating bintang dan riwayat ulasan produk dari pelanggan Tokobii.
     </p>
-
 </div>
 
 

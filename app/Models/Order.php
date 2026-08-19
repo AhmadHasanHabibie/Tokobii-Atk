@@ -102,6 +102,22 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    /**
+     * Get the payment proof file path from the related payment.
+     */
+    public function getPaymentProofAttribute(): ?string
+    {
+        return $this->payment?->proof_of_payment;
+    }
+
+    /**
+     * Get the proof of payment file path from the related payment.
+     */
+    public function getProofOfPaymentAttribute(): ?string
+    {
+        return $this->payment?->proof_of_payment;
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

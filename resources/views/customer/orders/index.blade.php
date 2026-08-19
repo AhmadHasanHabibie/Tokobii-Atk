@@ -1,185 +1,199 @@
 @extends('layouts.customer.app')
 
-@section('title', 'Riwayat Pesanan Saya - Tokobii')
+@section('title', 'Riwayat Pesanan - ' . config('app.name', 'Tokobii'))
 
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0 small">
-            <li class="breadcrumb-item">
-                <a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a>
-            </li>
-            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Riwayat Pesanan</li>
-        </ol>
-    </nav>
-
-    {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1 text-dark">📦 Riwayat Pesanan Saya</h2>
-            <p class="text-muted mb-0">Lacak status transaksi, pembayaran, dan pengambilan pesanan Anda di Tokobii.</p>
-        </div>
-        <div class="mt-3 mt-md-0">
-            <a href="{{ route('customer.orders.index') }}" class="btn btn-outline-secondary px-3 py-2 fw-semibold shadow-sm" title="Refresh Data" aria-label="Refresh">
-                🔄 Refresh
-            </a>
-        </div>
-    </div>
-
-    {{-- Filter & Search Bar --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-body p-3">
-            <form action="{{ route('customer.orders.index') }}" method="GET" class="row g-2 align-items-center">
-                
-                {{-- Search Input --}}
-                <div class="col-12 col-md-5">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted" id="search-addon">🔍</span>
-                        <input type="text" 
-                               name="search" 
-                               class="form-control border-start-0 ps-0" 
-                               placeholder="Cari berdasarkan nomor invoice atau nama produk..." 
-                               value="{{ request('search') }}"
-                               aria-label="Cari Pesanan"
-                               aria-describedby="search-addon"
-                               autofocus>
-                    </div>
-                </div>
-
-                {{-- Status Filter --}}
-                <div class="col-12 col-sm-6 col-md-4">
-                    <select name="status" class="form-select" aria-label="Filter Status" onchange="this.form.submit()">
-                        <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>Status: Semua Status Pesanan</option>
-                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending (Menunggu)</option>
-                        <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid (Sudah Dibayar)</option>
-                        <option value="ready_for_pickup" {{ request('status') === 'ready_for_pickup' ? 'selected' : '' }}>Ready for Pickup (Siap Diambil)</option>
-                        <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed (Selesai)</option>
-                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected (Ditolak)</option>
-                    </select>
-                </div>
-
-                {{-- Submit Button --}}
-                <div class="col-12 col-sm-6 col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
-                        Cari Pesanan
-                    </button>
-                </div>
-
-            </form>
+    {{-- Dedicated Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item"><a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a></li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Riwayat Pesanan</li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Riwayat Pesanan Saya</h1>
+                <p class="text-slate-500 mb-0 small">Lacak status transaksi, pembayaran, dan pengambilan pesanan Anda di Tokobii.</p>
+            </div>
+            <div>
+                <a href="{{ route('customer.orders.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm" title="Segarkan Data">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Segarkan</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    {{-- Order List Table / Cards --}}
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-body p-0">
-            @forelse($orders as $order)
-                @if($loop->first)
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light border-bottom">
-                                <tr>
-                                    <th scope="col" class="ps-4 py-3 text-secondary small text-uppercase" style="width: 5%;">No</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 18%;">Invoice</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 15%;">Tanggal</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 12%;">Total Item</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-center" style="width: 12%;">Metode</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase text-end" style="width: 14%;">Grand Total</th>
-                                    <th scope="col" class="py-3 text-secondary small text-uppercase" style="width: 14%;">Status</th>
-                                    <th scope="col" class="pe-4 py-3 text-secondary small text-uppercase text-end" style="width: 10%;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                @endif
-
-                <tr>
-                    <td class="ps-4 fw-semibold text-secondary">{{ $orders->firstItem() + $loop->index }}</td>
-                    <td>
-                        <code class="text-primary bg-primary-subtle px-2 py-1 rounded fw-bold">{{ $order->invoice_number }}</code>
-                    </td>
-                    <td class="small text-muted">
-                        {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : '-' }}
-                    </td>
-                    <td class="text-center font-monospace fw-bold text-dark">
-                        {{ $order->items->sum('qty') }} Pcs
-                    </td>
-                    <td class="text-center">
-                        @if($order->payment_method === 'qris')
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-normal">📱 QRIS</span>
-                        @else
-                            <span class="badge bg-light text-dark border border-dark-subtle px-2 py-1 fw-normal">💵 Cash</span>
-                        @endif
-                    </td>
-                    <td class="text-end font-monospace fw-bold text-dark">
-                        Rp {{ number_format($order->grand_total, 0, ',', '.') }}
-                    </td>
-                    <td>
-                        @if($order->status === 'completed')
-                            <span class="badge bg-dark px-2.5 py-1.5 fw-normal">🏁 Completed</span>
-                        @elseif($order->status === 'ready_for_pickup')
-                            <span class="badge bg-primary px-2.5 py-1.5 fw-normal">📦 Ready for Pickup</span>
-                        @elseif($order->status === 'processing')
-                            <span class="badge bg-info px-2.5 py-1.5 fw-normal">⚙️ Processing</span>
-                        @elseif($order->status === 'paid')
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 fw-normal">Paid</span>
-                        @elseif($order->status === 'cancelled')
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 fw-normal">Cancelled / Rejected</span>
-                        @elseif($order->status === 'waiting_verification')
-                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1.5 fw-normal">Waiting Verification</span>
-                        @else
-                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1.5 fw-normal">Waiting Payment</span>
-                        @endif
-                    </td>
-                    <td class="pe-4 text-end">
-                        <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-sm btn-outline-info fw-semibold" title="Lihat Detail Pesanan">
-                            👁 Detail
-                        </a>
-                    </td>
-                </tr>
-
-                @if($loop->last)
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            @empty
-                {{-- Empty State --}}
-                <div class="text-center py-5 px-4">
-                    <div class="mb-3">
-                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <span class="fs-1">📦</span>
-                        </div>
-                    </div>
-                    @if(request()->hasAny(['search', 'status']))
-                        <h5 class="fw-bold text-dark mb-1">Pesanan tidak ditemukan.</h5>
-                        <p class="text-muted mb-4">Tidak ada data riwayat pesanan yang sesuai dengan kata kunci atau filter Anda.</p>
-                        <a href="{{ route('customer.orders.index') }}" class="btn btn-outline-primary px-4 py-2 fw-semibold">
-                            Reset Filter
-                        </a>
-                    @else
-                        <h5 class="fw-bold text-dark mb-1">Belum Ada Riwayat Pesanan.</h5>
-                        <p class="text-muted mb-4">Anda belum pernah melakukan pemesanan produk di Tokobii.</p>
-                        <a href="{{ route('customer.shop.index') }}" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
-                            🛍️ Mulai Belanja Sekarang
-                        </a>
-                    @endif
-                </div>
-            @endforelse
-        </div>
-
-        {{-- Pagination --}}
-        @if($orders->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <small class="text-muted">
-                    Menampilkan {{ $orders->firstItem() }} - {{ $orders->lastItem() }} dari {{ $orders->total() }} pesanan
-                </small>
-                <div>
-                    {{ $orders->links('pagination::bootstrap-5') }}
+    {{-- Dedicated Filter Card --}}
+    <div class="tokobii-filter-card">
+        <form action="{{ route('customer.orders.index') }}" method="GET" class="row g-2 align-items-center">
+            
+            {{-- Search Input --}}
+            <div class="col-12 col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-slate-50 border-slate-300 text-slate-400 ps-3">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </span>
+                    <input type="text" 
+                           name="search" 
+                           class="form-control tokobii-input border-start-0 ps-1" 
+                           placeholder="Cari berdasarkan nomor invoice atau nama produk..." 
+                           value="{{ request('search') }}"
+                           aria-label="Cari Pesanan">
                 </div>
             </div>
-        @endif
+
+            {{-- Status Filter --}}
+            <div class="col-12 col-sm-6 col-md-4">
+                <select name="status" class="form-select tokobii-select" aria-label="Filter Status" onchange="this.form.submit()">
+                    <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>Semua Status Pesanan</option>
+                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
+                    <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Menunggu Verifikasi Kasir</option>
+                    <option value="ready_for_pickup" {{ request('status') === 'ready_for_pickup' ? 'selected' : '' }}>Siap Diambil</option>
+                    <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Selesai</option>
+                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Dibatalkan / Ditolak</option>
+                </select>
+            </div>
+
+            {{-- Submit Button --}}
+            <div class="col-12 col-sm-6 col-md-2">
+                <button type="submit" class="btn btn-tokobii-primary w-100">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span>Cari</span>
+                </button>
+            </div>
+
+        </form>
     </div>
+
+    {{-- Order List --}}
+    <div class="d-flex flex-column gap-3 mb-4">
+        @forelse($orders as $order)
+            <div class="tokobii-card p-4 tokobii-card-interactive" onclick="window.location='{{ route('customer.orders.show', $order) }}';">
+                {{-- Order Header --}}
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 pb-3 mb-3 border-bottom border-slate-100">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="fw-bold text-blue-600 font-monospace" style="font-size: 0.9375rem;">
+                            {{ $order->invoice_number }}
+                        </span>
+                        <span class="text-slate-400 small">·</span>
+                        <span class="text-slate-500 small">
+                            {{ $order->order_date ? $order->order_date->format('d M Y, H:i') : $order->created_at->format('d M Y, H:i') }} WIB
+                        </span>
+                        <span class="text-slate-400 small">·</span>
+                        @if($order->payment_method === 'qris')
+                            <span class="tokobii-badge tokobii-badge-info">QRIS</span>
+                        @else
+                            <span class="tokobii-badge tokobii-badge-neutral">Tunai di Kasir</span>
+                        @endif
+                    </div>
+
+                    {{-- Status Badge --}}
+                    <div>
+                        @if($order->status === 'pending')
+                            <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
+                        @elseif($order->status === 'paid')
+                            <span class="tokobii-badge tokobii-badge-info">Menunggu Verifikasi Kasir</span>
+                        @elseif($order->status === 'ready_for_pickup')
+                            <span class="tokobii-badge tokobii-badge-success">Siap Diambil di Toko</span>
+                        @elseif($order->status === 'completed')
+                            <span class="tokobii-badge tokobii-badge-success">Pesanan Selesai</span>
+                        @elseif($order->status === 'rejected')
+                            <span class="tokobii-badge tokobii-badge-danger">Dibatalkan</span>
+                        @else
+                            <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($order->status) }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Order Items Preview --}}
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-7">
+                        <div class="d-flex flex-column gap-1">
+                            @foreach($order->items->take(2) as $item)
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <span class="text-slate-900 fw-semibold">{{ $item->product_name }}</span>
+                                    <span class="text-slate-400">× {{ $item->qty }}</span>
+                                    <span class="text-slate-600 font-monospace">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                                </div>
+                            @endforeach
+                            @if($order->items->count() > 2)
+                                <span class="text-slate-400 small">+ {{ $order->items->count() - 2 }} produk lainnya</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-5 d-flex flex-column flex-sm-row align-items-sm-center justify-content-md-end gap-3" onclick="event.stopPropagation();">
+                        <div class="text-start text-sm-end">
+                            <span class="text-slate-400 small d-block">Total Tagihan</span>
+                            <span class="h5 fw-bold text-blue-600 font-monospace mb-0" style="color: #2563eb;">
+                                Rp {{ number_format($order->grand_total, 0, ',', '.') }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            @if($order->status === 'pending' && $order->payment_method === 'qris')
+                                <a href="{{ route('customer.orders.pay', $order) }}" class="btn btn-tokobii-warning btn-tokobii-sm">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                    </svg>
+                                    <span>Bayar QRIS</span>
+                                </a>
+                            @endif
+
+                            <a href="{{ route('customer.orders.show', $order) }}" class="btn btn-tokobii-primary btn-tokobii-sm">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <span>Detail</span>
+                            </a>
+
+                            @if(in_array($order->status, ['ready_for_pickup', 'completed']))
+                                <a href="{{ route('customer.orders.receipt', $order) }}" target="_blank" class="btn btn-tokobii-secondary btn-tokobii-sm" title="Cetak Struk">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                    </svg>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="tokobii-empty-state">
+                <div class="tokobii-empty-icon">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-slate-900 mb-1">Belum Ada Riwayat Pesanan</h5>
+                <p class="text-slate-500 small mb-4">Anda belum pernah melakukan pemesanan produk di Tokobii.</p>
+                <a href="{{ route('customer.shop.index') }}" class="btn btn-tokobii-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span>Mulai Belanja Sekarang</span>
+                </a>
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Pagination Card --}}
+    @if($orders->hasPages())
+        <div class="tokobii-card p-3 d-flex justify-content-center">
+            {{ $orders->links() }}
+        </div>
+    @endif
 
 </div>
 @endsection

@@ -56,7 +56,24 @@ class ReportController extends Controller
                 ->with('warning', 'Produk ini sudah dilaporkan untuk pesanan tersebut.');
         }
 
-        return redirect()->route('customer.reports.index')->with('success', 'Laporan produk berhasil dikirim dan menunggu balasan Admin.');
+        $guidance = [
+            'type' => 'success',
+            'title' => 'Laporan Masalah Berhasil Dikirim!',
+            'message' => 'Laporan keluhan Anda mengenai produk "' . ($item->product->name ?? 'Produk') . '" telah diterima tim support Tokobii.',
+            'steps' => [
+                'Administrator toko akan meninjau rincian keluhan Anda (estimasi 1x24 jam).',
+                'Tanggapan dan solusi resmi dari admin akan muncul pada halaman <strong>Laporan Masalah</strong>.',
+                'Jika diperlukan penggantian barang, staf toko akan menghubungi Anda via email atau nomor kontak akun.',
+            ],
+            'primary_btn_text' => 'Lihat Riwayat Laporan',
+            'primary_btn_url' => route('customer.reports.index'),
+            'secondary_btn_text' => 'Kembali ke Detail Pesanan',
+            'secondary_btn_url' => route('customer.orders.show', $order),
+        ];
+
+        return redirect()->route('customer.reports.index')
+            ->with('guidance', $guidance)
+            ->with('success', 'Laporan produk berhasil dikirim dan menunggu balasan Admin.');
     }
 
     private function authorizeItem(Order $order, OrderItem $item): void

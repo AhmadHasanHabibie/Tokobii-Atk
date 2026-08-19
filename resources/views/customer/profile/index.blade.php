@@ -1,131 +1,83 @@
 @extends('layouts.customer.app')
 
-@section('title', 'Customer Profile')
+@section('title', 'Profil Saya - ' . config('app.name', 'Tokobii'))
 
 @section('content')
+<div class="container-fluid px-0">
 
-<div class="container-fluid">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-
-            <h2 class="fw-bold mb-1">
-                My Profile
-            </h2>
-
-            <p class="text-muted mb-0">
-                Informasi akun Customer Tokobii.
-            </p>
-
+    {{-- Dedicated Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item"><a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a></li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Profil Saya</li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Profil Pelanggan</h1>
+                <p class="text-slate-500 mb-0 small">Informasi rincian akun pelanggan Tokobii Anda.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('customer.profile.edit') }}" class="btn btn-tokobii-primary btn-tokobii-sm">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span>Edit Profil & Password</span>
+                </a>
+            </div>
         </div>
-
-        <div class="d-flex gap-2">
-
-            <a href="{{ route('customer.dashboard') }}"
-               class="btn btn-outline-secondary">
-
-                ← Dashboard
-
-            </a>
-
-            <a href="{{ route('customer.profile.edit') }}"
-               class="btn btn-warning">
-
-                ✏️ Edit Profile
-
-            </a>
-
-        </div>
-
     </div>
 
-    <div class="card shadow-sm border-0">
-
-        <div class="card-body">
-
-            <div class="row mb-3">
-
-                <div class="col-md-3 fw-semibold">
-
-                    Nama
-
+    {{-- Profile Card --}}
+    <div class="row justify-content-center justify-content-lg-start">
+        <div class="col-12 col-lg-8">
+            <div class="tokobii-card p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-slate-100">
+                    <div class="rounded-circle bg-blue-100 text-blue-600 fw-bold d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.25rem; background-color: #eff6ff; color: #2563eb;">
+                        {{ strtoupper(substr($user->name, 0, 2)) }}
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-slate-900 mb-0">{{ $user->name }}</h4>
+                        <span class="text-slate-400 font-monospace small">{{ $user->email }}</span>
+                    </div>
                 </div>
 
-                <div class="col-md-9">
-
-                    {{ $user->name }}
-
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0 small">
+                        <tbody>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold" style="width: 32%;">Nama Lengkap</th>
+                                <td class="text-slate-900 fw-bold">: {{ $user->name }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Alamat Email</th>
+                                <td class="text-slate-800 font-monospace">: {{ $user->email }}</td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Hak Akses</th>
+                                <td>: <span class="tokobii-badge tokobii-badge-info">Pelanggan (Customer)</span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Status Akun</th>
+                                <td>: 
+                                    @if($user->status === 'active')
+                                        <span class="tokobii-badge tokobii-badge-success">Aktif</span>
+                                    @else
+                                        <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($user->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Terdaftar Sejak</th>
+                                <td class="text-slate-800">: {{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
-
-            <hr>
-
-            <div class="row mb-3">
-
-                <div class="col-md-3 fw-semibold">
-
-                    Email
-
-                </div>
-
-                <div class="col-md-9">
-
-                    {{ $user->email }}
-
-                </div>
-
-            </div>
-
-            <hr>
-
-            <div class="row mb-3">
-
-                <div class="col-md-3 fw-semibold">
-
-                    Role
-
-                </div>
-
-                <div class="col-md-9">
-
-                    <span class="badge bg-warning text-dark">
-
-                        {{ ucfirst($user->role) }}
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <hr>
-
-            <div class="row">
-
-                <div class="col-md-3 fw-semibold">
-
-                    Status
-
-                </div>
-
-                <div class="col-md-9">
-
-                    <span class="badge bg-success">
-
-                        {{ ucfirst($user->status) }}
-
-                    </span>
-
-                </div>
-
-            </div>
-
         </div>
-
     </div>
 
 </div>
-
 @endsection

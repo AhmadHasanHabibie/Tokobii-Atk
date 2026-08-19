@@ -5,43 +5,30 @@
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
-
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}"
-                   class="text-decoration-none text-slate-500 hover-text-blue-600">
-                    Dashboard
-                </a>
-            </li>
-
-            <li class="breadcrumb-item active text-slate-800 fw-semibold"
-                aria-current="page">
-                Pelanggan
-            </li>
-
-        </ol>
-    </nav>
-
-
-    {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-
-        <div>
-
-            <h1 class="h3 fw-bold text-slate-900 mb-1"
-                style="color: #0f172a;">
-                Analisis Pelanggan
-            </h1>
-
-            <p class="text-slate-500 mb-0"
-               style="font-size: 0.875rem;">
-                Akuisisi pelanggan, riwayat pesanan, dan pemantauan aktivitas akun.
-            </p>
-
+    {{-- Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">
+                            Pelanggan
+                        </li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">
+                    Analisis & Data Pelanggan
+                </h1>
+                <p class="text-slate-500 mb-0 small">
+                    Akuisisi pelanggan, riwayat transaksi pesanan, dan pemantauan aktivitas akun Tokobii.
+                </p>
+            </div>
         </div>
-
     </div>
 
 

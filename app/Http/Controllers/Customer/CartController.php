@@ -65,7 +65,18 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        return redirect()->route('customer.cart.index')
+        $guidance = [
+            'type' => 'success',
+            'title' => 'Produk Ditambahkan ke Keranjang!',
+            'message' => 'Produk "' . $product->name . '" (' . $qty . ' pcs) berhasil dimasukkan ke keranjang belanja.',
+            'primary_btn_text' => 'Buka Keranjang & Checkout',
+            'primary_btn_url' => route('customer.cart.index'),
+            'secondary_btn_text' => 'Lanjut Belanja di Katalog',
+            'secondary_btn_url' => route('customer.shop.index'),
+        ];
+
+        return redirect()->back()
+            ->with('guidance', $guidance)
             ->with('success', 'Produk "' . $product->name . '" berhasil ditambahkan ke keranjang.');
     }
 

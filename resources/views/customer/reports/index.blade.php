@@ -1,11 +1,115 @@
 @extends('layouts.customer.app')
-@section('title', 'My Reports - Tokobii')
+
+@section('title', 'Laporan Masalah - ' . config('app.name', 'Tokobii'))
+
 @section('content')
-<div class="container-fluid px-0"><h2 class="fw-bold mb-1">My Reports</h2><p class="text-muted mb-4">Riwayat laporan produk dan balasan dari Admin.</p>
-@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-@php($types = ['damaged' => 'Produk rusak', 'not_as_described' => 'Produk tidak sesuai', 'missing' => 'Produk kurang', 'wrong_item' => 'Produk salah', 'other' => 'Masalah lainnya'])
-@forelse($reports as $report)<div class="card border-0 shadow-sm mb-3"><div class="card-body"><div class="d-flex justify-content-between gap-3"><div><h5 class="fw-bold mb-1">{{ $report->product->name }}</h5><small class="text-muted">Kategori: {{ $report->product->category->name }} · Invoice: {{ $report->order->invoice_number }} · {{ $report->created_at->format('d M Y') }}</small></div><span class="badge align-self-start {{ $report->status === 'pending' ? 'bg-warning text-dark' : ($report->status === 'resolved' ? 'bg-success' : 'bg-primary') }}">{{ ucfirst($report->status) }}</span></div><hr><div><strong>Masalah: {{ $types[$report->report_type] ?? $report->report_type }}</strong><p class="mb-0">{{ $report->description }}</p></div>
-@if($report->admin_reply)<div class="alert alert-light border mt-3 mb-0"><strong>Balasan Admin</strong><p class="mb-1">{{ $report->admin_reply }}</p><small class="text-muted">Dibalas oleh {{ $report->repliedBy?->name ?? 'Administrator' }} · {{ $report->replied_at?->format('d M Y H:i') }}</small></div>@endif
-</div></div>@empty<div class="card border-0 shadow-sm"><div class="card-body text-center py-5"><h5>Belum ada laporan.</h5><a href="{{ route('customer.orders.index') }}" class="btn btn-primary">Lihat Pesanan</a></div></div>@endforelse
-{{ $reports->links('pagination::bootstrap-5') }}</div>
+<div class="container-fluid px-0">
+
+    {{-- Dedicated Header Card --}}
+    <div class="tokobii-header-card">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                <li class="breadcrumb-item"><a href="{{ route('customer.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a></li>
+                <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Laporan Masalah</li>
+            </ol>
+        </nav>
+        <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Laporan Masalah Produk</h1>
+        <p class="text-slate-500 mb-0 small">Daftar laporan kendala produk pesanan dan balasan resmi dari tim Admin Tokobii.</p>
+    </div>
+
+    @php
+        $types = [
+            'damaged' => 'Produk Rusak / Cacat',
+            'not_as_described' => 'Produk Tidak Sesuai Deskripsi',
+            'missing' => 'Jumlah Produk Kurang',
+            'wrong_item' => 'Produk Salah / Tertukar',
+            'other' => 'Kendala Lainnya'
+        ];
+    @endphp
+
+    {{-- Reports List --}}
+    <div class="d-flex flex-column gap-3 mb-4">
+        @forelse($reports as $report)
+            <div class="tokobii-card p-4">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3 pb-3 mb-3 border-bottom border-slate-100">
+                    <div>
+                        <h5 class="fw-bold text-slate-900 mb-1" style="font-size: 1.05rem;">
+                            {{ $report->product->name }}
+                        </h5>
+                        <div class="d-flex align-items-center gap-2 text-slate-400 small flex-wrap">
+                            <span>Kategori: <strong class="text-slate-600">{{ $report->product->category->name ?? 'Umum' }}</strong></span>
+                            <span>·</span>
+                            <span>Invoice: <strong class="text-blue-600 font-monospace">{{ $report->order->invoice_number }}</strong></span>
+                            <span>·</span>
+                            <span>{{ $report->created_at->format('d M Y, H:i') }} WIB</span>
+                        </div>
+                    </div>
+
+                    {{-- Status Badge --}}
+                    <div>
+                        @if($report->status === 'pending')
+                            <span class="tokobii-badge tokobii-badge-warning">Menunggu Tanggapan</span>
+                        @elseif($report->status === 'resolved')
+                            <span class="tokobii-badge tokobii-badge-success">Selesai Ditangani</span>
+                        @else
+                            <span class="tokobii-badge tokobii-badge-info">Sedang Diproses</span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Problem Description --}}
+                <div class="mb-3">
+                    <span class="tokobii-badge tokobii-badge-neutral mb-2">
+                        {{ $types[$report->report_type] ?? $report->report_type }}
+                    </span>
+                    <p class="text-slate-700 small mb-0" style="line-height: 1.6;">
+                        {{ $report->description }}
+                    </p>
+                </div>
+
+                {{-- Admin Reply Box --}}
+                @if($report->admin_reply)
+                    <div class="p-3 bg-blue-50 bg-opacity-60 rounded-3 border border-blue-200 mt-3">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                            <strong class="text-blue-900 small">Tanggapan Admin Tokobii:</strong>
+                        </div>
+                        <p class="text-slate-800 small mb-2" style="line-height: 1.6;">
+                            {{ $report->admin_reply }}
+                        </p>
+                        <span class="text-slate-400 font-monospace" style="font-size: 0.7rem;">
+                            Dibalas oleh {{ $report->repliedBy?->name ?? 'Administrator' }} · {{ $report->replied_at ? $report->replied_at->format('d M Y, H:i') : '' }} WIB
+                        </span>
+                    </div>
+                @endif
+            </div>
+        @empty
+            <div class="tokobii-empty-state">
+                <div class="tokobii-empty-icon">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-slate-900 mb-1">Belum Ada Laporan Masalah</h5>
+                <p class="text-slate-500 small mb-4">Jika Anda menemukan kendala dengan produk yang diterima, Anda dapat melaporkannya melalui halaman detail pesanan.</p>
+                <a href="{{ route('customer.orders.index') }}" class="btn btn-tokobii-primary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span>Buka Riwayat Pesanan</span>
+                </a>
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Pagination Card --}}
+    @if($reports->hasPages())
+        <div class="tokobii-card p-3 d-flex justify-content-center">
+            {{ $reports->links() }}
+        </div>
+    @endif
+
+</div>
 @endsection

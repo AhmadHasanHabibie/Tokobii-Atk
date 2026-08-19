@@ -5,30 +5,30 @@
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.customers.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Pelanggan</a>
-            </li>
-            <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Detail Analisis</li>
-        </ol>
-    </nav>
-
-    {{-- Page Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">{{ $customer->name }}</h1>
-            <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">Profil pelanggan, status loyalitas, dan analisis kinerja pembelian.</p>
-        </div>
-        <div>
-            <a href="{{ route('admin.customers.index', request()->only(['period', 'date', 'month', 'year'])) }}" class="btn btn-tokobii-secondary d-inline-flex align-items-center gap-2">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                <span>Kembali ke Pelanggan</span>
-            </a>
+    {{-- Header Card --}}
+    <div class="tokobii-header-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb bg-transparent p-0 mb-0" style="font-size: 0.8125rem;">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('admin.customers.index') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Pelanggan</a>
+                        </li>
+                        <li class="breadcrumb-item active text-slate-800 fw-semibold" aria-current="page">Detail Analisis</li>
+                    </ol>
+                </nav>
+                <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">{{ $customer->name }}</h1>
+                <p class="text-slate-500 mb-0 small">Profil pelanggan, status loyalitas, dan analisis kinerja pembelian di Tokobii.</p>
+            </div>
+            <div>
+                <a href="{{ route('admin.customers.index', request()->only(['period', 'date', 'month', 'year'])) }}" class="btn btn-tokobii-secondary d-inline-flex align-items-center gap-2">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Kembali</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -89,8 +89,8 @@
                         <span class="spinner-border spinner-border-sm me-1 d-none" id="filterSpinner" role="status" aria-hidden="true"></span>
                         <span id="filterBtnText">Terapkan Filter</span>
                     </button>
-                    <a href="{{ route('admin.customers.show', $customer) }}" class="btn btn-tokobii-secondary px-3" title="Reset">
-                        ↺
+                    <a href="{{ route('admin.customers.show', $customer) }}" class="btn btn-tokobii-secondary px-2.5" title="Reset">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </a>
                 </div>
 

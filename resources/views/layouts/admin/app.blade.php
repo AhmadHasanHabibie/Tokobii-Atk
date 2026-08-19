@@ -65,6 +65,9 @@
 
     </div>
 
+    {{-- Global Interactive Guidance Modal --}}
+    @include('components.flash-guidance-modal')
+
     @stack('scripts')
 
 </body>

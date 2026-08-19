@@ -42,7 +42,20 @@ class ReviewController extends Controller
             return back()->with('error', 'Produk ini sudah direview untuk pesanan tersebut.');
         }
         Review::create($data + ['user_id' => auth()->id(), 'order_id' => $order->id, 'order_item_id' => $item->id, 'product_id' => $item->product_id]);
-        return redirect()->route('customer.orders.show', $order)->with('success', 'Review produk berhasil disimpan.');
+
+        $guidance = [
+            'type' => 'success',
+            'title' => 'Ulasan Berhasil Dikirim!',
+            'message' => 'Terima kasih atas penilaian dan ulasan produk Anda. Penilaian Anda sangat bermanfaat bagi pelanggan Tokobii lainnya.',
+            'primary_btn_text' => 'Lihat Ulasan Saya',
+            'primary_btn_url' => route('customer.reviews.index'),
+            'secondary_btn_text' => 'Kembali ke Detail Pesanan',
+            'secondary_btn_url' => route('customer.orders.show', $order),
+        ];
+
+        return redirect()->route('customer.orders.show', $order)
+            ->with('guidance', $guidance)
+            ->with('success', 'Ulasan produk berhasil disimpan.');
     }
 
     public function edit(Review $review): View

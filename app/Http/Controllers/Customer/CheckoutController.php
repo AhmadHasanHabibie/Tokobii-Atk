@@ -118,9 +118,47 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        return redirect()->route('customer.orders.index')
-            ->with('success', 'Pesanan berhasil dibuat. ' . ($order->payment_method === 'qris'
-                ? 'Silakan buka pesanan terbaru untuk menyelesaikan pembayaran QRIS.'
-                : 'Pembayaran tunai dilakukan di kasir saat pesanan diambil.'));
+        // Set rich guidance data for post-action interactive modal
+        if ($order->payment_method === 'qris') {
+            $guidance = [
+                'type' => 'info',
+                'title' => 'Pesanan Berhasil Dibuat!',
+                'message' => 'Pesanan Anda telah tercatat dengan invoice ' . $order->invoice_number . '. Silakan selesaikan pembayaran QRIS untuk proses verifikasi.',
+                'invoice' => $order->invoice_number,
+                'amount' => $order->grand_total,
+                'method' => 'qris',
+                'steps' => [
+                    'Pindai (scan) kode QRIS resmi Tokobii pada bagian informasi pembayaran di bawah.',
+                    'Transfer tepat sejumlah <strong>Rp ' . number_format($order->grand_total, 0, ',', '.') . '</strong> via E-Wallet atau Mobile Banking.',
+                    'Unggah foto bukti transfer pada kartu <strong>Unggah Bukti Transfer QRIS</strong> agar admin dapat memverifikasi pesanan Anda.',
+                ],
+                'primary_btn_text' => 'Mengerti & Unggah Bukti',
+                'primary_btn_url' => null,
+                'secondary_btn_text' => 'Lihat Daftar Pesanan',
+                'secondary_btn_url' => route('customer.orders.index'),
+            ];
+        } else {
+            $guidance = [
+                'type' => 'success',
+                'title' => 'Pesanan Berhasil Dibuat!',
+                'message' => 'Pesanan Anda dengan invoice ' . $order->invoice_number . ' sedang disiapkan oleh tim Tokobii.',
+                'invoice' => $order->invoice_number,
+                'amount' => $order->grand_total,
+                'method' => 'cash',
+                'steps' => [
+                    'Staf toko sedang menyiapkan produk yang Anda pesan.',
+                    'Kunjungi gerai Tokobii dan tunjukkan <strong>Kode QR / No. Invoice</strong> pada halaman ini kepada kasir.',
+                    'Lakukan pembayaran tunai pas sebesar <strong>Rp ' . number_format($order->grand_total, 0, ',', '.') . '</strong> saat serah terima barang.',
+                ],
+                'primary_btn_text' => 'Lihat Detail Pesanan',
+                'primary_btn_url' => null,
+                'secondary_btn_text' => 'Katalog Produk',
+                'secondary_btn_url' => route('customer.shop.index'),
+            ];
+        }
+
+        return redirect()->route('customer.orders.show', $order)
+            ->with('order_guidance', $guidance)
+            ->with('success', 'Pesanan ' . $order->invoice_number . ' berhasil dibuat.');
     }
 }
