@@ -142,19 +142,9 @@
                                 <tr>
                                     <th class="ps-0 text-slate-500 fw-semibold">Status Pembayaran</th>
                                     <td>: 
-                                        @if($payment->payment_status === 'paid')
-                                            <span class="tokobii-badge tokobii-badge-success">Lunas</span>
-                                        @elseif($payment->payment_status === 'ready_for_pickup')
-                                            <span class="tokobii-badge tokobii-badge-info">Siap Diambil</span>
-                                        @elseif($payment->payment_status === 'completed')
-                                            <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                                        @elseif($payment->payment_status === 'waiting_verification')
-                                            <span class="tokobii-badge tokobii-badge-warning">Perlu Verifikasi</span>
-                                        @elseif($payment->payment_status === 'rejected')
-                                            <span class="tokobii-badge tokobii-badge-danger">Ditolak</span>
-                                        @else
-                                            <span class="tokobii-badge tokobii-badge-warning">Menunggu</span>
-                                        @endif
+                                        <span class="tokobii-badge {{ $payment->status_badge_class }}">
+                                            {{ $payment->status_label }}
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -590,7 +580,7 @@
                     </div>
                     <div class="col-6 text-end">
                         <span class="text-slate-400 d-block" style="font-size: 0.75rem;">Metode Bayar:</span>
-                        <strong class="text-uppercase text-slate-800">{{ $payment->payment_method }} ({{ ucfirst($payment->payment_status) }})</strong>
+                        <strong class="text-uppercase text-slate-800">{{ $payment->payment_method }} ({{ $payment->status_label }})</strong>
                     </div>
                 </div>
 

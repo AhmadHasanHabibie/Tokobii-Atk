@@ -39,6 +39,12 @@ class ReportController extends Controller
         $data = $request->validate([
             'report_type' => 'required|in:damaged,not_as_described,missing,wrong_item,other',
             'description' => 'required|string|max:2000',
+        ], [
+            'report_type.required' => 'Jenis keluhan wajib dipilih.',
+            'report_type.in' => 'Jenis keluhan yang dipilih tidak valid.',
+            'description.required' => 'Rincian deskripsi masalah wajib diisi.',
+            'description.string' => 'Deskripsi masalah harus berupa teks.',
+            'description.max' => 'Deskripsi masalah maksimal 2000 karakter.',
         ]);
 
         if (Report::where(['user_id' => auth()->id(), 'order_id' => $order->id, 'product_id' => $item->product_id])->exists()) {

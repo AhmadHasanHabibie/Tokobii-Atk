@@ -28,4 +28,26 @@ class StoreCategoryRequest extends FormRequest
             'status' => ['required', 'in:active,inactive'],
         ];
     }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.string' => 'Nama kategori harus berupa teks.',
+            'name.max' => 'Nama kategori maksimal 100 karakter.',
+            'name.unique' => 'Nama kategori tersebut sudah digunakan. Silakan gunakan nama kategori lain.',
+            'description.string' => 'Deskripsi kategori harus berupa teks.',
+            'description.max' => 'Deskripsi kategori maksimal 1000 karakter.',
+            'thumbnail.image' => 'Thumbnail harus berupa file gambar.',
+            'thumbnail.mimes' => 'Format gambar yang diperbolehkan adalah JPG, JPEG, PNG, atau WEBP.',
+            'thumbnail.max' => 'Ukuran gambar maksimal 2 MB.',
+            'status.required' => 'Status kategori wajib dipilih.',
+            'status.in' => 'Status kategori yang dipilih tidak valid.',
+        ];
+    }
 }

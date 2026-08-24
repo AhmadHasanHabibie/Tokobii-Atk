@@ -35,6 +35,11 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'qty' => 'nullable|integer|min:1',
+        ], [
+            'product_id.required' => 'Produk wajib dipilih.',
+            'product_id.exists' => 'Produk yang dipilih tidak ditemukan.',
+            'qty.integer' => 'Jumlah produk harus berupa angka bulat.',
+            'qty.min' => 'Jumlah produk minimal 1 barang.',
         ]);
 
         $product = Product::findOrFail($request->product_id);
@@ -88,6 +93,12 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|integer',
             'qty' => 'required|integer|min:1',
+        ], [
+            'product_id.required' => 'ID produk wajib diisi.',
+            'product_id.integer' => 'ID produk tidak valid.',
+            'qty.required' => 'Jumlah produk wajib diisi.',
+            'qty.integer' => 'Jumlah produk harus berupa angka bulat.',
+            'qty.min' => 'Jumlah produk minimal 1 barang.',
         ]);
 
         $productId = $request->product_id;
@@ -117,6 +128,9 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|integer',
+        ], [
+            'product_id.required' => 'ID produk wajib diisi.',
+            'product_id.integer' => 'ID produk tidak valid.',
         ]);
 
         $productId = $request->product_id;

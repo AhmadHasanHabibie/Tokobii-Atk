@@ -55,10 +55,11 @@
                 <select name="status" class="form-select tokobii-select" aria-label="Filter Status" onchange="this.form.submit()">
                     <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>Semua Status Pesanan</option>
                     <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                    <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Menunggu Verifikasi Kasir</option>
+                    <option value="waiting_verification" {{ request('status') === 'waiting_verification' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                    <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Sedang Diproses</option>
                     <option value="ready_for_pickup" {{ request('status') === 'ready_for_pickup' ? 'selected' : '' }}>Siap Diambil</option>
                     <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Selesai</option>
-                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Dibatalkan / Ditolak</option>
+                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Dibatalkan</option>
                 </select>
             </div>
 
@@ -99,19 +100,9 @@
 
                     {{-- Status Badge --}}
                     <div>
-                        @if($order->status === 'pending')
-                            <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
-                        @elseif($order->status === 'paid')
-                            <span class="tokobii-badge tokobii-badge-info">Menunggu Verifikasi Kasir</span>
-                        @elseif($order->status === 'ready_for_pickup')
-                            <span class="tokobii-badge tokobii-badge-success">Siap Diambil di Toko</span>
-                        @elseif($order->status === 'completed')
-                            <span class="tokobii-badge tokobii-badge-success">Pesanan Selesai</span>
-                        @elseif($order->status === 'rejected')
-                            <span class="tokobii-badge tokobii-badge-danger">Dibatalkan</span>
-                        @else
-                            <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($order->status) }}</span>
-                        @endif
+                        <span class="tokobii-badge {{ $order->status_badge_class }}">
+                            {{ $order->status_label }}
+                        </span>
                     </div>
                 </div>
 

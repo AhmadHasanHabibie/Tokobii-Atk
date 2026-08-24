@@ -36,9 +36,9 @@ class Payment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'amount' => 'decimal:2',
-        'received_amount' => 'decimal:2',
-        'change_amount' => 'decimal:2',
+        'amount' => 'integer',
+        'received_amount' => 'integer',
+        'change_amount' => 'integer',
         'payment_date' => 'datetime',
         'verified_at' => 'datetime',
         'created_at' => 'datetime',
@@ -59,6 +59,34 @@ class Payment extends Model
     public function verifiedByAdmin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by_admin_id');
+    }
+
+    /**
+     * Get the unified human-readable Indonesian label for payment status.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'paid', 'completed' => 'Lunas',
+            'ready_for_pickup' => 'Siap Diambil',
+            'waiting_verification' => 'Menunggu Verifikasi',
+            'rejected', 'cancelled' => 'Ditolak',
+            default => 'Menunggu Pembayaran',
+        };
+    }
+
+    /**
+     * Get the unified badge CSS class for payment status.
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'paid', 'completed' => 'tokobii-badge-success',
+            'ready_for_pickup' => 'tokobii-badge-info',
+            'waiting_verification' => 'tokobii-badge-warning',
+            'rejected', 'cancelled' => 'tokobii-badge-danger',
+            default => 'tokobii-badge-warning',
+        };
     }
 
     /*

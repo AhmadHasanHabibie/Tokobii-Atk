@@ -124,14 +124,15 @@
                             <input type="number" 
                                    name="price" 
                                    id="price" 
-                                   step="0.01" 
-                                   min="0" 
+                                   step="1" 
+                                   min="1" 
                                    class="tokobii-input flex-1 @error('price') is-invalid @enderror" 
                                    style="border-radius: 0 10px 10px 0;"
                                    value="{{ old('price') }}" 
-                                   placeholder="0" 
+                                   placeholder="10000" 
                                    required>
                         </div>
+                        <span class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">Masukkan harga dalam Rupiah tanpa desimal. Contoh: 10000.</span>
                         @error('price')
                             <div class="text-danger mt-1" style="font-size: 0.8125rem;">{{ $message }}</div>
                         @enderror
@@ -146,6 +147,7 @@
                                name="stock" 
                                id="stock" 
                                min="0" 
+                               step="1"
                                class="tokobii-input w-100 @error('stock') is-invalid @enderror" 
                                value="{{ old('stock', 0) }}" 
                                placeholder="0" 
@@ -239,6 +241,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         const nameInput = document.getElementById('name');
         const slugInput = document.getElementById('slug');
+        const priceInput = document.getElementById('price');
+        const stockInput = document.getElementById('stock');
         const thumbnailInput = document.getElementById('thumbnail');
         const thumbnailPreview = document.getElementById('thumbnail-preview');
         const previewLabel = document.getElementById('previewLabel');
@@ -266,6 +270,17 @@
                 slugInput.value = slugify(this.value);
             });
         }
+
+        // Prevent decimal/exponent characters in price & stock input
+        [priceInput, stockInput].forEach(function(input) {
+            if (input) {
+                input.addEventListener('keydown', function(e) {
+                    if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
 
         if (thumbnailInput && thumbnailPreview) {
             thumbnailInput.addEventListener('change', function (event) {

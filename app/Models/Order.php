@@ -37,9 +37,9 @@ class Order extends Model
      */
     protected $casts = [
         'order_date' => 'datetime',
-        'subtotal' => 'decimal:2',
-        'shipping_cost' => 'decimal:2',
-        'grand_total' => 'decimal:2',
+        'subtotal' => 'integer',
+        'shipping_cost' => 'integer',
+        'grand_total' => 'integer',
     ];
 
     /**
@@ -68,6 +68,37 @@ class Order extends Model
         }
 
         return 'waiting_payment';
+    }
+
+    /**
+     * Get the unified human-readable Indonesian label for the order status.
+     * Single source of truth for presentation across all roles & views.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'completed' => 'Selesai',
+            'ready_for_pickup' => 'Siap Diambil',
+            'processing', 'paid' => 'Sedang Diproses',
+            'waiting_verification' => 'Menunggu Verifikasi',
+            'cancelled', 'rejected' => 'Dibatalkan',
+            default => 'Menunggu Pembayaran',
+        };
+    }
+
+    /**
+     * Get the unified badge CSS class for the order status.
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            'completed' => 'tokobii-badge-success',
+            'ready_for_pickup' => 'tokobii-badge-info',
+            'processing', 'paid' => 'tokobii-badge-info',
+            'waiting_verification' => 'tokobii-badge-warning',
+            'cancelled', 'rejected' => 'tokobii-badge-danger',
+            default => 'tokobii-badge-warning',
+        };
     }
 
     /**
@@ -130,20 +161,10 @@ class Order extends Model
 
     /**
      * Return the payable total in whole rupiah for cash transactions.
-     *
-     * Tokobii displays prices in whole rupiah. Parse the stored DECIMAL value
-     * as a string so rounding to that displayed value cannot introduce a
-     * floating-point fraction into cash change calculations.
      */
     public function getGrandTotalInRupiahAttribute(): int
     {
-        [$whole, $fraction] = array_pad(
-            explode('.', (string) $this->getRawOriginal('grand_total'), 2),
-            2,
-            '0'
-        );
-
-        return (int) $whole + ((int) substr(str_pad($fraction, 2, '0'), 0, 2) >= 50 ? 1 : 0);
+        return (int) $this->grand_total;
     }
 
     /**

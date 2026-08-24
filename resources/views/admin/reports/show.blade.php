@@ -69,13 +69,9 @@
                                 <tr>
                                     <th class="ps-0 text-slate-500 fw-semibold">Status Pesanan</th>
                                     <td class="text-slate-800">: 
-                                        @if($report->order?->order_status === 'completed')
-                                            <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                                        @elseif($report->order?->order_status === 'ready_for_pickup')
-                                            <span class="tokobii-badge tokobii-badge-info">Siap Diambil</span>
-                                        @else
-                                            <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($report->order?->order_status ?? '-') }}</span>
-                                        @endif
+                                        <span class="tokobii-badge {{ $report->order?->status_badge_class ?? 'tokobii-badge-neutral' }}">
+                                            {{ $report->order?->status_label ?? '-' }}
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>

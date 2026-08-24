@@ -65,6 +65,18 @@
                 <span class="small text-emerald-800">Tunjukkan kode QR pengambilan atau sebutkan nomor invoice ke kasir saat datang ke toko.</span>
             </div>
         </div>
+    @elseif($order->status === 'waiting_verification')
+        <div class="alert alert-warning border-0 bg-amber-50 text-amber-900 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-amber-100 text-amber-700 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background-color: #fef3c7; color: #d97706;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <strong class="d-block" style="font-size: 0.9rem;">Bukti Pembayaran Sedang Diverifikasi Kasir</strong>
+                <span class="small text-amber-800">Bukti pembayaran Anda telah dikirim. Kasir Tokobii akan segera memeriksa dan memproses pesanan Anda.</span>
+            </div>
+        </div>
     @elseif($order->status === 'pending' && $order->payment_method === 'qris')
         <div class="alert alert-warning border-0 bg-amber-50 text-amber-900 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center gap-3">
             <div class="rounded-circle bg-amber-100 text-amber-700 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background-color: #fef3c7; color: #d97706;">
@@ -116,19 +128,9 @@
                             <tr>
                                 <th class="ps-0 text-slate-500 fw-semibold">Status Pesanan</th>
                                 <td>: 
-                                    @if($order->status === 'pending')
-                                        <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
-                                    @elseif($order->status === 'paid')
-                                        <span class="tokobii-badge tokobii-badge-info">Menunggu Verifikasi Kasir</span>
-                                    @elseif($order->status === 'ready_for_pickup')
-                                        <span class="tokobii-badge tokobii-badge-success">Siap Diambil</span>
-                                    @elseif($order->status === 'completed')
-                                        <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                                    @elseif($order->status === 'rejected')
-                                        <span class="tokobii-badge tokobii-badge-danger">Dibatalkan</span>
-                                    @else
-                                        <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($order->status) }}</span>
-                                    @endif
+                                    <span class="tokobii-badge {{ $order->status_badge_class }}">
+                                        {{ $order->status_label }}
+                                    </span>
                                 </td>
                             </tr>
                             <tr>
@@ -200,24 +202,15 @@
                             <form action="{{ route('customer.orders.upload-proof', $order) }}" method="POST" enctype="multipart/form-data" id="uploadProofForm" onsubmit="return validateAndSubmitProof();">
                                 @csrf
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold text-slate-700">Pilih Foto Bukti Transfer QRIS:</label>
-                                    <input type="file" name="proof_of_payment" id="proofInput" accept="image/jpeg,image/png,image/jpg,application/pdf" class="form-control tokobii-input" required onchange="previewProofFile(this)">
-                                    <small class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">Format: JPG, PNG, PDF (Maks. 2MB)</small>
+                                    <label for="proof_of_payment" class="form-label small fw-semibold text-slate-700">Unggah Bukti Transfer Baru</label>
+                                    <input type="file" name="proof_of_payment" id="proof_of_payment" class="form-control tokobii-input small" accept="image/jpeg,image/png,image/jpg,application/pdf" required>
+                                    <span class="text-slate-400 d-block mt-1" style="font-size: 0.75rem;">Format: JPG, PNG, PDF (Maks 2MB)</span>
                                 </div>
-
-                                {{-- Live Preview Box --}}
-                                <div id="liveProofPreviewBox" class="mb-3 p-3 bg-slate-50 border border-blue-200 rounded-3 text-center d-none">
-                                    <span class="text-slate-500 small d-block mb-2 fw-semibold">Pratinjau File Terpilih:</span>
-                                    <img id="liveProofImage" src="" alt="Pratinjau" class="img-fluid rounded-2 border border-slate-200 shadow-sm mb-2" style="max-height: 160px; display: none;">
-                                    <div id="liveProofFileName" class="text-blue-600 small fw-bold font-monospace text-truncate"></div>
-                                </div>
-
-                                <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm w-100" id="submitProofBtn">
-                                    <span class="spinner-border spinner-border-sm d-none me-1" id="proofSpinner" role="status" aria-hidden="true"></span>
-                                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="proofBtnIcon">
+                                <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm w-100" id="btnUploadProof">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                                     </svg>
-                                    <span id="proofBtnText">Kirim Bukti Pembayaran</span>
+                                    <span>Kirim Bukti Pembayaran</span>
                                 </button>
                             </form>
                         @endif
@@ -227,167 +220,66 @@
 
         </div>
 
-        {{-- Right Column: Items Table & Actions --}}
+        {{-- Right Column: Items Table --}}
         <div class="col-12 col-lg-7">
-            
-            <div class="tokobii-card mb-4">
+            <div class="tokobii-card">
                 <div class="tokobii-card-header d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
-                        <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Daftar Item Pesanan</h5>
-                    </div>
-                    <span class="tokobii-badge tokobii-badge-info">{{ $order->items->count() }} Macam Produk</span>
+                    <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Rincian Item Produk</h5>
+                    <span class="tokobii-badge tokobii-badge-neutral">{{ $order->items->count() }} Produk</span>
                 </div>
                 <div class="p-0">
                     <div class="table-responsive">
-                        <table class="tokobii-table mb-0">
-                            <thead>
+                        <table class="table align-middle mb-0">
+                            <thead class="bg-slate-50 text-slate-500 small">
                                 <tr>
-                                    <th>Produk</th>
-                                    <th class="text-end" style="width: 22%;">Harga Satuan</th>
-                                    <th class="text-center" style="width: 14%;">Qty</th>
-                                    <th class="text-end" style="width: 24%;">Subtotal</th>
+                                    <th class="ps-4 py-3 border-bottom border-slate-200">Produk</th>
+                                    <th class="text-center py-3 border-bottom border-slate-200">Jumlah</th>
+                                    <th class="text-end py-3 border-bottom border-slate-200">Harga Satuan</th>
+                                    <th class="text-end pe-4 py-3 border-bottom border-slate-200">Subtotal</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100">
                                 @foreach($order->items as $item)
                                     <tr>
-                                        <td>
-                                            <div class="fw-bold text-slate-900">{{ $item->product_name }}</div>
-                                            @if($item->product && $item->product->category)
-                                                <span class="text-slate-400" style="font-size: 0.75rem;">{{ $item->product->category->name }}</span>
-                                            @endif
-
-                                            {{-- Review and Report Action Buttons --}}
-                                            @if(in_array($order->order_status, ['completed', 'ready_for_pickup']))
-                                                <div class="d-flex align-items-center gap-2 mt-2">
-                                                    @php($existingReview = $item->product ? $item->product->reviews()->where('user_id', Auth::id())->where('order_id', $order->id)->first() : null)
-                                                    @if($existingReview)
-                                                        <a href="{{ route('customer.reviews.edit', $existingReview) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2" style="font-size: 0.7rem;">
-                                                            <svg width="12" height="12" fill="#f59e0b" stroke="#f59e0b" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                                            </svg>
-                                                            <span>Edit Ulasan</span>
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ route('customer.orders.reviews.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2" style="font-size: 0.7rem;">
-                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                                                            </svg>
-                                                            <span>Beri Ulasan</span>
-                                                        </a>
-                                                    @endif
-
-                                                    <a href="{{ route('customer.orders.reports.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-0.5 px-2 text-rose-600 border-rose-200" style="font-size: 0.7rem;">
-                                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                                        </svg>
-                                                        <span>Laporkan Masalah</span>
-                                                    </a>
-                                                </div>
+                                        <td class="ps-4 py-3">
+                                            <div class="fw-bold text-slate-900 small">{{ $item->product_name }}</div>
+                                            @if($item->product && $item->product->sku)
+                                                <span class="text-slate-400 font-monospace" style="font-size: 0.75rem;">SKU: {{ $item->product->sku }}</span>
                                             @endif
                                         </td>
-                                        <td class="text-end font-monospace text-slate-700">
+                                        <td class="text-center py-3 text-slate-700 small fw-semibold">
+                                            × {{ $item->qty }}
+                                        </td>
+                                        <td class="text-end py-3 text-slate-600 font-monospace small">
                                             Rp {{ number_format($item->price, 0, ',', '.') }}
                                         </td>
-                                        <td class="text-center fw-semibold text-slate-800">
-                                            {{ $item->qty }}
-                                        </td>
-                                        <td class="text-end fw-bold text-blue-600 font-monospace">
+                                        <td class="text-end pe-4 py-3 font-monospace fw-bold text-slate-900 small">
                                             Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot class="bg-slate-50 border-top border-slate-200">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Subtotal Produk:</td>
+                                    <td class="text-end pe-4 py-2 font-monospace fw-semibold text-slate-800 small">Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Biaya Penanganan:</td>
+                                    <td class="text-end pe-4 py-2 font-monospace fw-semibold text-slate-800 small">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold text-slate-900 ps-4 py-3">Total Tagihan:</td>
+                                    <td class="text-end pe-4 py-3 font-monospace fw-bold text-blue-600 fs-6">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
-
-                {{-- Total Calculation Block --}}
-                <div class="p-4 bg-slate-50 border-top border-slate-100">
-                    <div class="d-flex flex-column gap-2 small text-slate-600" style="max-width: 320px; margin-left: auto;">
-                        <div class="d-flex justify-content-between">
-                            <span>Subtotal:</span>
-                            <span class="fw-semibold font-monospace text-slate-800">Rp {{ number_format($order->subtotal ?? $order->grand_total, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Biaya Pengambilan Toko:</span>
-                            <span class="text-emerald-600 fw-semibold">Gratis</span>
-                        </div>
-                        <hr class="my-1 border-slate-200">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-slate-900 fs-6">Total Pembayaran:</span>
-                            <span class="h5 fw-bold text-blue-600 font-monospace mb-0" style="color: #2563eb;">
-                                Rp {{ number_format($order->grand_total, 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </div>
+        </div>
 
     </div>
 
 </div>
-
-@push('scripts')
-<script>
-    function previewProofFile(input) {
-        var box = document.getElementById('liveProofPreviewBox');
-        var img = document.getElementById('liveProofImage');
-        var nameLabel = document.getElementById('liveProofFileName');
-
-        if (input.files && input.files[0]) {
-            var file = input.files[0];
-            
-            // Check size (max 2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file maksimal adalah 2MB. Silakan pilih file yang lebih kecil.');
-                input.value = '';
-                if (box) box.classList.add('d-none');
-                return;
-            }
-
-            if (box) box.classList.remove('d-none');
-            if (nameLabel) nameLabel.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-
-            if (file.type.match('image.*')) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    if (img) {
-                        img.src = e.target.result;
-                        img.style.display = 'inline-block';
-                    }
-                };
-                reader.readAsDataURL(file);
-            } else {
-                if (img) img.style.display = 'none';
-            }
-        } else {
-            if (box) box.classList.add('d-none');
-        }
-    }
-
-    function validateAndSubmitProof() {
-        var input = document.getElementById('proofInput');
-        if (!input || !input.files || input.files.length === 0) {
-            alert('Pilih file bukti pembayaran terlebih dahulu.');
-            return false;
-        }
-
-        var btn = document.getElementById('submitProofBtn');
-        var spinner = document.getElementById('proofSpinner');
-        var icon = document.getElementById('proofBtnIcon');
-        var text = document.getElementById('proofBtnText');
-
-        if (btn) btn.disabled = true;
-        if (spinner) spinner.classList.remove('d-none');
-        if (icon) icon.classList.add('d-none');
-        if (text) text.textContent = 'Mengunggah Bukti...';
-
-        return true;
-    }
-</script>
-@endpush
 @endsection

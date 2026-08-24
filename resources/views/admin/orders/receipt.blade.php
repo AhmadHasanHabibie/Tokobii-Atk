@@ -79,7 +79,7 @@
                 </div>
                 <div class="col-6 text-end">
                     <span class="text-slate-400 d-block" style="font-size: 0.75rem;">Metode Pembayaran:</span>
-                    <strong class="text-uppercase text-slate-900">{{ $order->payment_method }} ({{ ucfirst($order->payment_status) }})</strong>
+                    <strong class="text-uppercase text-slate-900">{{ $order->payment_method }} ({{ $order->status_label }})</strong>
                 </div>
             </div>
 

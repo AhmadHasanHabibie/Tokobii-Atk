@@ -685,43 +685,9 @@
 
                                         <td>
 
-                                            @if($order->status === 'completed')
-
-                                                <span class="tokobii-badge tokobii-badge-neutral">
-                                                    Selesai
-                                                </span>
-
-                                            @elseif($order->status === 'ready_for_pickup')
-
-                                                <span class="tokobii-badge tokobii-badge-info">
-                                                    Siap Diambil
-                                                </span>
-
-                                            @elseif($order->status === 'processing')
-
-                                                <span class="tokobii-badge tokobii-badge-info">
-                                                    Diproses
-                                                </span>
-
-                                            @elseif($order->status === 'paid')
-
-                                                <span class="tokobii-badge tokobii-badge-success">
-                                                    Dibayar
-                                                </span>
-
-                                            @elseif($order->status === 'waiting_verification')
-
-                                                <span class="tokobii-badge tokobii-badge-warning">
-                                                    Verifikasi
-                                                </span>
-
-                                            @else
-
-                                                <span class="tokobii-badge tokobii-badge-warning">
-                                                    Menunggu Pembayaran
-                                                </span>
-
-                                            @endif
+                                            <span class="tokobii-badge {{ $order->status_badge_class }}">
+                                                {{ $order->status_label }}
+                                            </span>
 
                                         </td>
 

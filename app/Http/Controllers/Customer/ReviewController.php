@@ -17,6 +17,7 @@ class ReviewController extends Controller
         $reviews = Review::with(['product', 'order'])->where('user_id', auth()->id())->latest()->paginate(10);
         return view('customer.reviews.index', compact('reviews'));
     }
+
     private function authorizeItem(Order $order, OrderItem $item): void
     {
         abort_unless($order->user_id === auth()->id(), 403);
@@ -37,10 +38,22 @@ class ReviewController extends Controller
     public function store(Request $request, Order $order, OrderItem $item): RedirectResponse
     {
         $this->authorizeItem($order, $item);
-        $data = $request->validate(['rating' => 'required|integer|between:1,5', 'comment' => 'required|string|max:1000']);
+        $data = $request->validate([
+            'rating' => 'required|integer|between:1,5',
+            'comment' => 'required|string|max:1000',
+        ], [
+            'rating.required' => 'Penilaian bintang wajib dipilih (1 - 5 bintang).',
+            'rating.integer' => 'Penilaian bintang harus berupa angka bulat.',
+            'rating.between' => 'Penilaian bintang harus bernilai antara 1 sampai 5.',
+            'comment.required' => 'Ulasan produk wajib diisi.',
+            'comment.string' => 'Ulasan produk harus berupa teks.',
+            'comment.max' => 'Ulasan produk maksimal 1000 karakter.',
+        ]);
+
         if (Review::where(['user_id' => auth()->id(), 'order_id' => $order->id, 'order_item_id' => $item->id, 'product_id' => $item->product_id])->exists()) {
             return back()->with('error', 'Produk ini sudah direview untuk pesanan tersebut.');
         }
+
         Review::create($data + ['user_id' => auth()->id(), 'order_id' => $order->id, 'order_item_id' => $item->id, 'product_id' => $item->product_id]);
 
         $guidance = [
@@ -58,7 +71,7 @@ class ReviewController extends Controller
             ->with('success', 'Ulasan produk berhasil disimpan.');
     }
 
-    public function edit(Review $review): View
+    public function edit(Review $review): View|RedirectResponse
     {
         abort_unless($review->user_id === auth()->id(), 403);
         abort_unless($review->order->user_id === auth()->id() && $review->orderItem->order_id === $review->order_id && $review->orderItem->product_id === $review->product_id, 403);
@@ -76,7 +89,18 @@ class ReviewController extends Controller
         if (!$review->canBeEdited()) {
             return redirect()->route('customer.reviews.index')->with('error', 'Review sudah melewati batas waktu edit 24 jam.');
         }
-        $data = $request->validate(['rating' => 'required|integer|between:1,5', 'comment' => 'required|string|max:1000']);
+        $data = $request->validate([
+            'rating' => 'required|integer|between:1,5',
+            'comment' => 'required|string|max:1000',
+        ], [
+            'rating.required' => 'Penilaian bintang wajib dipilih (1 - 5 bintang).',
+            'rating.integer' => 'Penilaian bintang harus berupa angka bulat.',
+            'rating.between' => 'Penilaian bintang harus bernilai antara 1 sampai 5.',
+            'comment.required' => 'Ulasan produk wajib diisi.',
+            'comment.string' => 'Ulasan produk harus berupa teks.',
+            'comment.max' => 'Ulasan produk maksimal 1000 karakter.',
+        ]);
+
         $review->update($data);
         return redirect()->route('customer.reviews.index')->with('success', 'Review berhasil diperbarui.');
     }

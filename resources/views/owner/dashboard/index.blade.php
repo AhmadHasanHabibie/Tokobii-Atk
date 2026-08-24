@@ -130,19 +130,9 @@
                                             Rp {{ number_format($order->grand_total, 0, ',', '.') }}
                                         </td>
                                         <td class="text-center">
-                                            @if($order->status === 'pending')
-                                                <span class="tokobii-badge tokobii-badge-warning">Menunggu Bayar</span>
-                                            @elseif($order->status === 'paid')
-                                                <span class="tokobii-badge tokobii-badge-info">Verifikasi Kasir</span>
-                                            @elseif($order->status === 'ready_for_pickup')
-                                                <span class="tokobii-badge tokobii-badge-success">Siap Diambil</span>
-                                            @elseif($order->status === 'completed')
-                                                <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                                            @elseif($order->status === 'rejected')
-                                                <span class="tokobii-badge tokobii-badge-danger">Dibatalkan</span>
-                                            @else
-                                                <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($order->status) }}</span>
-                                            @endif
+                                            <span class="tokobii-badge {{ $order->status_badge_class }}">
+                                                {{ $order->status_label }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @empty

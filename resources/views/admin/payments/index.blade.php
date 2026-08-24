@@ -153,9 +153,9 @@
             <div class="col-12 col-sm-6 col-md-2">
                 <select name="payment_status" class="tokobii-select w-100" aria-label="Filter Status Pembayaran" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
-                    <option value="pending" {{ request('payment_status') === 'pending' ? 'selected' : '' }}>Menunggu Bayar</option>
-                    <option value="waiting_verification" {{ request('payment_status') === 'waiting_verification' ? 'selected' : '' }}>Verifikasi Bukti</option>
-                    <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Lunas Terbayar</option>
+                    <option value="pending" {{ request('payment_status') === 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
+                    <option value="waiting_verification" {{ request('payment_status') === 'waiting_verification' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                    <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Lunas</option>
                     <option value="ready_for_pickup" {{ request('payment_status') === 'ready_for_pickup' ? 'selected' : '' }}>Siap Diambil</option>
                     <option value="completed" {{ request('payment_status') === 'completed' ? 'selected' : '' }}>Selesai</option>
                     <option value="rejected" {{ request('payment_status') === 'rejected' ? 'selected' : '' }}>Ditolak</option>
@@ -164,7 +164,7 @@
 
             {{-- Sorting --}}
             <div class="col-12 col-sm-6 col-md-2">
-                <select name="sort" class="tokobii-select w-100" aria-label="Urutan Data" onchange="this.form.submit()">
+                <select name="sort" class="tokobii-select w-100" aria-label="Urutkan Pembayaran" onchange="this.form.submit()">
                     <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Terbaru</option>
                     <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Terlama</option>
                     <option value="amount_desc" {{ request('sort') === 'amount_desc' ? 'selected' : '' }}>Nominal Tertinggi</option>
@@ -172,7 +172,7 @@
                 </select>
             </div>
 
-            {{-- Filter Action Buttons --}}
+            {{-- Action Buttons --}}
             <div class="col-12 col-md-2 d-flex gap-1">
                 <button type="submit" class="btn btn-tokobii-primary w-100">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@
         </form>
     </div>
 
-    {{-- Payment Table Card --}}
+    {{-- Payments Table --}}
     <div class="tokobii-table-container">
         @forelse($payments as $payment)
             @if($loop->first)
@@ -201,13 +201,13 @@
                         <thead>
                             <tr>
                                 <th style="width: 4%;">No</th>
-                                <th style="width: 14%;">No. Invoice</th>
-                                <th style="width: 20%;">Pelanggan</th>
-                                <th class="text-center" style="width: 12%;">Metode</th>
+                                <th style="width: 15%;">No. Invoice</th>
+                                <th style="width: 18%;">Pelanggan</th>
+                                <th class="text-center" style="width: 10%;">Metode</th>
                                 <th class="text-end" style="width: 14%;">Nominal</th>
                                 <th style="width: 13%;">Status Bayar</th>
-                                <th style="width: 13%;">Status Ambil</th>
-                                <th style="width: 10%;">Tanggal</th>
+                                <th style="width: 13%;">Status Pesanan</th>
+                                <th style="width: 12%;">Tanggal</th>
                                 <th class="text-end" style="width: 6%;">Aksi</th>
                             </tr>
                         </thead>
@@ -217,13 +217,15 @@
             <tr>
                 <td class="fw-semibold text-slate-400 font-monospace">{{ $payments->firstItem() + $loop->index }}</td>
                 <td>
-                    <span class="text-blue-600 font-monospace fw-bold">{{ $payment->invoice_number }}</span>
+                    <span class="text-blue-600 font-monospace fw-bold" style="font-size: 0.8125rem;">{{ $payment->invoice_number }}</span>
                 </td>
                 <td>
-                    <span class="fw-bold text-slate-900 d-block text-truncate" style="max-width: 180px;" title="{{ $payment->order->user->name ?? '-' }}">
+                    <span class="fw-semibold text-slate-900 d-block text-truncate" style="max-width: 160px;" title="{{ $payment->order->user->name ?? '-' }}">
                         {{ $payment->order->user->name ?? '-' }}
                     </span>
-                    <span class="text-slate-400 font-monospace d-block text-truncate" style="max-width: 180px; font-size: 0.75rem;">{{ $payment->order->user->email ?? '-' }}</span>
+                    <span class="text-slate-400 d-block text-truncate font-monospace" style="font-size: 0.75rem; max-width: 160px;">
+                        {{ $payment->order->user->email ?? '-' }}
+                    </span>
                 </td>
                 <td class="text-center">
                     @if($payment->payment_method === 'qris')
@@ -236,28 +238,14 @@
                     Rp {{ number_format($payment->amount, 0, ',', '.') }}
                 </td>
                 <td>
-                    @if($payment->payment_status === 'paid' || $payment->payment_status === 'ready_for_pickup' || $payment->payment_status === 'completed')
-                        <span class="tokobii-badge tokobii-badge-success">Lunas</span>
-                    @elseif($payment->payment_status === 'waiting_verification')
-                        <span class="tokobii-badge tokobii-badge-warning">Perlu Verifikasi</span>
-                    @elseif($payment->payment_status === 'rejected')
-                        <span class="tokobii-badge tokobii-badge-danger">Ditolak</span>
-                    @else
-                        <span class="tokobii-badge tokobii-badge-warning">Menunggu</span>
-                    @endif
+                    <span class="tokobii-badge {{ $payment->status_badge_class }}">
+                        {{ $payment->status_label }}
+                    </span>
                 </td>
                 <td>
-                    @if($payment->payment_status === 'ready_for_pickup')
-                        <span class="tokobii-badge tokobii-badge-info">Siap Diambil</span>
-                    @elseif($payment->payment_status === 'completed')
-                        <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                    @elseif(in_array($payment->payment_status, ['paid', 'waiting_verification']))
-                        <span class="tokobii-badge tokobii-badge-info">Disiapkan</span>
-                    @elseif($payment->payment_status === 'rejected')
-                        <span class="tokobii-badge tokobii-badge-neutral">Dibatalkan</span>
-                    @else
-                        <span class="tokobii-badge tokobii-badge-neutral">Belum Diproses</span>
-                    @endif
+                    <span class="tokobii-badge {{ $payment->order?->status_badge_class ?? 'tokobii-badge-neutral' }}">
+                        {{ $payment->order?->status_label ?? '-' }}
+                    </span>
                 </td>
                 <td class="text-slate-500 small">
                     {{ $payment->payment_date ? $payment->payment_date->format('d M Y, H:i') : '-' }}
