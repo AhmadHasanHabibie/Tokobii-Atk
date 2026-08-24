@@ -29,26 +29,46 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Normalisasi email secara internal ke huruf kecil & tanpa whitespace
+        if ($request->has('email')) {
+            $request->merge([
+                'email' => strtolower(trim($request->input('email'))),
+            ]);
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'string',
-                'lowercase',
                 'email',
                 'max:255',
                 'unique:' . User::class,
             ],
             'password' => [
                 'required',
+                'string',
+                'min:8',
                 'confirmed',
-                Rules\Password::defaults(),
             ],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.string' => 'Nama lengkap harus berupa teks.',
+            'name.max' => 'Nama lengkap tidak boleh lebih dari 255 karakter.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.string' => 'Alamat email harus berupa teks.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'email.max' => 'Alamat email tidak boleh lebih dari 255 karakter.',
+            'email.unique' => 'Alamat email tersebut sudah terdaftar.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.string' => 'Kata sandi harus berupa teks.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name' => trim($request->name),
+            'email' => strtolower(trim($request->email)),
             'password' => Hash::make($request->password),
 
             // Business Rules Tokobii

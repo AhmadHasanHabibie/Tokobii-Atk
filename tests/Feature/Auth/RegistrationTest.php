@@ -27,6 +27,22 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        $response->assertRedirect(route('customer.dashboard'));
+    }
+
+    public function test_users_can_register_with_uppercase_email(): void
+    {
+        $response = $this->post('/register', [
+            'name' => 'Kebojant User',
+            'email' => 'Kebojant670@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('customer.dashboard'));
+        $this->assertDatabaseHas('users', [
+            'email' => 'kebojant670@gmail.com',
+        ]);
     }
 }

@@ -38,6 +38,11 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('owner.dashboard');
         }
 
+        // Jika customer belum memverifikasi email, arahkan ke halaman verifikasi email
+        if ($user->isCustomer() && !$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
         return redirect()->route('customer.dashboard');
     }
 

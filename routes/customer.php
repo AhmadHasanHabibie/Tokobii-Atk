@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Customer Routes
+| Customer Routes (All Secured by Auth, Email Verification, & Customer Role)
 |--------------------------------------------------------------------------
 */
 
@@ -80,7 +80,7 @@ Route::middleware(['auth', 'verified', 'customer'])
 
         /*
         |--------------------------------------------------------------------------
-        | Orders History & Pay & Pickup Receipt & Review & Proof Upload (Modules 3, 4, 5)
+        | Orders History & Pay & Pickup Receipt & Review & Proof Upload
         |--------------------------------------------------------------------------
         */
 
@@ -112,7 +112,7 @@ Route::middleware(['auth', 'verified', 'customer'])
 
         /*
         |--------------------------------------------------------------------------
-        | Profile (Module 6)
+        | Profile (Requires Verified Email)
         |--------------------------------------------------------------------------
         */
 

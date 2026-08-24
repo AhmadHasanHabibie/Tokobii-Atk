@@ -69,6 +69,27 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Verifikasi Email</th>
+                                <td>: 
+                                    @if($user->hasVerifiedEmail())
+                                        <span class="tokobii-badge tokobii-badge-success">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline; vertical-align:-1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Email Terverifikasi
+                                        </span>
+                                    @else
+                                        <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                                            <span class="tokobii-badge tokobii-badge-warning">Belum Terverifikasi</span>
+                                            <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2 small">
+                                                    Kirim Ulang Email Verifikasi
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
                                 <th class="ps-0 text-slate-500 fw-semibold">Terdaftar Sejak</th>
                                 <td class="text-slate-800">: {{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</td>
                             </tr>

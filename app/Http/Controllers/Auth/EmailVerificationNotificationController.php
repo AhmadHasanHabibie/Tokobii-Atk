@@ -15,11 +15,19 @@ class EmailVerificationNotificationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(RouteServiceProvider::HOME);
+            return redirect()->intended(route('customer.dashboard'))
+                ->with('info', 'Email akun Anda sudah terverifikasi.');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        try {
+            $request->user()->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal mengirim email verifikasi: ' . $e->getMessage());
 
-        return back()->with('status', 'verification-link-sent');
+            return back()->with('error', 'Email verifikasi gagal dikirim. Silakan periksa konfigurasi mail atau coba lagi nanti.');
+        }
+
+        return back()->with('status', 'verification-link-sent')
+            ->with('success', 'Email verifikasi berhasil dikirim. Silakan cek inbox Anda.');
     }
 }
