@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'owner' => \App\Http\Middleware\OwnerMiddleware::class,
         'customer' => \App\Http\Middleware\CustomerMiddleware::class,
+        'face.verified' => \App\Http\Middleware\EnsureFaceVerified::class,
     ];
 }

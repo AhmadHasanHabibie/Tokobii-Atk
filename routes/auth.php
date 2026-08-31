@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\FaceVerificationLoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -42,6 +43,16 @@ Route::middleware('guest')->group(function () {
 
     Route::post('verify-two-factor/cancel', [TwoFactorLoginController::class, 'cancel'])
                 ->name('two-factor.cancel');
+
+    Route::get('verify-face', [FaceVerificationLoginController::class, 'showChallenge'])
+                ->name('face-verification.challenge');
+
+    Route::post('verify-face', [FaceVerificationLoginController::class, 'verify'])
+                ->middleware('throttle:10,1')
+                ->name('face-verification.verify');
+
+    Route::post('verify-face/cancel', [FaceVerificationLoginController::class, 'cancel'])
+                ->name('face-verification.cancel');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');

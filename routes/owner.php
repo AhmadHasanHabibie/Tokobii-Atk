@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\ProfileController;
+use App\Http\Controllers\Security\FaceVerificationProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified', 'owner'])
+Route::middleware(['auth', 'verified', 'owner', 'face.verified'])
     ->prefix('owner')
     ->name('owner.')
     ->group(function () {
@@ -41,5 +42,11 @@ Route::middleware(['auth', 'verified', 'owner'])
 
         Route::delete('/profile', [ProfileController::class, 'destroy'])
             ->name('profile.destroy');
+
+        Route::post('profile/face-verification/enroll', [FaceVerificationProfileController::class, 'enroll'])
+            ->name('profile.face-verification.enroll');
+
+        Route::post('profile/face-verification/disable', [FaceVerificationProfileController::class, 'disable'])
+            ->name('profile.face-verification.disable');
 
     });

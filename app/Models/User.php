@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'status',
         'two_factor_enabled',
+        'face_verification_enabled',
     ];
 
     /**
@@ -47,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'two_factor_enabled' => 'boolean',
+        'face_verification_enabled' => 'boolean',
     ];
 
     /*
@@ -73,6 +75,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasTwoFactorEnabled(): bool
     {
         return (bool) $this->two_factor_enabled;
+    }
+
+    public function hasFaceVerificationEnabled(): bool
+    {
+        return (bool) $this->face_verification_enabled && ($this->isAdmin() || $this->isOwner());
     }
 
     /*
@@ -150,5 +157,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function twoFactorCodes(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(TwoFactorCode::class);
+    }
+
+    public function faceVerification(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(FaceVerification::class);
     }
 }

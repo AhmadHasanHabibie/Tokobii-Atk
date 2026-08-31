@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\OwnerController;
+use App\Http\Controllers\Security\FaceVerificationProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'verified', 'admin'])
+Route::middleware(['auth', 'verified', 'admin', 'face.verified'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -149,6 +150,11 @@ Route::middleware(['auth', 'verified', 'admin'])
                     ->name('destroy');
 
             });
-            
+
+        Route::post('profile/face-verification/enroll', [FaceVerificationProfileController::class, 'enroll'])
+            ->name('profile.face-verification.enroll');
+
+        Route::post('profile/face-verification/disable', [FaceVerificationProfileController::class, 'disable'])
+            ->name('profile.face-verification.disable');
 
     });

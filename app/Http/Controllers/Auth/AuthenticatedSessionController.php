@@ -29,16 +29,36 @@ class AuthenticatedSessionController extends Controller
 
         // 1. Admin Login
         if ($user->isAdmin()) {
+            if ($user->hasFaceVerificationEnabled()) {
+                $request->session()->put('face_auth:user_id', $user->id);
+                $request->session()->put('face_auth:remember', $request->boolean('remember'));
+                $request->session()->put('face_auth:auth_time', now()->timestamp);
+                $request->session()->put('face_auth:role', 'admin');
+
+                return redirect()->route('face-verification.challenge');
+            }
+
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
+            $request->session()->put('face_verified_at', now()->timestamp);
 
             return redirect()->route('admin.dashboard');
         }
 
         // 2. Owner Login
         if ($user->isOwner()) {
+            if ($user->hasFaceVerificationEnabled()) {
+                $request->session()->put('face_auth:user_id', $user->id);
+                $request->session()->put('face_auth:remember', $request->boolean('remember'));
+                $request->session()->put('face_auth:auth_time', now()->timestamp);
+                $request->session()->put('face_auth:role', 'owner');
+
+                return redirect()->route('face-verification.challenge');
+            }
+
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
+            $request->session()->put('face_verified_at', now()->timestamp);
 
             return redirect()->route('owner.dashboard');
         }

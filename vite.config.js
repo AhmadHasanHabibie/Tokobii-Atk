@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/order-scanner.js',
+                'resources/js/face-verification.js',
             ],
             refresh: true,
         }),
