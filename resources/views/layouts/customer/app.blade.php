@@ -14,7 +14,7 @@
     ])
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased font-sans">
+<body class="antialiased font-sans" style="background-color: var(--tokobii-bg);">
 
     {{-- Sidebar Drawer (Desktop Fixed, Mobile Offcanvas) --}}
     @include('layouts.customer.partials.sidebar')
@@ -26,42 +26,46 @@
         @include('layouts.customer.partials.navbar')
 
         {{-- Main Viewport --}}
-        <main class="flex-grow-1 px-3 px-md-4 px-xl-5 py-4 bg-slate-50">
+        <main class="flex-grow-1 tokobii-page-content">
 
             {{-- Flash Alert Messages --}}
             @if(session('success'))
-                <div class="alert alert-success border-0 bg-emerald-50 text-emerald-800 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center justify-content-between" role="alert">
-                    <div class="d-flex align-items-center gap-3">
-                        <svg class="text-emerald-600 flex-shrink-0" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="fw-semibold text-sm">{{ session('success') }}</span>
-                    </div>
-                    <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                <div class="alert tokobii-alert tokobii-alert-success mb-4 animate-fade-in-up" role="alert">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="fw-medium">{{ session('success') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Tutup"></button>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="alert alert-danger border-0 bg-rose-50 text-rose-800 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center justify-content-between" role="alert">
-                    <div class="d-flex align-items-center gap-3">
-                        <svg class="text-rose-600 flex-shrink-0" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="fw-semibold text-sm">{{ session('error') }}</span>
-                    </div>
-                    <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                <div class="alert tokobii-alert tokobii-alert-error mb-4 animate-fade-in-up" role="alert">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="fw-medium">{{ session('error') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="alert tokobii-alert tokobii-alert-warning mb-4 animate-fade-in-up" role="alert">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <span class="fw-medium">{{ session('warning') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Tutup"></button>
                 </div>
             @endif
 
             @if(session('info'))
-                <div class="alert alert-info border-0 bg-sky-50 text-sky-800 rounded-xl p-3.5 mb-4 shadow-sm d-flex align-items-center justify-content-between" role="alert">
-                    <div class="d-flex align-items-center gap-3">
-                        <svg class="text-sky-600 flex-shrink-0" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="fw-semibold text-sm">{{ session('info') }}</span>
-                    </div>
-                    <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                <div class="alert tokobii-alert tokobii-alert-info mb-4 animate-fade-in-up" role="alert">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="fw-medium">{{ session('info') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Tutup"></button>
                 </div>
             @endif
 

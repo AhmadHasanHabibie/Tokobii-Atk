@@ -90,10 +90,11 @@ Route::middleware(['auth', 'verified', 'admin', 'face.verified'])
             
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/categories/{category}', [ReportController::class, 'category'])->name('reports.categories.show');
+        Route::get('reports/category/{category}', [ReportController::class, 'category'])->name('reports.category');
         Route::get('reports/products/{product}', [ReportController::class, 'product'])->name('reports.products.show');
         Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
-        Route::put('reports/{report}/reply', [ReportController::class, 'reply'])->name('reports.reply');
-        Route::put('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+        Route::match(['post', 'put'], 'reports/{report}/reply', [ReportController::class, 'reply'])->name('reports.reply');
+        Route::match(['post', 'put'], 'reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
 
         
         /*

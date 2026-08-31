@@ -47,13 +47,9 @@
 
                     {{-- Status Badge --}}
                     <div>
-                        @if($report->status === 'pending')
-                            <span class="tokobii-badge tokobii-badge-warning">Menunggu Tanggapan</span>
-                        @elseif($report->status === 'resolved')
-                            <span class="tokobii-badge tokobii-badge-success">Selesai Ditangani</span>
-                        @else
-                            <span class="tokobii-badge tokobii-badge-info">Sedang Diproses</span>
-                        @endif
+                        <span class="tokobii-badge {{ $report->status_badge_class }}">
+                            {{ $report->status_label }}
+                        </span>
                     </div>
                 </div>
 

@@ -1,25 +1,26 @@
-<aside class="offcanvas-lg offcanvas-start tokobii-sidebar border-end border-slate-200" id="customerSidebarMenu" tabindex="-1" aria-labelledby="customerSidebarMenuLabel">
-    {{-- Header with Brand Logo --}}
-    <div class="offcanvas-header border-bottom border-slate-100 p-3.5 d-flex align-items-center justify-content-between">
+<aside class="offcanvas-lg offcanvas-start tokobii-sidebar" id="customerSidebarMenu" tabindex="-1" aria-labelledby="customerSidebarMenuLabel">
+
+    {{-- Brand Header --}}
+    <div class="offcanvas-header px-4 py-3 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; height: 64px;">
         <a href="{{ route('customer.dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none">
-            <span class="d-inline-flex align-items-center justify-content-center bg-blue-600 text-white rounded-2 px-2 py-1 shadow-sm" style="background-color: #2563eb;">
+            <div class="d-flex align-items-center justify-content-center text-white"
+                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #34d399, #10b981); border-radius: 10px; box-shadow: 0 3px 10px rgba(16,185,129,0.35); flex-shrink: 0;">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
-            </span>
-            <div class="d-flex flex-column">
-                <span class="fw-bold text-slate-900 tracking-tight" style="color: #0f172a; font-size: 1.05rem; line-height: 1.2;">Tokobii</span>
-                <span class="text-slate-400 text-uppercase fw-semibold" style="color: #64748b; font-size: 0.65rem; letter-spacing: 0.08em;">Panel Pelanggan</span>
+            </div>
+            <div>
+                <div class="fw-bold text-slate-900" style="font-size: 1.0625rem; line-height: 1.15; letter-spacing: -0.01em;">Tokobii</div>
+                <div class="fw-semibold text-slate-400" style="font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;">Pelanggan</div>
             </div>
         </a>
-        <button type="button" class="btn-close d-lg-none text-reset shadow-none" data-bs-dismiss="offcanvas" data-bs-target="#customerSidebarMenu" aria-label="Tutup"></button>
+        <button type="button" class="btn-close d-lg-none shadow-none" data-bs-dismiss="offcanvas" data-bs-target="#customerSidebarMenu" aria-label="Tutup"></button>
     </div>
 
-    {{-- Offcanvas Body / Navigation Menu --}}
+    {{-- Navigation Body --}}
     <div class="offcanvas-body p-0 d-flex flex-column h-100" style="overflow-y: auto;">
-        <div class="p-3 d-flex flex-column flex-grow-1 gap-1">
+        <div class="px-3 pt-3 pb-2 d-flex flex-column flex-grow-1 gap-1">
 
-            {{-- Dashboard Group --}}
             <a href="{{ route('customer.dashboard') }}"
                class="sidebar-link {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,10 +29,7 @@
                 <span>Dashboard</span>
             </a>
 
-            {{-- Shopping Group --}}
-            <div class="px-3 pt-3 pb-1 text-uppercase text-slate-400 fw-bold" style="font-size: 0.6875rem; letter-spacing: 0.08em;">
-                Belanja & Katalog
-            </div>
+            <div class="sidebar-section-label">Belanja</div>
 
             <a href="{{ route('customer.shop.index') }}"
                class="sidebar-link {{ request()->routeIs('customer.shop.*') ? 'active' : '' }}">
@@ -50,14 +48,11 @@
                     <span>Keranjang Saya</span>
                 </div>
                 @if(session('cart') && count(session('cart')) > 0)
-                    <span class="tokobii-badge tokobii-badge-info px-2 py-0.5" style="font-size: 0.7rem;">{{ count(session('cart')) }}</span>
+                    <span class="tokobii-badge tokobii-badge-info" style="font-size: 0.68rem; padding: 0.2rem 0.6rem;">{{ count(session('cart')) }}</span>
                 @endif
             </a>
 
-            {{-- Transactions & Activity Group --}}
-            <div class="px-3 pt-3 pb-1 text-uppercase text-slate-400 fw-bold" style="font-size: 0.6875rem; letter-spacing: 0.08em;">
-                Transaksi & Aktivitas
-            </div>
+            <div class="sidebar-section-label">Aktivitas</div>
 
             <a href="{{ route('customer.orders.index') }}"
                class="sidebar-link {{ request()->routeIs('customer.orders.*') && !request()->routeIs('customer.orders.reports.*') ? 'active' : '' }}">
@@ -83,10 +78,7 @@
                 <span>Laporan Masalah</span>
             </a>
 
-            {{-- Account Group --}}
-            <div class="px-3 pt-3 pb-1 text-uppercase text-slate-400 fw-bold" style="font-size: 0.6875rem; letter-spacing: 0.08em;">
-                Pengaturan Akun
-            </div>
+            <div class="sidebar-section-label">Akun</div>
 
             <a href="{{ route('customer.profile.index') }}"
                class="sidebar-link {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}">
@@ -96,19 +88,31 @@
                 <span>Profil Saya</span>
             </a>
 
-        </div>
+            {{-- Bottom User Card + Logout --}}
+            <div class="mt-auto pt-3 pb-1">
+                <div class="rounded-xl p-3 mb-3" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #a7f3d0; border-radius: 14px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                             style="width: 36px; height: 36px; font-size: 0.8rem; background: linear-gradient(135deg, #34d399, #10b981); flex-shrink: 0; box-shadow: 0 2px 8px rgba(16,185,129,0.30);">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-slate-800 text-truncate" style="font-size: 0.8125rem;">{{ Auth::user()->name }}</div>
+                            <div class="text-slate-400 text-truncate" style="font-size: 0.7rem;">Pelanggan</div>
+                        </div>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="sidebar-logout-btn">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span>Keluar</span>
+                    </button>
+                </form>
+            </div>
 
-        {{-- Sidebar Footer / Logout --}}
-        <div class="p-3 border-top border-slate-100 mt-auto">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn btn-tokobii-secondary w-100 text-danger border-rose-200 hover-bg-rose-50 d-flex align-items-center justify-content-center gap-2" style="font-size: 0.8125rem;">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    <span>Keluar Akun</span>
-                </button>
-            </form>
         </div>
     </div>
 </aside>

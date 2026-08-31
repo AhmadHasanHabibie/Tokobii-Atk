@@ -203,7 +203,7 @@ class OrderController extends Controller
         }
 
         if ($order->order_status !== 'completed') {
-            return back()->with('error', 'Ulasan hanya dapat diberikan untuk pesanan yang telah Selesai (Completed).');
+            return back()->with('error', 'Ulasan hanya dapat diberikan untuk pesanan yang telah Selesai.');
         }
 
         // Check if review has already been submitted

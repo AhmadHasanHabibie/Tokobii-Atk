@@ -17,6 +17,32 @@ class Report extends Model
 
     protected $casts = ['replied_at' => 'datetime'];
 
+    /**
+     * Get user-friendly Indonesian status label.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'pending' => 'Menunggu Tanggapan',
+            'replied' => 'Sudah Dibalas',
+            'resolved' => 'Selesai',
+            default => ucfirst((string) $this->status),
+        };
+    }
+
+    /**
+     * Get Tokobii badge styling class for report status.
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            'pending' => 'tokobii-badge-warning',
+            'replied' => 'tokobii-badge-info',
+            'resolved' => 'tokobii-badge-success',
+            default => 'tokobii-badge-neutral',
+        };
+    }
+
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function order(): BelongsTo { return $this->belongsTo(Order::class); }
     public function orderItem(): BelongsTo { return $this->belongsTo(OrderItem::class); }

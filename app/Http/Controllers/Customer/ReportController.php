@@ -85,7 +85,7 @@ class ReportController extends Controller
     private function authorizeItem(Order $order, OrderItem $item): void
     {
         abort_unless($order->user_id === auth()->id(), 403);
-        abort_unless($order->order_status === 'completed', 403, 'Laporan hanya tersedia untuk pesanan Completed.');
+        abort_unless($order->order_status === 'completed', 403, 'Laporan hanya tersedia untuk pesanan yang sudah Selesai.');
         abort_unless($item->order_id === $order->id && $item->product_id, 404);
     }
 }

@@ -29,13 +29,6 @@
     </div>
 
 
-    {{-- Success Message --}}
-    @if (session('success'))
-        <div class="alert alert-success border-0 rounded-3 mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
 
     {{-- Form Card --}}
     <div class="row justify-content-center">

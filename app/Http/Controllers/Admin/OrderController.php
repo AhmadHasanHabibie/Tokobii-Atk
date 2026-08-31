@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -153,55 +155,107 @@ class OrderController extends Controller
         $action = $request->input('action');
 
         if ($action === 'start_processing') {
-            if ($order->payment_method !== 'cash' || $order->order_status !== 'pending' || $order->payment_status !== 'pending') {
+            if ($order->payment_method !== 'cash' || !in_array($order->order_status, ['pending', 'processing']) || $order->payment_status !== 'pending') {
                 return back()->with('error', 'Hanya pesanan tunai yang masih menunggu pembayaran dapat mulai diproses.');
             }
 
             $order->update(['order_status' => 'processing']);
 
             return redirect()->route('admin.orders.show', $order)
-                ->with('success', 'Pesanan tunai mulai diproses. Status pembayaran tetap menunggu pembayaran tunai.');
+                ->with('success', 'Pesanan tunai mulai diproses. Status pembayaran tetap Menunggu Pembayaran.');
         }
 
         if ($action === 'confirm_cash_payment') {
-            if ($order->payment_method !== 'cash' || $order->order_status !== 'ready_for_pickup' || $order->payment_status !== 'pending') {
-                return back()->with('error', 'Pembayaran tunai hanya dapat dikonfirmasi saat pesanan Cash sudah Ready for Pickup.');
-            }
+            return DB::transaction(function () use ($request, $order) {
+                // Row locking on order and payment to prevent double submit and race conditions
+                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
+                $payment = Payment::where('order_id', $lockedOrder->id)->lockForUpdate()->first();
 
-            $cashTotal = $order->grand_total_in_rupiah;
-            $data = $request->validate([
-                'received_amount' => ['required', 'integer', 'min:' . $cashTotal],
-            ], [
-                'received_amount.required' => 'Uang diterima wajib diisi.',
-                'received_amount.integer' => 'Uang diterima harus berupa nominal rupiah utuh.',
-                'received_amount.min' => 'Uang diterima kurang dari total pembayaran.',
-            ]);
+                if ($lockedOrder->payment_method !== 'cash') {
+                    return back()->with('error', 'Metode pembayaran bukan tunai.');
+                }
 
-            $receivedAmount = (int) $data['received_amount'];
-            $change = $receivedAmount - $cashTotal;
-            $payment = $order->payment;
+                if ($lockedOrder->payment_status === 'paid' || ($payment && $payment->payment_status === 'paid')) {
+                    return back()->with('error', 'Pembayaran pesanan ini sudah dikonfirmasi.');
+                }
 
-            if (!$payment) {
-                return back()->with('error', 'Data pembayaran pesanan tidak ditemukan.');
-            }
+                if ($lockedOrder->order_status !== 'ready_for_pickup') {
+                    return back()->with('error', 'Pembayaran tunai hanya dapat dikonfirmasi saat pesanan sudah Siap Diambil.');
+                }
 
-            $payment->update([
-                'payment_status' => 'paid',
-                'received_amount' => $receivedAmount,
-                'change_amount' => $change,
-                'verified_by_admin_id' => auth()->id(),
-                'verified_at' => now(),
-                'reject_reason' => null,
-            ]);
-            $order->update(['payment_status' => 'paid']);
+                // Clean Rupiah string input to raw integer if submitted with formatting
+                $rawReceived = $request->input('received_amount');
+                if (is_string($rawReceived)) {
+                    $cleaned = preg_replace('/[^0-9]/', '', $rawReceived);
+                    $request->merge(['received_amount' => $cleaned !== '' ? (int)$cleaned : null]);
+                }
 
-            return redirect()->route('admin.orders.show', $order)
-                ->with('success', 'Pembayaran tunai dikonfirmasi. Kembalian: Rp ' . number_format($change, 0, ',', '.') . '.');
+                $cashTotal = (int) $lockedOrder->grand_total;
+
+                $validated = $request->validate([
+                    'received_amount' => [
+                        'required',
+                        'integer',
+                        'min:' . $cashTotal,
+                    ],
+                ], [
+                    'received_amount.required' => 'Jumlah uang yang diterima wajib diisi.',
+                    'received_amount.integer' => 'Masukkan jumlah uang yang valid.',
+                    'received_amount.min' => 'Uang yang diterima kurang dari total tagihan.',
+                ]);
+
+                $receivedAmount = (int) $validated['received_amount'];
+                $change = $receivedAmount - $cashTotal;
+
+                if (!$payment) {
+                    $payment = Payment::create([
+                        'order_id' => $lockedOrder->id,
+                        'invoice_number' => $lockedOrder->invoice_number,
+                        'payment_method' => 'cash',
+                        'amount' => $cashTotal,
+                        'payment_status' => 'pending',
+                    ]);
+                }
+
+                $payment->update([
+                    'amount' => $cashTotal,
+                    'received_amount' => $receivedAmount,
+                    'change_amount' => $change,
+                    'payment_status' => 'paid',
+                    'payment_date' => now(),
+                    'verified_by_admin_id' => auth()->id(),
+                    'verified_at' => now(),
+                    'reject_reason' => null,
+                ]);
+
+                $lockedOrder->update([
+                    'payment_status' => 'paid',
+                ]);
+
+                $guidance = [
+                    'type' => 'success',
+                    'title' => 'Pembayaran Tunai Berhasil Dikonfirmasi!',
+                    'message' => 'Uang pembayaran untuk invoice ' . $lockedOrder->invoice_number . ' telah diterima kasir.',
+                    'invoice' => $lockedOrder->invoice_number,
+                    'amount' => $cashTotal,
+                    'steps' => [
+                        'Total tagihan: <strong>Rp ' . number_format($cashTotal, 0, ',', '.') . '</strong>',
+                        'Uang diterima: <strong>Rp ' . number_format($receivedAmount, 0, ',', '.') . '</strong>',
+                        'Kembalian: <strong>Rp ' . number_format($change, 0, ',', '.') . '</strong>',
+                        'Serahkan produk dan uang kembalian ke pelanggan, lalu klik tombol <strong>Selesaikan Pesanan</strong>.',
+                    ],
+                    'primary_btn_text' => 'Tutup & Lanjutkan',
+                ];
+
+                return redirect()->route('admin.orders.show', $lockedOrder)
+                    ->with('guidance', $guidance)
+                    ->with('success', 'Pembayaran tunai berhasil dikonfirmasi. Kembalian: Rp ' . number_format($change, 0, ',', '.') . '.');
+            });
         }
 
         if ($action === 'approve_payment') {
             if ($order->payment_method !== 'qris' || $order->payment_status !== 'waiting_verification') {
-                return back()->with('error', 'Hanya pembayaran berstatus Waiting Verification yang dapat disetujui.');
+                return back()->with('error', 'Hanya pembayaran berstatus Menunggu Verifikasi yang dapat disetujui.');
             }
 
             $order->update([
@@ -225,7 +279,7 @@ class OrderController extends Controller
                 'invoice' => $order->invoice_number,
                 'amount' => $order->grand_total,
                 'steps' => [
-                    'Status pesanan saat ini berubah menjadi <strong>Diproses</strong>.',
+                    'Status pesanan saat ini berubah menjadi <strong>Sedang Diproses</strong>.',
                     'Silakan ambil dan siapkan produk yang dipesan pelanggan dari stok toko.',
                     'Setelah produk siap di kasir, klik tombol <strong>Set Siap Diambil</strong>.',
                 ],
@@ -239,7 +293,7 @@ class OrderController extends Controller
 
         if ($action === 'reject_payment') {
             if ($order->payment_method !== 'qris' || $order->payment_status !== 'waiting_verification') {
-                return back()->with('error', 'Hanya pembayaran berstatus Waiting Verification yang dapat ditolak.');
+                return back()->with('error', 'Hanya pembayaran berstatus Menunggu Verifikasi yang dapat ditolak.');
             }
 
             $request->validate([
@@ -282,11 +336,11 @@ class OrderController extends Controller
 
         if ($action === 'ready_for_pickup') {
             $canBeReady = $order->payment_method === 'cash'
-                ? $order->order_status === 'processing' && $order->payment_status === 'pending'
-                : $order->payment_status === 'paid' && $order->order_status === 'processing';
+                ? in_array($order->order_status, ['pending', 'processing']) && $order->payment_status === 'pending'
+                : $order->payment_status === 'paid' && in_array($order->order_status, ['pending', 'processing']);
 
             if (!$canBeReady) {
-                return back()->with('error', 'Status pesanan belum memenuhi syarat untuk Ready for Pickup.');
+                return back()->with('error', 'Status pesanan belum memenuhi syarat untuk Siap Diambil.');
             }
 
             $order->update(['order_status' => 'ready_for_pickup']);
@@ -294,45 +348,63 @@ class OrderController extends Controller
             $guidance = [
                 'type' => 'info',
                 'title' => 'Pesanan Siap Diambil!',
-                'message' => 'Pesanan ' . $order->invoice_number . ' kini berstatus Siap Diambil (Ready for Pickup).',
+                'message' => 'Pesanan ' . $order->invoice_number . ' kini berstatus Siap Diambil di toko.',
                 'invoice' => $order->invoice_number,
                 'steps' => [
                     'Struk pengambilan dapat dicetak melalui tombol <strong>Cetak Struk</strong>.',
                     'Saat pelanggan datang, cocokkan kode QR atau nomor invoice pesanan.',
-                    'Setelah produk diserahkan ke pelanggan, klik tombol <strong>Selesaikan Pesanan</strong>.',
+                    $order->payment_method === 'cash'
+                        ? 'Konfirmasi penerimaan uang tunai melalui tombol <strong>Konfirmasi Pembayaran</strong>.'
+                        : 'Setelah produk diserahkan ke pelanggan, klik tombol <strong>Selesaikan Pesanan</strong>.',
                 ],
                 'primary_btn_text' => 'Mengerti',
             ];
 
             return redirect()->route('admin.orders.show', $order)
                 ->with('guidance', $guidance)
-                ->with('success', 'Pesanan ' . $order->invoice_number . ' kini Siap Diambil di toko (Ready for Pickup).');
+                ->with('success', 'Pesanan ' . $order->invoice_number . ' kini Siap Diambil di toko.');
         }
 
         if ($action === 'complete') {
-            if ($order->order_status !== 'ready_for_pickup' || $order->payment_status !== 'paid') {
-                return back()->with('error', 'Pesanan harus Ready for Pickup dan pembayarannya Paid sebelum diselesaikan.');
-            }
+            return DB::transaction(function () use ($order) {
+                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
 
-            $order->update(['order_status' => 'completed']);
+                if ($lockedOrder->order_status === 'completed') {
+                    return back()->with('info', 'Pesanan ini sudah berstatus Selesai.');
+                }
 
-            $guidance = [
-                'type' => 'success',
-                'title' => 'Pesanan Telah Selesai!',
-                'message' => 'Pesanan ' . $order->invoice_number . ' telah berhasil diselesaikan dan diserahkan kepada pelanggan.',
-                'invoice' => $order->invoice_number,
-                'steps' => [
-                    'Transaksi tuntas dan tercatat rapi di laporan pendapatan toko.',
-                    'Pelanggan sekarang dapat memberikan rating serta ulasan kepuasan produk.',
-                ],
-                'primary_btn_text' => 'Kembali ke Daftar Pesanan',
-                'primary_btn_url' => route('admin.orders.index'),
-                'secondary_btn_text' => 'Tetap di Halaman Ini',
-            ];
+                if ($lockedOrder->payment_method === 'cash' && $lockedOrder->payment_status !== 'paid') {
+                    return back()->with('error', 'Pembayaran tunai belum dikonfirmasi. Konfirmasikan pembayaran terlebih dahulu.');
+                }
 
-            return redirect()->route('admin.orders.show', $order)
-                ->with('guidance', $guidance)
-                ->with('success', 'Pesanan ' . $order->invoice_number . ' telah Selesai (Completed).');
+                if ($lockedOrder->order_status !== 'ready_for_pickup' || $lockedOrder->payment_status !== 'paid') {
+                    return back()->with('error', 'Pesanan harus berstatus Siap Diambil dan Lunas sebelum dapat diselesaikan.');
+                }
+
+                $lockedOrder->update(['order_status' => 'completed']);
+
+                if ($lockedOrder->payment) {
+                    $lockedOrder->payment->update(['payment_status' => 'paid']);
+                }
+
+                $guidance = [
+                    'type' => 'success',
+                    'title' => 'Pesanan Telah Selesai!',
+                    'message' => 'Pesanan ' . $lockedOrder->invoice_number . ' telah berhasil diselesaikan dan diserahkan kepada pelanggan.',
+                    'invoice' => $lockedOrder->invoice_number,
+                    'steps' => [
+                        'Transaksi tuntas dan tercatat rapi di laporan pendapatan toko.',
+                        'Pelanggan sekarang dapat memberikan rating serta ulasan kepuasan produk.',
+                    ],
+                    'primary_btn_text' => 'Kembali ke Daftar Pesanan',
+                    'primary_btn_url' => route('admin.orders.index'),
+                    'secondary_btn_text' => 'Tetap di Halaman Ini',
+                ];
+
+                return redirect()->route('admin.orders.show', $lockedOrder)
+                    ->with('guidance', $guidance)
+                    ->with('success', 'Pesanan ' . $lockedOrder->invoice_number . ' telah Selesai.');
+            });
         }
 
         return back()->with('error', 'Tindakan update status tidak valid.');

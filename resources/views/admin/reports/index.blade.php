@@ -26,9 +26,10 @@
             'products' => 'Total Produk',
             'customers' => 'Total Pelanggan',
             'orders' => 'Total Pesanan',
-            'reports' => 'Laporan Masalah',
+            'reports' => 'Total Laporan',
             'pending' => 'Menunggu Tanggapan',
-            'replied' => 'Sudah Dibalas'
+            'replied' => 'Sudah Dibalas',
+            'resolved' => 'Selesai'
         ];
     @endphp
 
@@ -39,7 +40,7 @@
                     {{ $label }}
                 </span>
                 <h4 class="fw-bold text-slate-900 mb-0 mt-1 font-monospace" style="font-size: 1.15rem;">
-                    {{ $key === 'sales' ? 'Rp ' . number_format($stats[$key], 0, ',', '.') : number_format($stats[$key]) }}
+                    {{ $key === 'sales' ? 'Rp ' . number_format($stats[$key] ?? 0, 0, ',', '.') : number_format($stats[$key] ?? 0) }}
                 </h4>
             </div>
         </div>
@@ -52,7 +53,7 @@
 <div class="row g-3 mb-4">
     @forelse($categories as $category)
         <div class="col-6 col-md-3">
-            <a href="{{ route('admin.reports.category', $category->slug) }}" class="text-decoration-none">
+            <a href="{{ route('admin.reports.categories.show', $category) }}" class="text-decoration-none">
                 <div class="tokobii-card p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <div class="d-flex align-items-center gap-2">
@@ -115,7 +116,7 @@
                     <option value="">Semua Status</option>
                     <option value="pending" @selected(request('status') === 'pending')>Menunggu Tanggapan</option>
                     <option value="replied" @selected(request('status') === 'replied')>Sudah Dibalas</option>
-                    <option value="resolved" @selected(request('status') === 'resolved')>Selesai Ditangani</option>
+                    <option value="resolved" @selected(request('status') === 'resolved')>Selesai</option>
                 </select>
             </div>
 
@@ -176,15 +177,9 @@
 
                         {{-- Status --}}
                         <td>
-                            @if($report->status === 'pending')
-                                <span class="tokobii-badge tokobii-badge-warning">Menunggu</span>
-                            @elseif($report->status === 'replied')
-                                <span class="tokobii-badge tokobii-badge-info">Dibalas</span>
-                            @elseif($report->status === 'resolved')
-                                <span class="tokobii-badge tokobii-badge-success">Selesai</span>
-                            @else
-                                <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($report->status) }}</span>
-                            @endif
+                            <span class="tokobii-badge {{ $report->status_badge_class }}">
+                                {{ $report->status_label }}
+                            </span>
                         </td>
 
                         {{-- Date --}}

@@ -18,43 +18,6 @@
         </ol>
     </nav>
 
-    {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 bg-emerald-50 text-emerald-800 rounded-xl p-3.5 shadow-sm d-print-none" role="alert">
-            <div class="d-flex align-items-center gap-2">
-                <svg class="text-emerald-600 flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span class="small fw-semibold">{{ session('success') }}</span>
-            </div>
-            <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
-        </div>
-    @endif
-
-    @if(session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show mb-4 border-0 bg-amber-50 text-amber-800 rounded-xl p-3.5 shadow-sm d-print-none" role="alert">
-            <div class="d-flex align-items-center gap-2">
-                <svg class="text-amber-600 flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-                <span class="small fw-semibold">{{ session('warning') }}</span>
-            </div>
-            <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 bg-rose-50 text-rose-800 rounded-xl p-3.5 shadow-sm d-print-none" role="alert">
-            <div class="d-flex align-items-center gap-2">
-                <svg class="text-rose-600 flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span class="small fw-semibold">{{ session('error') }}</span>
-            </div>
-            <button type="button" class="btn-close text-slate-400 shadow-none" data-bs-dismiss="alert" aria-label="Tutup"></button>
-        </div>
-    @endif
-
     {{-- Page Header & Actions --}}
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 d-print-none">
         <div>

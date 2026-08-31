@@ -44,7 +44,7 @@
 
             {{-- Optional Key Info Card (Invoice / Method / Amount) --}}
             @if($invoice || $amount || $method)
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded-3 mb-3 text-start small">
+                <div class="p-3 mb-3 text-start small" style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; border-radius: 14px;">
                     <div class="row g-2">
                         @if($invoice)
                             <div class="col-6">

@@ -1,11 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   TOKOBII DESIGN SYSTEM — Global CSS Variables
+   ============================================================ */
 :root {
-    --tokobii-bg: #f1f5f9;
+    --tokobii-bg: #f0f4f8;
     --tokobii-card-bg: #ffffff;
     --tokobii-primary: #2563eb;
     --tokobii-primary-hover: #1d4ed8;
@@ -14,12 +17,30 @@
     --tokobii-text-muted: #64748b;
     --tokobii-border: #e2e8f0;
     --tokobii-border-dark: #cbd5e1;
-    --tokobii-border-light: #f8fafc;
-    --tokobii-radius: 16px;
-    --tokobii-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
-    --tokobii-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-    --tokobii-shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-    --tokobii-shadow-hover: 0 14px 28px -4px rgba(15, 23, 42, 0.09), 0 6px 12px -2px rgba(15, 23, 42, 0.05);
+    --tokobii-border-light: #f1f5f9;
+    --tokobii-radius: 18px;
+    --tokobii-radius-sm: 12px;
+    --tokobii-radius-lg: 24px;
+    --tokobii-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --tokobii-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --tokobii-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+    --tokobii-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.05);
+    --tokobii-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.10), 0 8px 16px rgba(15, 23, 42, 0.06);
+    --tokobii-shadow-glow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    --tokobii-transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    --tokobii-transition-fast: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    --sidebar-width: 256px;
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -27,697 +48,1154 @@ body {
     background-color: var(--tokobii-bg);
     color: var(--tokobii-text-main);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern" 1, "liga" 1;
 }
 
 @layer base {
-    a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    a, button, input, select, textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
     a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
         outline: 2px solid var(--tokobii-primary);
-        outline-offset: 2px;
+        outline-offset: 3px;
+        border-radius: 6px;
+    }
+    ::selection {
+        background-color: rgba(37, 99, 235, 0.18);
+        color: #1e3a8a;
     }
 }
 
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
 @keyframes tokobiiFadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes tokobiiFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes tokobiiSlideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes tokobiiScaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tokobiiPulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3); }
+    50%       { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+}
+
+@keyframes tokobiiShimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes tokobiiSpinSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes tokobiiBounceIn {
+    0%   { opacity: 0; transform: scale(0.75); }
+    60%  { opacity: 1; transform: scale(1.05); }
+    80%  { transform: scale(0.97); }
+    100% { transform: scale(1); }
+}
+
+/* ============================================================
+   UTILITY ANIMATION CLASSES
+   ============================================================ */
+.animate-fade-in-up {
+    animation: tokobiiFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-fade-in {
+    animation: tokobiiFadeIn 0.4s ease both;
+}
+.animate-scale-in {
+    animation: tokobiiScaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-slide-left {
+    animation: tokobiiSlideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-bounce-in {
+    animation: tokobiiBounceIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+.animate-delay-400 { animation-delay: 0.4s; }
 
 @layer components {
-    /* Tokobii Layout Shell */
-    .admin-wrapper, .tokobii-wrapper {
-        min-height: 100vh;
-        background-color: var(--tokobii-bg);
-    }
-    
-    .admin-sidebar, .tokobii-sidebar {
-        width: 250px;
-        background-color: #ffffff;
-        border-right: 1px solid var(--tokobii-border);
-        box-shadow: 1px 0 3px rgba(15, 23, 42, 0.02);
-    }
 
-    @media (min-width: 992px) {
-        .tokobii-sidebar {
-            position: fixed !important;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 1040;
-            transform: none !important;
-            visibility: visible !important;
-        }
-        .tokobii-main-wrapper {
-            margin-left: 250px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--tokobii-bg);
-            padding: 1.5rem;
-        }
-    }
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.admin-wrapper, .tokobii-wrapper {
+    min-height: 100vh;
+    background-color: var(--tokobii-bg);
+}
 
-    @media (max-width: 991.98px) {
-        .tokobii-main-wrapper {
-            margin-left: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--tokobii-bg);
-            padding: 1rem;
-        }
-    }
-    
-    /* Bootstrap Modal & Backdrop Stacking Context Fix */
-    .modal {
-        z-index: 1055 !important;
-    }
-    .modal-backdrop {
-        z-index: 1050 !important;
-    }
-    .modal-dialog {
-        z-index: 1056 !important;
-        position: relative;
-    }
+.admin-sidebar, .tokobii-sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-right: 1px solid var(--tokobii-border);
+    box-shadow: 1px 0 12px rgba(15, 23, 42, 0.04);
+}
 
-    .admin-header, .tokobii-navbar {
-        background-color: #ffffff;
-        border-bottom: 1px solid var(--tokobii-border);
-        height: 64px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-    }
-
-    /* Dedicated Standalone Page Header Card */
-    .tokobii-header-card {
-        background-color: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: var(--tokobii-radius);
-        padding: 1.25rem 1.5rem;
-        box-shadow: var(--tokobii-shadow);
-        margin-bottom: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-header-card:hover {
-        border-color: var(--tokobii-border-dark);
-    }
-
-    /* Universal Cards */
-    .tokobii-card {
-        background-color: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: var(--tokobii-radius);
-        box-shadow: var(--tokobii-shadow);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-    }
-    .tokobii-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: var(--tokobii-shadow-lg);
-    }
-    .tokobii-card-interactive {
-        cursor: pointer;
-    }
-    .tokobii-card-interactive:hover {
-        transform: translateY(-3px);
-        border-color: #93c5fd;
-        box-shadow: var(--tokobii-shadow-hover);
-    }
-    .tokobii-card-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--tokobii-border);
-        background-color: #ffffff;
-        border-top-left-radius: var(--tokobii-radius);
-        border-top-right-radius: var(--tokobii-radius);
-    }
-
-    /* Filter & Search Bar Card */
-    .tokobii-filter-card {
-        background-color: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: var(--tokobii-radius);
-        padding: 1rem 1.25rem;
-        box-shadow: var(--tokobii-shadow);
-        margin-bottom: 1.5rem;
-        transition: all 0.25s ease;
-    }
-    .tokobii-filter-card:hover {
-        border-color: var(--tokobii-border-dark);
-    }
-
-    /* Sidebar Navigation Links */
-    .sidebar-link {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.625rem 0.875rem;
-        border-radius: 12px;
-        color: #475569;
-        font-weight: 500;
-        font-size: 0.875rem;
-        text-decoration: none;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .sidebar-link:hover {
-        background-color: #f1f5f9;
-        color: #0f172a;
-        transform: translateX(2px);
-    }
-    .sidebar-link.active {
-        background-color: #eff6ff;
-        color: #2563eb;
-        font-weight: 600;
-        box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
-    }
-    .sidebar-link.active svg {
-        color: #2563eb;
-    }
-
-    /* Tables */
-    .tokobii-table-container {
-        border-radius: var(--tokobii-radius);
-        border: 1px solid var(--tokobii-border);
-        overflow: hidden;
-        background: #ffffff;
-        box-shadow: var(--tokobii-shadow);
-    }
-    .tokobii-table {
-        width: 100%;
-        margin-bottom: 0;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-    .tokobii-table th {
-        background-color: #f8fafc;
-        color: #64748b;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 0.875rem 1.25rem;
-        border-bottom: 1px solid var(--tokobii-border);
-        white-space: nowrap;
-    }
-    .tokobii-table td {
-        padding: 1rem 1.25rem;
-        vertical-align: middle;
-        border-bottom: 1px solid var(--tokobii-border-light);
-        color: #1e293b;
-        font-size: 0.875rem;
-    }
-    .tokobii-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .tokobii-table tbody tr {
-        transition: background-color 0.15s ease;
-    }
-    .tokobii-table tbody tr:hover {
-        background-color: #f8fafc;
-    }
-
-    /* Status Badges */
-    .tokobii-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        line-height: 1;
-        transition: all 0.15s ease;
-    }
-    .tokobii-badge-success {
-        background-color: #f0fdf4;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-    }
-    .tokobii-badge-warning {
-        background-color: #fffbeb;
-        color: #92400e;
-        border: 1px solid #fef08a;
-    }
-    .tokobii-badge-danger {
-        background-color: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-    .tokobii-badge-info {
-        background-color: #f0f9ff;
-        color: #075985;
-        border: 1px solid #bae6fd;
-    }
-    .tokobii-badge-neutral {
-        background-color: #f8fafc;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-    }
-
-    /* Forms */
-    .tokobii-input, .tokobii-select {
-        border-radius: 12px;
-        border: 1px solid #cbd5e1;
-        padding: 0.55rem 0.95rem;
-        font-size: 0.875rem;
-        background-color: #ffffff;
-        color: #0f172a;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
-    }
-    .tokobii-input:focus, .tokobii-select:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-        outline: none;
-    }
-    .form-label {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #334155;
-        margin-bottom: 0.375rem;
-    }
-
-    /* Buttons with Smooth Micro-Interactions */
-    .btn-tokobii-primary {
-        background-color: #2563eb;
-        color: #ffffff;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        padding: 0.55rem 1.15rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.25);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-tokobii-primary:hover {
-        background-color: #1d4ed8;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px 0 rgba(37, 99, 235, 0.35);
-    }
-    .btn-tokobii-primary:active {
-        transform: scale(0.97);
-        box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.2);
-    }
-
-    .btn-tokobii-secondary {
-        background-color: #ffffff;
-        color: #334155;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        padding: 0.55rem 1.15rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-tokobii-secondary:hover {
-        background-color: #f8fafc;
-        color: #0f172a;
-        border-color: #94a3b8;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 6px 0 rgba(15, 23, 42, 0.08);
-    }
-    .btn-tokobii-secondary:active {
-        transform: scale(0.97);
-    }
-
-    .btn-tokobii-danger {
-        background-color: #ef4444;
-        color: #ffffff;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        padding: 0.55rem 1.15rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 4px 0 rgba(239, 68, 68, 0.25);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-tokobii-danger:hover {
-        background-color: #dc2626;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px 0 rgba(239, 68, 68, 0.35);
-    }
-    .btn-tokobii-danger:active {
-        transform: scale(0.97);
-    }
-
-    .btn-tokobii-success {
-        background-color: #10b981;
-        color: #ffffff;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        padding: 0.55rem 1.15rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 4px 0 rgba(16, 185, 129, 0.25);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-tokobii-success:hover {
-        background-color: #059669;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px 0 rgba(16, 185, 129, 0.35);
-    }
-    .btn-tokobii-success:active {
-        transform: scale(0.97);
-    }
-
-    .btn-tokobii-warning {
-        background-color: #f59e0b;
-        color: #ffffff;
-        border: 1px solid transparent;
-        border-radius: 12px;
-        padding: 0.55rem 1.15rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 2px 4px 0 rgba(245, 158, 11, 0.25);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-tokobii-warning:hover {
-        background-color: #d97706;
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px 0 rgba(245, 158, 11, 0.35);
-    }
-    .btn-tokobii-warning:active {
-        transform: scale(0.97);
-    }
-
-    .btn-tokobii-sm {
-        padding: 0.4rem 0.85rem;
-        font-size: 0.8125rem;
-        border-radius: 10px;
-    }
-
-    .btn-tokobii-lg {
-        padding: 0.8rem 1.6rem;
-        font-size: 1rem;
-        border-radius: 14px;
-    }
-
-    /* Product Cards */
-    .tokobii-product-card {
-        background-color: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: var(--tokobii-radius);
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        box-shadow: var(--tokobii-shadow);
-        position: relative;
-    }
-    .tokobii-product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--tokobii-shadow-hover);
-        border-color: #93c5fd;
-    }
-    .tokobii-product-card .product-image-container {
-        overflow: hidden;
-        position: relative;
-    }
-    .tokobii-product-card .product-image {
-        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-product-card:hover .product-image {
-        transform: scale(1.05);
-    }
-
-    /* Stats Card */
-    .tokobii-stat-card {
-        background: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: var(--tokobii-radius);
-        padding: 1.25rem 1.5rem;
-        box-shadow: var(--tokobii-shadow);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--tokobii-shadow-lg);
-        border-color: #cbd5e1;
-    }
-    .tokobii-stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 0.75rem;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-stat-card:hover .tokobii-stat-icon {
-        transform: scale(1.08);
-    }
-    .tokobii-stat-value {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #0f172a;
-        line-height: 1.2;
-    }
-    .tokobii-stat-label {
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: #64748b;
-        margin-top: 0.25rem;
-    }
-
-    /* Quantity Stepper */
-    .tokobii-qty-control {
-        display: inline-flex;
-        align-items: center;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        background: #ffffff;
-        overflow: hidden;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-    }
-    .tokobii-qty-btn {
-        width: 38px;
-        height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8fafc;
-        border: none;
-        color: #475569;
-        font-weight: 700;
-        transition: all 0.15s ease;
-        cursor: pointer;
-    }
-    .tokobii-qty-btn:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-    }
-    .tokobii-qty-btn:active {
-        background: #cbd5e1;
-    }
-    .tokobii-qty-input {
-        width: 52px;
-        height: 38px;
-        border: none;
-        text-align: center;
-        font-weight: 700;
-        font-size: 0.9375rem;
-        color: #0f172a;
-        background: #ffffff;
-        outline: none;
-    }
-
-    /* Empty State Card */
-    .tokobii-empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: #ffffff;
-        border: 1px dashed #cbd5e1;
-        border-radius: var(--tokobii-radius);
-        box-shadow: var(--tokobii-shadow);
-    }
-    .tokobii-empty-icon {
-        width: 68px;
-        height: 68px;
-        border-radius: 50%;
-        background-color: #eff6ff;
-        color: #2563eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.25rem;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
-    }
-
-    /* Step Timeline */
-    .tokobii-timeline-step {
-        display: flex;
-        align-items: flex-start;
-        position: relative;
-        padding-bottom: 1.5rem;
-    }
-    .tokobii-timeline-step:not(:last-child)::after {
-        content: '';
-        position: absolute;
-        left: 15px;
-        top: 32px;
+@media (min-width: 992px) {
+    .tokobii-sidebar {
+        position: fixed !important;
+        top: 0;
         bottom: 0;
-        width: 2px;
-        background-color: #e2e8f0;
+        left: 0;
+        height: 100vh;
+        z-index: 1040;
+        transform: none !important;
+        visibility: visible !important;
     }
-    .tokobii-timeline-step.completed:not(:last-child)::after {
-        background-color: #10b981;
-    }
-    .tokobii-timeline-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+    .tokobii-main-wrapper {
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f1f5f9;
-        color: #94a3b8;
-        font-size: 0.875rem;
-        font-weight: 700;
-        margin-right: 1rem;
-        flex-shrink: 0;
-        z-index: 1;
-    }
-    .tokobii-timeline-step.active .tokobii-timeline-dot {
-        background-color: #eff6ff;
-        color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-    }
-    .tokobii-timeline-step.completed .tokobii-timeline-dot {
-        background-color: #f0fdf4;
-        color: #166534;
-    }
-
-    /* Guidance & Action Modals */
-    .tokobii-guidance-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.65);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        z-index: 1060;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-guidance-backdrop.show {
-        opacity: 1;
-        visibility: visible;
-    }
-    .tokobii-guidance-box {
-        background: #ffffff;
-        border: 1px solid var(--tokobii-border);
-        border-radius: 20px;
-        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
-        width: 100%;
-        max-width: 520px;
-        overflow: hidden;
-        transform: scale(0.92) translateY(15px);
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-guidance-backdrop.show .tokobii-guidance-box {
-        transform: scale(1) translateY(0);
-    }
-
-    .tokobii-guidance-icon-wrap {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.25rem;
-    }
-    .tokobii-guidance-icon-wrap.success {
-        background-color: #f0fdf4;
-        color: #16a34a;
-        box-shadow: 0 0 0 8px #dcfce7;
-    }
-    .tokobii-guidance-icon-wrap.info {
-        background-color: #eff6ff;
-        color: #2563eb;
-        box-shadow: 0 0 0 8px #dbeafe;
-    }
-    .tokobii-guidance-icon-wrap.warning {
-        background-color: #fefce8;
-        color: #ca8a04;
-        box-shadow: 0 0 0 8px #fef08a;
-    }
-    .tokobii-guidance-icon-wrap.danger {
-        background-color: #fff1f2;
-        color: #e11d48;
-        box-shadow: 0 0 0 8px #ffe4e6;
-    }
-
-    .tokobii-guidance-step-card {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 0.875rem 1rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        text-align: left;
-    }
-    .tokobii-guidance-step-num {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background-color: #2563eb;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-        flex-shrink: 0;
-        margin-top: 1px;
+        flex-direction: column;
+        background-color: var(--tokobii-bg);
+        padding: 0;
     }
 }
+
+@media (max-width: 991.98px) {
+    .tokobii-main-wrapper {
+        margin-left: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--tokobii-bg);
+        padding: 0;
+    }
+}
+
+/* ============================================================
+   MODAL Z-INDEX FIX
+   ============================================================ */
+.modal { z-index: 1055 !important; }
+.modal-backdrop { z-index: 1050 !important; }
+.modal-dialog { z-index: 1056 !important; position: relative; }
+.modal-content {
+    border: none !important;
+    border-radius: var(--tokobii-radius-lg) !important;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18) !important;
+    overflow: hidden;
+}
+.modal-header {
+    border-bottom: 1px solid var(--tokobii-border) !important;
+    padding: 1.375rem 1.75rem !important;
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+}
+.modal-body {
+    padding: 1.5rem 1.75rem !important;
+}
+.modal-footer {
+    border-top: 1px solid var(--tokobii-border) !important;
+    padding: 1.125rem 1.75rem !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+}
+
+/* ============================================================
+   NAVBAR — Top Header
+   ============================================================ */
+.admin-header, .tokobii-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid var(--tokobii-border);
+    height: 64px;
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+/* ============================================================
+   SIDEBAR NAVIGATION
+   ============================================================ */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--tokobii-radius-sm);
+    color: #475569;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: var(--tokobii-transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+.sidebar-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    border-radius: var(--tokobii-radius-sm);
+    transition: var(--tokobii-transition-fast);
+}
+.sidebar-link:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #eff6ff 100%);
+    color: #1e40af;
+    transform: translateX(3px);
+}
+.sidebar-link:hover svg {
+    color: #2563eb;
+    transform: scale(1.1);
+}
+.sidebar-link svg {
+    transition: var(--tokobii-transition-fast);
+    flex-shrink: 0;
+}
+.sidebar-link.active {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.15), 0 2px 6px rgba(37, 99, 235, 0.10);
+}
+.sidebar-link.active svg {
+    color: #2563eb;
+}
+.sidebar-link.active::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 65%;
+    background: linear-gradient(180deg, #3b82f6, #2563eb);
+    border-radius: 3px 0 0 3px;
+}
+
+.sidebar-section-label {
+    padding: 0.75rem 0.875rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+}
+
+/* ============================================================
+   HEADER CARD (Page Header)
+   ============================================================ */
+.tokobii-header-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    padding: 1.375rem 1.75rem;
+    box-shadow: var(--tokobii-shadow);
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    animation: tokobiiFadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+    overflow: hidden;
+}
+.tokobii-header-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+    border-radius: var(--tokobii-radius) var(--tokobii-radius) 0 0;
+}
+
+/* ============================================================
+   UNIVERSAL CARDS
+   ============================================================ */
+.tokobii-card {
+    background: #ffffff;
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    box-shadow: var(--tokobii-shadow);
+    transition: var(--tokobii-transition);
+    position: relative;
+    animation: tokobiiFadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tokobii-card:hover {
+    border-color: var(--tokobii-border-dark);
+    box-shadow: var(--tokobii-shadow-lg);
+}
+.tokobii-card-interactive {
+    cursor: pointer;
+}
+.tokobii-card-interactive:hover {
+    transform: translateY(-4px);
+    border-color: #93c5fd;
+    box-shadow: var(--tokobii-shadow-hover);
+}
+.tokobii-card-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--tokobii-border);
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+    border-top-left-radius: var(--tokobii-radius);
+    border-top-right-radius: var(--tokobii-radius);
+}
+
+/* Filter Card */
+.tokobii-filter-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    padding: 1rem 1.5rem;
+    box-shadow: var(--tokobii-shadow-sm);
+    margin-bottom: 1.5rem;
+    transition: var(--tokobii-transition);
+}
+.tokobii-filter-card:hover {
+    border-color: var(--tokobii-border-dark);
+    box-shadow: var(--tokobii-shadow);
+}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+.tokobii-table-container {
+    border-radius: var(--tokobii-radius);
+    border: 1px solid var(--tokobii-border);
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: var(--tokobii-shadow);
+}
+.tokobii-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.tokobii-table thead {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+.tokobii-table th {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--tokobii-border);
+    white-space: nowrap;
+}
+.tokobii-table td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f8fafc;
+    color: #1e293b;
+    font-size: 0.875rem;
+}
+.tokobii-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.tokobii-table tbody tr {
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.tokobii-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+.tokobii-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    transition: var(--tokobii-transition-fast);
+    white-space: nowrap;
+}
+.tokobii-badge-success {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.tokobii-badge-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.tokobii-badge-danger {
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #be123c;
+    border: 1px solid #fecdd3;
+}
+.tokobii-badge-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.tokobii-badge-neutral {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* ============================================================
+   FORM INPUTS
+   ============================================================ */
+.tokobii-input, .tokobii-select {
+    border-radius: var(--tokobii-radius-sm);
+    border: 1.5px solid #cbd5e1;
+    padding: 0.575rem 1rem;
+    font-size: 0.875rem;
+    background: #ffffff;
+    color: #0f172a;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: var(--tokobii-shadow-xs);
+    width: 100%;
+}
+.tokobii-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+.tokobii-input:hover {
+    border-color: #94a3b8;
+}
+.tokobii-input:focus, .tokobii-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), var(--tokobii-shadow-xs);
+    outline: none;
+}
+.tokobii-input.is-invalid {
+    border-color: #f43f5e;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.10);
+}
+
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.01em;
+}
+
+/* Input Group Fix — seamless blending */
+.input-group .input-group-text {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-right: none;
+    color: #94a3b8;
+    border-radius: var(--tokobii-radius-sm) 0 0 var(--tokobii-radius-sm);
+    transition: var(--tokobii-transition-fast);
+}
+.input-group .tokobii-input {
+    border-left: none;
+    border-radius: 0 var(--tokobii-radius-sm) var(--tokobii-radius-sm) 0;
+}
+.input-group:focus-within .input-group-text {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #3b82f6;
+}
+.input-group:focus-within .tokobii-input {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-tokobii-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.575rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30), 0 1px 2px rgba(37, 99, 235, 0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+}
+.btn-tokobii-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.40), 0 2px 4px rgba(37, 99, 235, 0.20);
+}
+.btn-tokobii-primary:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.20);
+}
+
+.btn-tokobii-secondary {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    color: #334155;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.575rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: var(--tokobii-shadow-xs);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-tokobii-secondary:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #0f172a;
+    border-color: #94a3b8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.10);
+}
+.btn-tokobii-secondary:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.btn-tokobii-danger {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.575rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-tokobii-danger:hover {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.38);
+}
+.btn-tokobii-danger:active { transform: translateY(0) scale(0.97); }
+
+.btn-tokobii-success {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.575rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-tokobii-success:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.38);
+}
+.btn-tokobii-success:active { transform: translateY(0) scale(0.97); }
+
+.btn-tokobii-warning {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.575rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-tokobii-warning:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.38);
+}
+.btn-tokobii-warning:active { transform: translateY(0) scale(0.97); }
+
+.btn-tokobii-sm {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8125rem;
+    border-radius: 10px;
+}
+.btn-tokobii-lg {
+    padding: 0.85rem 1.75rem;
+    font-size: 0.9375rem;
+    border-radius: 14px;
+}
+
+/* ============================================================
+   PRODUCT CARDS
+   ============================================================ */
+.tokobii-product-card {
+    background: #ffffff;
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    overflow: hidden;
+    transition: var(--tokobii-transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: var(--tokobii-shadow);
+    position: relative;
+}
+.tokobii-product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--tokobii-shadow-hover);
+    border-color: #93c5fd;
+}
+.tokobii-product-card .product-image-container {
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+.tokobii-product-card .product-image {
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tokobii-product-card:hover .product-image {
+    transform: scale(1.07);
+}
+
+/* ============================================================
+   STAT CARDS
+   ============================================================ */
+.tokobii-stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    padding: 1.375rem 1.5rem;
+    box-shadow: var(--tokobii-shadow);
+    transition: var(--tokobii-transition);
+    position: relative;
+    overflow: hidden;
+    animation: tokobiiFadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tokobii-stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.04);
+    transform: translate(20px, 20px);
+    transition: var(--tokobii-transition);
+}
+.tokobii-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--tokobii-shadow-hover);
+    border-color: #bfdbfe;
+}
+.tokobii-stat-card:hover::after {
+    transform: translate(10px, 10px) scale(1.4);
+}
+.tokobii-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.875rem;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+.tokobii-stat-card:hover .tokobii-stat-icon {
+    transform: scale(1.1) rotate(3deg);
+}
+.tokobii-stat-value {
+    font-size: 1.625rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+.tokobii-stat-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* ============================================================
+   QTY STEPPER
+   ============================================================ */
+.tokobii-qty-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--tokobii-radius-sm);
+    background: #ffffff;
+    overflow: hidden;
+    box-shadow: var(--tokobii-shadow-xs);
+    transition: var(--tokobii-transition-fast);
+}
+.tokobii-qty-control:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10);
+}
+.tokobii-qty-btn {
+    width: 40px; height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: none;
+    color: #475569;
+    font-weight: 700;
+    transition: var(--tokobii-transition-fast);
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+.tokobii-qty-btn:hover {
+    background: linear-gradient(135deg, #e2e8f0, #dbeafe);
+    color: #2563eb;
+}
+.tokobii-qty-btn:active {
+    background: #bfdbfe;
+    transform: scale(0.9);
+}
+.tokobii-qty-input {
+    width: 52px; height: 40px;
+    border: none;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: #0f172a;
+    background: #ffffff;
+    outline: none;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.tokobii-empty-state {
+    text-align: center;
+    padding: 4.5rem 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+    border: 1.5px dashed #cbd5e1;
+    border-radius: var(--tokobii-radius);
+    box-shadow: var(--tokobii-shadow);
+    animation: tokobiiFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.tokobii-empty-icon {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.375rem;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.14);
+    animation: tokobiiBounceIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+/* ============================================================
+   STEP TIMELINE
+   ============================================================ */
+.tokobii-timeline-step {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+.tokobii-timeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #e2e8f0, #f1f5f9);
+    border-radius: 2px;
+}
+.tokobii-timeline-step.completed:not(:last-child)::after {
+    background: linear-gradient(180deg, #10b981, #34d399);
+}
+.tokobii-timeline-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    z-index: 1;
+    transition: var(--tokobii-transition-fast);
+}
+.tokobii-timeline-step.active .tokobii-timeline-dot {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    animation: tokobiiPulseGlow 2s infinite;
+}
+.tokobii-timeline-step.completed .tokobii-timeline-dot {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #15803d;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* ============================================================
+   GUIDANCE MODAL (Custom Overlay)
+   ============================================================ */
+.tokobii-guidance-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tokobii-guidance-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+.tokobii-guidance-box {
+    background: #ffffff;
+    border: 1px solid var(--tokobii-border);
+    border-radius: 24px;
+    box-shadow: 0 32px 64px -12px rgba(15, 23, 42, 0.28);
+    width: 100%;
+    max-width: 520px;
+    overflow: hidden;
+    transform: scale(0.88) translateY(20px);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tokobii-guidance-backdrop.show .tokobii-guidance-box {
+    transform: scale(1) translateY(0);
+}
+.tokobii-guidance-icon-wrap {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.375rem;
+    transition: var(--tokobii-transition-fast);
+}
+.tokobii-guidance-icon-wrap.success {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #16a34a;
+    box-shadow: 0 0 0 10px #dcfce7, 0 0 0 20px rgba(22, 163, 74, 0.08);
+}
+.tokobii-guidance-icon-wrap.info {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #2563eb;
+    box-shadow: 0 0 0 10px #dbeafe, 0 0 0 20px rgba(37, 99, 235, 0.08);
+}
+.tokobii-guidance-icon-wrap.warning {
+    background: linear-gradient(135deg, #fefce8, #fef3c7);
+    color: #ca8a04;
+    box-shadow: 0 0 0 10px #fef9c3, 0 0 0 20px rgba(202, 138, 4, 0.08);
+}
+.tokobii-guidance-icon-wrap.danger {
+    background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+    color: #e11d48;
+    box-shadow: 0 0 0 10px #ffe4e6, 0 0 0 20px rgba(225, 29, 72, 0.08);
+}
+.tokobii-guidance-step-card {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border: 1px solid #e2e8f0;
+    border-radius: var(--tokobii-radius-sm);
+    padding: 0.875rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
+    transition: var(--tokobii-transition-fast);
+}
+.tokobii-guidance-step-card:hover {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-color: #bfdbfe;
+}
+.tokobii-guidance-step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+/* ============================================================
+   ALERT / FLASH MESSAGES
+   ============================================================ */
+.tokobii-alert {
+    border-radius: var(--tokobii-radius-sm);
+    border: 1.5px solid transparent;
+    padding: 0.875rem 1.125rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    animation: tokobiiFadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    box-shadow: var(--tokobii-shadow-sm);
+}
+.tokobii-alert-success {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+.tokobii-alert-error {
+    background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.tokobii-alert-warning {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border-color: #fde68a;
+    color: #92400e;
+}
+.tokobii-alert-info {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+.tokobii-alert .btn-close, .alert .btn-close, .auth-alert .btn-close {
+    cursor: pointer !important;
+    z-index: 10 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    padding: 0.5rem !important;
+    margin: -0.25rem -0.25rem -0.25rem auto !important;
+    opacity: 0.65;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: none !important;
+    background-size: 0.75rem;
+}
+.tokobii-alert .btn-close:hover, .alert .btn-close:hover, .auth-alert .btn-close:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+.tokobii-alert .btn-close:focus, .alert .btn-close:focus, .auth-alert .btn-close:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ============================================================
+   MAIN CONTENT WRAPPER PADDING
+   ============================================================ */
+.tokobii-page-content {
+    padding: 1.75rem 2rem;
+    animation: tokobiiFadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (max-width: 767.98px) {
+    .tokobii-page-content {
+        padding: 1.25rem 1rem;
+    }
+}
+
+/* ============================================================
+   DROPDOWN MENUS
+   ============================================================ */
+.tokobii-dropdown-menu {
+    border: 1px solid var(--tokobii-border) !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06) !important;
+    padding: 0.5rem !important;
+    animation: tokobiiScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: top right;
+    min-width: 220px;
+}
+.tokobii-dropdown-item {
+    border-radius: 10px !important;
+    padding: 0.55rem 0.875rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    color: #334155 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.625rem !important;
+}
+.tokobii-dropdown-item:hover {
+    background: linear-gradient(135deg, #f1f5f9, #eff6ff) !important;
+    color: #1d4ed8 !important;
+}
+.tokobii-dropdown-item.danger:hover {
+    background: linear-gradient(135deg, #fff1f2, #ffe4e6) !important;
+    color: #be123c !important;
+}
+
+/* ============================================================
+   LOADING SPINNER
+   ============================================================ */
+.tokobii-spinner {
+    width: 20px; height: 20px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: tokobiiSpinSlow 0.75s linear infinite;
+    display: inline-block;
+}
+.tokobii-spinner-dark {
+    border-color: rgba(37, 99, 235, 0.2);
+    border-top-color: #2563eb;
+}
+
+/* ============================================================
+   LOGOUT BUTTON (Sidebar)
+   ============================================================ */
+.sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border-radius: var(--tokobii-radius-sm);
+    border: 1.5px solid #e2e8f0;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: var(--tokobii-shadow-xs);
+}
+.sidebar-logout-btn:hover {
+    border-color: #fecdd3;
+    background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+    color: #be123c;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.12);
+    transform: translateY(-1px);
+}
+.sidebar-logout-btn:active {
+    transform: scale(0.97);
+}
+
+/* ============================================================
+   AVATAR / USER PILL
+   ============================================================ */
+.user-avatar-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: var(--tokobii-transition-fast);
+    box-shadow: var(--tokobii-shadow-xs);
+}
+.user-avatar-pill:hover {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-color: #bfdbfe;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+/* ============================================================
+   FORM CARD (Auth Pages)
+   ============================================================ */
+.auth-form-card {
+    background: #ffffff;
+    border-radius: var(--tokobii-radius-lg);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.10), 0 2px 8px rgba(15, 23, 42, 0.06);
+    border: 1px solid var(--tokobii-border);
+    padding: 2.25rem 2.5rem;
+    animation: tokobiiScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (max-width: 576px) {
+    .auth-form-card {
+        padding: 1.75rem 1.5rem;
+        border-radius: var(--tokobii-radius);
+    }
+}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.tokobii-progress {
+    height: 7px;
+    border-radius: 99px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+.tokobii-progress-bar {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #60a5fa, #3b82f6, #2563eb);
+    background-size: 200% 100%;
+    animation: tokobiiShimmer 2s linear infinite;
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.tokobii-divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    margin: 1.25rem 0;
+}
+
+/* ============================================================
+   SCROLLBAR STYLING (Webkit)
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+} /* end @layer components */

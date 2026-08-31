@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -103,9 +105,16 @@ class PaymentController extends Controller
     {
         $action = $request->input('action');
 
+        if ($action === 'confirm_cash_payment') {
+            if ($payment->order) {
+                return (new OrderController())->update($request, $payment->order);
+            }
+            return back()->with('error', 'Pesanan terkait tidak ditemukan.');
+        }
+
         if ($action === 'approve') {
             if ($payment->payment_status !== 'waiting_verification') {
-                return back()->with('error', 'Hanya pembayaran dengan status Waiting Verification yang dapat disetujui.');
+                return back()->with('error', 'Hanya pembayaran dengan status Menunggu Verifikasi yang dapat disetujui.');
             }
 
             $payment->update([
@@ -128,7 +137,7 @@ class PaymentController extends Controller
 
         if ($action === 'reject') {
             if ($payment->payment_status !== 'waiting_verification') {
-                return back()->with('error', 'Hanya pembayaran dengan status Waiting Verification yang dapat ditolak.');
+                return back()->with('error', 'Hanya pembayaran dengan status Menunggu Verifikasi yang dapat ditolak.');
             }
 
             $request->validate([
@@ -148,6 +157,7 @@ class PaymentController extends Controller
             if ($payment->order) {
                 $payment->order->update([
                     'payment_status' => 'rejected',
+                    'order_status' => 'cancelled',
                 ]);
             }
 
@@ -157,7 +167,7 @@ class PaymentController extends Controller
 
         if ($action === 'ready_for_pickup') {
             if ($payment->payment_status !== 'paid') {
-                return back()->with('error', 'Hanya pembayaran berstatus Paid yang dapat diubah ke Ready for Pickup.');
+                return back()->with('error', 'Hanya pembayaran berstatus Lunas yang dapat diubah ke Siap Diambil.');
             }
 
             $payment->update([
@@ -171,26 +181,34 @@ class PaymentController extends Controller
             }
 
             return redirect()->route('admin.payments.show', $payment)
-                ->with('success', 'Pesanan ' . $payment->invoice_number . ' kini Siap Diambil (Ready for Pickup).');
+                ->with('success', 'Pesanan ' . $payment->invoice_number . ' kini Siap Diambil di toko.');
         }
 
         if ($action === 'complete') {
-            if (!in_array($payment->payment_status, ['ready_for_pickup', 'paid'])) {
+            if ($payment->payment_method === 'cash' && $payment->payment_status !== 'paid') {
+                return back()->with('error', 'Pembayaran tunai belum dikonfirmasi. Konfirmasikan pembayaran terlebih dahulu.');
+            }
+
+            if (!in_array($payment->payment_status, ['ready_for_pickup', 'paid', 'completed'])) {
                 return back()->with('error', 'Status pembayaran tidak memenuhi syarat untuk diselesaikan.');
             }
 
             $payment->update([
-                'payment_status' => 'completed',
+                'payment_status' => 'paid',
             ]);
 
             if ($payment->order) {
+                if ($payment->order->payment_method === 'cash' && $payment->order->payment_status !== 'paid') {
+                    return back()->with('error', 'Pembayaran tunai belum dikonfirmasi. Konfirmasikan pembayaran terlebih dahulu.');
+                }
+
                 $payment->order->update([
                     'order_status' => 'completed',
                 ]);
             }
 
             return redirect()->route('admin.payments.show', $payment)
-                ->with('success', 'Pesanan ' . $payment->invoice_number . ' telah Selesai (Completed).');
+                ->with('success', 'Pesanan ' . $payment->invoice_number . ' telah Selesai.');
         }
 
         return back()->with('error', 'Tindakan verifikasi tidak valid.');

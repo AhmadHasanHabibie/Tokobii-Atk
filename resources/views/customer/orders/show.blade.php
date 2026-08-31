@@ -134,6 +134,20 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th class="ps-0 text-slate-500 fw-semibold">Status Pembayaran</th>
+                                <td>: 
+                                    @if($order->payment_status === 'paid')
+                                        <span class="tokobii-badge tokobii-badge-success">Lunas</span>
+                                    @elseif($order->payment_status === 'waiting_verification')
+                                        <span class="tokobii-badge tokobii-badge-warning">Menunggu Verifikasi</span>
+                                    @elseif($order->payment_status === 'rejected')
+                                        <span class="tokobii-badge tokobii-badge-danger">Ditolak</span>
+                                    @else
+                                        <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
                                 <th class="ps-0 text-slate-500 fw-semibold">Metode Ambil</th>
                                 <td class="text-slate-800">: Ambil di Toko Fisik</td>
                             </tr>
@@ -160,6 +174,53 @@
                 </div>
                 <div class="fw-bold font-monospace text-blue-600 small">{{ $order->invoice_number }}</div>
             </div>
+
+            {{-- Cash Payment Status Info Card --}}
+            @if($order->payment_method === 'cash')
+                <div class="tokobii-card mb-4">
+                    <div class="tokobii-card-header d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Status Pembayaran Tunai</h5>
+                        </div>
+                        @if($order->payment_status === 'paid')
+                            <span class="tokobii-badge tokobii-badge-success">Lunas</span>
+                        @else
+                            <span class="tokobii-badge tokobii-badge-warning">Menunggu Pembayaran</span>
+                        @endif
+                    </div>
+                    <div class="p-4">
+                        @if($order->payment_status === 'paid')
+                            <div class="p-3 bg-emerald-50 text-emerald-900 rounded-3 border border-emerald-200 mb-3 small">
+                                <strong class="d-block mb-1">Pembayaran Tunai Telah Dikonfirmasi</strong>
+                                <span>Kasir telah menerima pembayaran dan menyerahkan kembalian sesuai transaksi.</span>
+                            </div>
+                            <table class="table table-borderless align-middle mb-0 small">
+                                <tbody>
+                                    <tr>
+                                        <th class="ps-0 text-slate-500 fw-semibold" style="width: 44%;">Total Tagihan</th>
+                                        <td class="text-slate-900 font-monospace fw-bold">: Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-slate-500 fw-semibold">Uang Diterima</th>
+                                        <td class="text-emerald-700 font-monospace fw-bold">: Rp {{ number_format($order->payment?->received_amount ?? $order->grand_total, 0, ',', '.') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="ps-0 text-slate-500 fw-semibold">Kembalian</th>
+                                        <td class="text-slate-900 font-monospace fw-bold">: Rp {{ number_format($order->payment?->change_amount ?? 0, 0, ',', '.') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        @else
+                            <div class="p-3 bg-slate-50 text-slate-600 rounded-3 border border-slate-200 small">
+                                Silakan siapkan uang tunai sebesar <strong class="text-blue-600 font-monospace">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong> saat mengambil barang di kasir toko Tokobii.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
             {{-- Payment Proof Box / Upload --}}
             @if($order->payment_method === 'qris')
@@ -235,7 +296,10 @@
                                     <th class="ps-4 py-3 border-bottom border-slate-200">Produk</th>
                                     <th class="text-center py-3 border-bottom border-slate-200">Jumlah</th>
                                     <th class="text-end py-3 border-bottom border-slate-200">Harga Satuan</th>
-                                    <th class="text-end pe-4 py-3 border-bottom border-slate-200">Subtotal</th>
+                                    <th class="text-end py-3 border-bottom border-slate-200 {{ $order->status !== 'completed' ? 'pe-4' : '' }}">Subtotal</th>
+                                    @if($order->status === 'completed')
+                                        <th class="text-end pe-4 py-3 border-bottom border-slate-200" style="min-width: 220px;">Aksi</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -253,23 +317,60 @@
                                         <td class="text-end py-3 text-slate-600 font-monospace small">
                                             Rp {{ number_format($item->price, 0, ',', '.') }}
                                         </td>
-                                        <td class="text-end pe-4 py-3 font-monospace fw-bold text-slate-900 small">
+                                        <td class="text-end py-3 font-monospace fw-bold text-slate-900 small {{ $order->status !== 'completed' ? 'pe-4' : '' }}">
                                             Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
+                                        @if($order->status === 'completed')
+                                            <td class="text-end pe-4 py-3">
+                                                <div class="d-flex align-items-center justify-content-end gap-1.5 flex-wrap">
+                                                    @if($item->review)
+                                                        <a href="{{ route('customer.reviews.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-1 px-2.5" style="font-size: 0.75rem;" title="Lihat Ulasan">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                            </svg>
+                                                            <span>Ulasan Diberikan</span>
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('customer.orders.reviews.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm text-amber-700 border-amber-300 hover-bg-amber-50 py-1 px-2.5" style="font-size: 0.75rem;">
+                                                            <svg width="12" height="12" fill="#f59e0b" stroke="#f59e0b" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                                            </svg>
+                                                            <span>Beri Ulasan</span>
+                                                        </a>
+                                                    @endif
+
+                                                    @if($item->reports->where('user_id', auth()->id())->isNotEmpty())
+                                                        <a href="{{ route('customer.reports.index') }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-1 px-2.5" style="font-size: 0.75rem;" title="Lihat Laporan">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                            </svg>
+                                                            <span>Laporan Terkirim</span>
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('customer.orders.reports.create', [$order, $item]) }}" class="btn btn-tokobii-secondary btn-tokobii-sm text-rose-700 border-rose-200 hover-bg-rose-50 py-1 px-2.5" style="font-size: 0.75rem;">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                            </svg>
+                                                            <span>Laporkan</span>
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-slate-50 border-top border-slate-200">
                                 <tr>
-                                    <td colspan="3" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Subtotal Produk:</td>
+                                    <td colspan="{{ $order->status === 'completed' ? 4 : 3 }}" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Subtotal Produk:</td>
                                     <td class="text-end pe-4 py-2 font-monospace fw-semibold text-slate-800 small">Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Biaya Penanganan:</td>
+                                    <td colspan="{{ $order->status === 'completed' ? 4 : 3 }}" class="text-end fw-semibold text-slate-600 ps-4 py-2 small">Biaya Penanganan:</td>
                                     <td class="text-end pe-4 py-2 font-monospace fw-semibold text-slate-800 small">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="text-end fw-bold text-slate-900 ps-4 py-3">Total Tagihan:</td>
+                                    <td colspan="{{ $order->status === 'completed' ? 4 : 3 }}" class="text-end fw-bold text-slate-900 ps-4 py-3">Total Tagihan:</td>
                                     <td class="text-end pe-4 py-3 font-monospace fw-bold text-blue-600 fs-6">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</td>
                                 </tr>
                             </tfoot>
