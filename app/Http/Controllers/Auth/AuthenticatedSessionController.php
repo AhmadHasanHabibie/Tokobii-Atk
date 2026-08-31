@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\TwoFactorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,28 +23,54 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, TwoFactorService $twoFactorService): RedirectResponse
     {
-        $request->authenticate();
+        $user = $request->validateCredentials();
 
-        $request->session()->regenerate();
-
-        $user = Auth::user();
-
+        // 1. Admin Login
         if ($user->isAdmin()) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
             return redirect()->route('admin.dashboard');
         }
 
+        // 2. Owner Login
         if ($user->isOwner()) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
             return redirect()->route('owner.dashboard');
         }
 
-        // Jika customer belum memverifikasi email, arahkan ke halaman verifikasi email
-        if ($user->isCustomer() && !$user->hasVerifiedEmail()) {
+        // 3. Customer belum verifikasi email -> Arahkan ke verifikasi email
+        if (!$user->hasVerifiedEmail()) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
             return redirect()->route('verification.notice');
         }
 
-        return redirect()->route('customer.dashboard');
+        // 4. Customer dengan 2FA Aktif -> Tahan authenticated session, mulai challenge OTP
+        if ($user->hasTwoFactorEnabled()) {
+            $request->session()->put('two_factor:user_id', $user->id);
+            $request->session()->put('two_factor:remember', $request->boolean('remember'));
+            $request->session()->put('two_factor:auth_time', now()->timestamp);
+
+            if ($intended = $request->session()->get('url.intended')) {
+                $request->session()->put('two_factor:intended_url', $intended);
+            }
+
+            $twoFactorService->sendOtp($user, 'login');
+
+            return redirect()->route('two-factor.login');
+        }
+
+        // 5. Customer dengan 2FA Nonaktif -> Login normal
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('customer.dashboard'));
     }
 
     /**

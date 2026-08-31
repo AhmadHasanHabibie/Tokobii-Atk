@@ -7,6 +7,7 @@ use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\ReportController;
 use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Customer\TwoFactorSecurityController;
 use App\Http\Controllers\Customer\ShopController;
 use Illuminate\Support\Facades\Route;
 
@@ -112,7 +113,7 @@ Route::middleware(['auth', 'verified', 'customer'])
 
         /*
         |--------------------------------------------------------------------------
-        | Profile (Requires Verified Email)
+        | Profile & Account Security (2FA)
         |--------------------------------------------------------------------------
         */
 
@@ -127,5 +128,19 @@ Route::middleware(['auth', 'verified', 'customer'])
 
         Route::delete('/profile', [ProfileController::class, 'destroy'])
             ->name('profile.destroy');
+
+        Route::post('/profile/security/2fa/request-enable', [TwoFactorSecurityController::class, 'requestEnable'])
+            ->name('profile.security.2fa.request-enable');
+
+        Route::post('/profile/security/2fa/confirm-enable', [TwoFactorSecurityController::class, 'confirmEnable'])
+            ->middleware('throttle:10,1')
+            ->name('profile.security.2fa.confirm-enable');
+
+        Route::post('/profile/security/2fa/resend-enable', [TwoFactorSecurityController::class, 'resendEnable'])
+            ->middleware('throttle:6,1')
+            ->name('profile.security.2fa.resend-enable');
+
+        Route::post('/profile/security/2fa/disable', [TwoFactorSecurityController::class, 'disable'])
+            ->name('profile.security.2fa.disable');
 
     });
