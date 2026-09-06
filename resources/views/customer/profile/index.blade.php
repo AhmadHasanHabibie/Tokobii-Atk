@@ -227,7 +227,7 @@
 
 {{-- MODAL 2: Confirm Enable 2FA (Enter OTP from Email) --}}
 @if(session('two_factor_enabling'))
-<div class="modal fade show d-block" id="confirmEnableTwoFactorModal" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.5);" aria-labelledby="confirmEnableTwoFactorModalLabel" aria-modal="true" role="dialog">
+<div class="modal fade show d-block" id="confirmEnableTwoFactorModal" tabindex="-1" style="z-index: 99995 !important; background-color: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);" aria-labelledby="confirmEnableTwoFactorModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content tokobii-card border-0 shadow-lg">
             <div class="modal-header border-bottom border-slate-100 p-4">

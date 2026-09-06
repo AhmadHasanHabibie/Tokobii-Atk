@@ -113,9 +113,16 @@
             var modal = document.getElementById('tokobiiGuidanceModal');
             if (modal) {
                 modal.classList.remove('show');
+                if (window.closeTokobiiModal) {
+                    window.closeTokobiiModal('tokobiiGuidanceModal');
+                } else {
+                    document.body.classList.remove('tokobii-modal-open', 'modal-open');
+                }
                 setTimeout(function() {
-                    modal.remove();
-                }, 300);
+                    if (modal && modal.parentElement) {
+                        modal.remove();
+                    }
+                }, 320);
             }
         }
         document.addEventListener('keydown', function(e) {

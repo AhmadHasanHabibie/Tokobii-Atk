@@ -275,13 +275,23 @@
             if (guidanceText) guidanceText.textContent = 'Setelah mengonfirmasi, pesanan Anda akan langsung disiapkan oleh toko Tokobii untuk diambil dan dibayar langsung di kasir.';
         }
 
-        var modal = document.getElementById('checkoutConfirmModal');
-        if (modal) modal.classList.add('show');
+        if (window.openTokobiiModal) {
+            window.openTokobiiModal('checkoutConfirmModal');
+        } else {
+            var modal = document.getElementById('checkoutConfirmModal');
+            if (modal) modal.classList.add('show');
+            document.body.classList.add('modal-open', 'tokobii-modal-open');
+        }
     }
 
     function closeCheckoutConfirmModal() {
-        var modal = document.getElementById('checkoutConfirmModal');
-        if (modal) modal.classList.remove('show');
+        if (window.closeTokobiiModal) {
+            window.closeTokobiiModal('checkoutConfirmModal');
+        } else {
+            var modal = document.getElementById('checkoutConfirmModal');
+            if (modal) modal.classList.remove('show');
+            document.body.classList.remove('modal-open', 'tokobii-modal-open');
+        }
     }
 
     function submitFinalOrder() {

@@ -1,22 +1,42 @@
 import * as faceapi from '@vladmandic/face-api';
 
 /**
- * Tokobii High-Performance Face Verification Engine
- * Menggunakan Deep Neural Network (@vladmandic/face-api) dengan eksekusi WebGL GPU terakselerasi.
- * 
- * Pipeline Bertahap (Staged Inference Architecture):
- * 1. Searching Phase : Ultra-lightweight TinyFaceDetector (~15-25ms per frame)
- * 2. Liveness Phase  : Face Landmark 68 Net untuk Adaptive EAR Blink Detection (~25-35ms)
- * 3. Sampling Phase  : Face Recognition Net (128-D Descriptor) dieksekusi HANYA setelah liveness terkonfirmasi
+ * Tokobii Face Verification Engine v3.0
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * Arsitektur 2-Layer: face-api.js (Browser) + Laravel (Euclidean Distance PHP)
+ *
+ * Pipeline Bertahap:
+ *   Stage 1 — SEARCHING  : TinyFaceDetector, deteksi bounding box & posisi lurus (~15ms/frame @ 80ms)
+ *   Stage 2 — LIVENESS   : faceLandmark68Net, Head Turn / Pose Estimation Yaw (~20ms/frame @ 50ms)
+ *   Stage 3 — SAMPLING   : faceRecognitionNet, ambil 128-D descriptor (~35ms/frame @ 60ms)
+ *   Stage 4 — SUBMITTING : Kirim rata-rata descriptor JSON ke Laravel
+ *
+ * Liveness Method: Head Pose / Yaw Estimation (Anti-Photo Spoofing):
+ *   1. Zero-Wait Instant Flow: Wajah lurus terdeteksi di awal, lalu prompt menengok.
+ *   2. Head Turn Detection: Mengukur rasio simetri horizontal ujung hidung (landmark 30)
+ *      terhadap kontur pipi kiri (landmark 0) dan kanan (landmark 16).
+ *   3. Ultra-Responsive: Begitu gerakan kepala terdeteksi, LANGSUNG masuk sampling 128-D descriptor.
+ *   4. Bebas Bug Kedipan: Tidak menggunakan EAR / deteksi mata yang rentan variasi kelopak mata.
  */
 class TokobiiFaceVerification {
-    // Shared Singleton Model Promise (agar model HANYA di-load 1 kali selama page lifecycle)
+    // ─── Singleton Model Cache ───
     static modelsLoadedPromise = null;
     static areModelsReady = false;
 
+    // ─── Stage Constants ───
+    static STAGE = Object.freeze({
+        INITIALIZING: 'INITIALIZING',
+        SEARCHING:    'SEARCHING',
+        LIVENESS:     'LIVENESS',
+        SAMPLING:     'SAMPLING',
+        SUBMITTING:   'SUBMITTING',
+        FINISHED:     'FINISHED',
+    });
+
     constructor(config) {
+        // ─── Configuration ───
         this.config = Object.assign({
-            mode: 'verify', // 'verify' or 'enroll'
+            mode: 'verify',                 // 'verify' | 'enroll'
             videoElementId: 'faceVideo',
             statusElementId: 'faceStatus',
             instructionElementId: 'faceInstruction',
@@ -33,178 +53,108 @@ class TokobiiFaceVerification {
             debug: true,
         }, config);
 
-        this.video = document.getElementById(this.config.videoElementId);
-        this.statusEl = document.getElementById(this.config.statusElementId);
+        // ─── DOM Elements ───
+        this.video         = document.getElementById(this.config.videoElementId);
+        this.statusEl      = document.getElementById(this.config.statusElementId);
         this.instructionEl = document.getElementById(this.config.instructionElementId);
-        this.progressBar = document.getElementById(this.config.progressBarId);
-        this.ovalGuide = document.getElementById(this.config.ovalGuideId);
-        this.retryBtn = document.getElementById(this.config.retryButtonId);
-        this.cameraSelect = document.getElementById(this.config.cameraSelectId);
+        this.progressBar   = document.getElementById(this.config.progressBarId);
+        this.ovalGuide     = document.getElementById(this.config.ovalGuideId);
+        this.retryBtn      = document.getElementById(this.config.retryButtonId);
+        this.cameraSelect  = document.getElementById(this.config.cameraSelectId);
 
-        // State Machine
-        this.STAGE = {
-            INITIALIZING: 'INITIALIZING',
-            SEARCHING: 'SEARCHING',
-            LIVENESS: 'LIVENESS',
-            SAMPLING: 'SAMPLING',
-            SUBMITTING: 'SUBMITTING',
-            FINISHED: 'FINISHED',
-        };
-        this.currentStage = this.STAGE.INITIALIZING;
+        // ─── State Machine ───
+        this.currentStage = TokobiiFaceVerification.STAGE.INITIALIZING;
 
-        // Flags & Guards
-        this.stream = null;
-        this.isDetecting = false; // Mutex lock untuk mencegah overlapping inference
-        this.isStopped = false;
-        this.loopTimer = null;
+        // ─── Guards & Stream ───
+        this.stream       = null;
+        this.isDetecting  = false;   // Mutex: prevent overlapping inference
+        this.isStopped    = false;
+        this.timerHandle  = null;    // Dynamic setTimeout handle
 
-        // Detector Configuration
-        this.detectionScoreThreshold = 0.38;
-        this.inputSize = 224; // 224x224 input size: latency ultra-rendah (<25ms) dengan akurasi optimal
+        // ─── Detector Config (Lightweight & Fast) ───
         this.detectorOptions = new faceapi.TinyFaceDetectorOptions({
-            inputSize: this.inputSize,
-            scoreThreshold: this.detectionScoreThreshold,
+            inputSize: 224,
+            scoreThreshold: 0.35,
         });
 
-        // Multi-frame stability & tracking
+        // ─── Tracking Counters ───
         this.consecutiveDetections = 0;
-        this.consecutiveNoFace = 0;
+        this.consecutiveNoFace     = 0;
 
-        // Liveness tracking (Adaptive EAR)
-        this.livenessPassed = false;
-        this.blinkState = 'open';
-        this.blinkCount = 0;
-        this.baselineEAR = 0.28;
-        this.earSamples = [];
+        // ─── Head Turn (Yaw) Parameters ───
+        this.centerBaselineYaw     = 0.50;  // Baseline rasio saat wajah menghadap lurus (~0.50)
+        this.YAW_TURN_DELTA        = 0.11;  // Minimal pergeseran rasio yaw untuk konfirmasi menengok
+        this.YAW_LEFT_THRESHOLD    = 0.39;  // Rasio <= 0.39 = Menengok ke satu arah
+        this.YAW_RIGHT_THRESHOLD   = 0.61;  // Rasio >= 0.61 = Menengok ke arah lain
 
-        // Sample collection
-        this.collectedDescriptors = [];
-        this.targetSamples = 3;
+        // ─── Liveness State ───
+        this.livenessPassed        = false;
+        this.livenessStartTime     = 0;
 
-        // Performance Metrics (Instrumentation)
-        this.perf = {
-            startTime: performance.now(),
-            modelLoadMs: 0,
-            cameraStartupMs: 0,
-            firstDetectionMs: 0,
-            livenessCompleteMs: 0,
-            totalVerificationMs: 0,
-            inferenceCount: 0,
-            totalInferenceMs: 0,
-        };
+        // ─── Sampling State ───
+        this.collectedDescriptors  = [];
+        this.targetSamples         = 2;     // 2 sampel presisi untuk respon secepat kilat
 
-        this.init();
+        // ─── Performance Metrics ───
+        this.perf = this._createPerfObject();
+
+        // ─── Init ───
+        this._init();
     }
 
-    log(message, data = null) {
-        if (this.config.debug) {
-            if (data !== null) {
-                console.log(`[TokobiiFaceAI] ${message}`, data);
-            } else {
-                console.log(`[TokobiiFaceAI] ${message}`);
-            }
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    //  INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════
 
-    setStatus(text, type = 'info') {
-        if (!this.statusEl) return;
-        const colorMap = {
-            info: 'bg-blue-50 text-blue-700 border-blue-200',
-            success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            warning: 'bg-amber-50 text-amber-700 border-amber-200',
-            danger: 'bg-rose-50 text-rose-700 border-rose-200',
-            purple: 'bg-purple-50 text-purple-700 border-purple-200',
-        };
-        this.statusEl.className = `tokobii-badge ${colorMap[type] || colorMap.info} px-3 py-1.5 small fw-semibold border shadow-sm`;
-        this.statusEl.innerHTML = text;
-    }
-
-    setInstruction(text) {
-        if (this.instructionEl) {
-            this.instructionEl.textContent = text;
-        }
-    }
-
-    setProgress(percentage) {
-        if (this.progressBar) {
-            this.progressBar.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
-        }
-    }
-
-    setOvalGuideState(state) {
-        if (!this.ovalGuide) return;
-        switch (state) {
-            case 'success':
-                this.ovalGuide.style.borderColor = 'rgba(16, 185, 129, 0.95)';
-                this.ovalGuide.style.borderStyle = 'solid';
-                this.ovalGuide.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5), 0 0 0 9999px rgba(15, 23, 42, 0.55)';
-                break;
-            case 'warning':
-                this.ovalGuide.style.borderColor = 'rgba(245, 158, 11, 0.95)';
-                this.ovalGuide.style.borderStyle = 'dashed';
-                this.ovalGuide.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.3), 0 0 0 9999px rgba(15, 23, 42, 0.55)';
-                break;
-            case 'danger':
-                this.ovalGuide.style.borderColor = 'rgba(244, 63, 94, 0.95)';
-                this.ovalGuide.style.borderStyle = 'dashed';
-                this.ovalGuide.style.boxShadow = '0 0 10px rgba(244, 63, 94, 0.3), 0 0 0 9999px rgba(15, 23, 42, 0.55)';
-                break;
-            case 'liveness':
-                this.ovalGuide.style.borderColor = 'rgba(147, 51, 234, 0.95)';
-                this.ovalGuide.style.borderStyle = 'solid';
-                this.ovalGuide.style.boxShadow = '0 0 15px rgba(147, 51, 234, 0.4), 0 0 0 9999px rgba(15, 23, 42, 0.55)';
-                break;
-            default: // searching
-                this.ovalGuide.style.borderColor = 'rgba(59, 130, 246, 0.8)';
-                this.ovalGuide.style.borderStyle = 'dashed';
-                this.ovalGuide.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.55)';
-        }
-    }
-
-    async init() {
+    async _init() {
         if (this.retryBtn) {
             this.retryBtn.addEventListener('click', () => this.restart());
         }
-
         if (this.cameraSelect) {
-            this.cameraSelect.addEventListener('change', () => this.startCamera(this.cameraSelect.value));
+            this.cameraSelect.addEventListener('change', () => this._startCamera(this.cameraSelect.value));
         }
-
         window.addEventListener('beforeunload', () => this.stop());
 
-        // Optimasi: Inisialisasi Model AI dan Kamera secara PARALEL untuk memangkas latency startup
-        this.setStatus('Menyiapkan sistem verifikasi...', 'info');
-        this.setInstruction('Memuat modul AI dan mengaktifkan kamera...');
-        this.setProgress(15);
+        this._setStatus('Menyiapkan AI...', 'info');
+        this._setInstruction('Mengaktifkan kamera & model biometrik...');
+        this._setProgress(10);
 
         try {
+            // Parallel: model loading + camera setup
             await Promise.all([
-                this.loadModels(),
-                this.setupCamera(),
+                this._loadModels(),
+                this._setupCamera(),
             ]);
 
-            this.currentStage = this.STAGE.SEARCHING;
-            this.setStatus('Mencari wajah...', 'info');
-            this.setInstruction('Posisikan wajah Anda di dalam bingkai oval.');
-            this.setOvalGuideState('searching');
-            this.setProgress(35);
+            this.currentStage = TokobiiFaceVerification.STAGE.SEARCHING;
+            this._setStatus('Mencari wajah...', 'info');
+            this._setInstruction('Posisikan wajah Anda lurus di dalam bingkai oval.');
+            this._setOvalGuideState('searching');
+            this._setProgress(30);
 
-            this.startDetectionLoop();
+            this._scheduleNextLoop();
         } catch (err) {
-            console.error('Initialization error:', err);
+            this._log('Initialization error:', err);
+            this._setStatus('Gagal memuat sistem AI', 'danger');
+            this._setInstruction('Terjadi kesalahan saat memuat. Silakan muat ulang halaman.');
+            if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
         }
     }
 
-    async loadModels() {
+    // ═══════════════════════════════════════════════════════════════════
+    //  MODEL LOADING (Singleton + WebGL Acceleration)
+    // ═══════════════════════════════════════════════════════════════════
+
+    async _loadModels() {
         if (TokobiiFaceVerification.areModelsReady) {
-            this.log('Model AI sudah tersedia di memory (Cached Singleton).');
+            this._log('Model AI tersedia dari cache (Singleton).');
             return;
         }
 
         if (!TokobiiFaceVerification.modelsLoadedPromise) {
-            const startT = performance.now();
+            const t0 = performance.now();
             TokobiiFaceVerification.modelsLoadedPromise = (async () => {
-                // Konfigurasi WebGL GPU backend acceleration jika tersedia
+                // WebGL GPU Acceleration
                 if (faceapi.tf) {
                     try {
                         if (faceapi.tf.getBackend() !== 'webgl') {
@@ -214,10 +164,11 @@ class TokobiiFaceVerification {
                         faceapi.tf.env().set('WEBGL_VERSION', 2);
                         faceapi.tf.env().set('WEBGL_PACK', true);
                     } catch (e) {
-                        console.warn('[TokobiiFaceAI] WebGL backend optimization note:', e);
+                        this._log('WebGL fallback note:', e);
                     }
                 }
 
+                // Load 3 model secara paralel
                 await Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(this.config.modelsUri),
                     faceapi.nets.faceLandmark68Net.loadFromUri(this.config.modelsUri),
@@ -225,20 +176,23 @@ class TokobiiFaceVerification {
                 ]);
 
                 TokobiiFaceVerification.areModelsReady = true;
-                const loadDuration = Math.round(performance.now() - startT);
-                this.perf.modelLoadMs = loadDuration;
-                this.log(`Model AI berhasil dimuat & dikompilasi dalam ${loadDuration}ms`);
+                this.perf.modelLoadMs = Math.round(performance.now() - t0);
+                this._log(`Model AI dimuat dalam ${this.perf.modelLoadMs}ms`);
             })();
         }
 
         return TokobiiFaceVerification.modelsLoadedPromise;
     }
 
-    async setupCamera() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            this.setStatus('Kamera tidak didukung', 'danger');
-            this.setInstruction('Browser atau perangkat Anda tidak mendukung akses kamera WebRTC.');
-            return;
+    // ═══════════════════════════════════════════════════════════════════
+    //  CAMERA MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    async _setupCamera() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            this._setStatus('Kamera tidak didukung', 'danger');
+            this._setInstruction('Browser Anda tidak mendukung akses kamera WebRTC.');
+            throw new Error('getUserMedia not supported');
         }
 
         try {
@@ -247,27 +201,27 @@ class TokobiiFaceVerification {
 
             if (this.cameraSelect) {
                 this.cameraSelect.innerHTML = '';
-                videoDevices.forEach((device, index) => {
+                videoDevices.forEach((device, i) => {
                     const opt = document.createElement('option');
                     opt.value = device.deviceId;
-                    opt.text = device.label || `Kamera ${index + 1}`;
+                    opt.text = device.label || `Kamera ${i + 1}`;
                     this.cameraSelect.appendChild(opt);
                 });
                 this.cameraSelect.style.display = videoDevices.length > 1 ? 'block' : 'none';
             }
 
-            const initialDeviceId = videoDevices.length > 0 ? videoDevices[0].deviceId : undefined;
-            await this.startCamera(initialDeviceId);
+            const initialId = videoDevices.length > 0 ? videoDevices[0].deviceId : undefined;
+            await this._startCamera(initialId);
         } catch (err) {
-            console.error('Setup camera error:', err);
-            this.handleCameraError(err);
+            this._handleCameraError(err);
+            throw err;
         }
     }
 
-    async startCamera(deviceId = undefined) {
-        this.stopCameraStream();
+    async _startCamera(deviceId = undefined) {
+        this._stopCameraStream();
         this.isStopped = false;
-        const camStartT = performance.now();
+        const t0 = performance.now();
 
         const constraints = {
             video: deviceId
@@ -282,57 +236,57 @@ class TokobiiFaceVerification {
 
             this.video.srcObject = this.stream;
 
-            // Tunggu hingga frame pertama siap didekode
+            // Tunggu hingga frame pertama siap
             await new Promise((resolve) => {
-                const checkReady = () => {
+                const check = () => {
                     if (this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && this.video.videoWidth > 0) {
                         resolve();
                     } else {
-                        setTimeout(checkReady, 30);
+                        setTimeout(check, 25);
                     }
                 };
-                this.video.onloadeddata = checkReady;
                 this.video.onloadedmetadata = () => {
-                    this.video.play().catch(e => console.warn('Autoplay caught:', e));
-                    checkReady();
+                    this.video.play().catch(() => {});
+                    check();
                 };
-                setTimeout(checkReady, 300);
+                this.video.onloadeddata = check;
+                setTimeout(check, 250);
             });
 
-            this.perf.cameraStartupMs = Math.round(performance.now() - camStartT);
-            this.log(`Kamera aktif (${this.video.videoWidth}x${this.video.videoHeight}) dalam ${this.perf.cameraStartupMs}ms`);
+            this.perf.cameraStartupMs = Math.round(performance.now() - t0);
+            this._log(`Kamera aktif (${this.video.videoWidth}x${this.video.videoHeight}) dalam ${this.perf.cameraStartupMs}ms`);
         } catch (err) {
-            this.handleCameraError(err);
+            this._handleCameraError(err);
+            throw err;
         }
     }
 
-    handleCameraError(err) {
-        let msg = 'Gagal mengakses kamera.';
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            msg = 'Akses kamera ditolak. Silakan izinkan izin kamera pada pengaturan browser Anda lalu klik Coba Lagi.';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-            msg = 'Perangkat kamera tidak ditemukan.';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-            msg = 'Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi tersebut lalu coba lagi.';
-        } else if (err.name === 'OverconstrainedError') {
-            msg = 'Konfigurasi resolusi kamera tidak didukung perangkat ini.';
-        } else if (err.name === 'SecurityError') {
-            msg = 'Akses kamera dibatasi karena konteks tidak aman (HTTPS/Localhost diperlukan).';
-        }
+    _handleCameraError(err) {
+        const messages = {
+            NotAllowedError:      'Akses kamera ditolak. Izinkan akses kamera pada browser.',
+            PermissionDeniedError:'Akses kamera ditolak. Izinkan akses kamera pada browser.',
+            NotFoundError:        'Perangkat kamera tidak ditemukan.',
+            DevicesNotFoundError: 'Perangkat kamera tidak ditemukan.',
+            NotReadableError:     'Kamera sedang digunakan oleh aplikasi lain.',
+            TrackStartError:      'Kamera sedang digunakan oleh aplikasi lain.',
+            OverconstrainedError: 'Resolusi kamera tidak didukung.',
+            SecurityError:        'Akses kamera dibatasi (HTTPS/Localhost diperlukan).',
+        };
+        const msg = messages[err.name] || 'Gagal mengakses kamera.';
 
-        this.setStatus(msg, 'danger');
-        this.setInstruction(msg);
-        this.setOvalGuideState('danger');
+        this._setStatus(msg, 'danger');
+        this._setInstruction(msg);
+        this._setOvalGuideState('danger');
         if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
     }
 
-    stopCameraStream() {
-        if (this.loopTimer) {
-            clearTimeout(this.loopTimer);
-            this.loopTimer = null;
+    _stopCameraStream() {
+        if (this.timerHandle) {
+            clearTimeout(this.timerHandle);
+            this.timerHandle = null;
         }
         if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
+            this.stream.getTracks().forEach(t => t.stop());
             this.stream = null;
         }
         if (this.video) {
@@ -340,375 +294,366 @@ class TokobiiFaceVerification {
         }
     }
 
-    stop() {
-        this.isStopped = true;
-        this.currentStage = this.STAGE.FINISHED;
-        this.stopCameraStream();
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    //  FAST ADAPTIVE DETECTION LOOP
+    // ═══════════════════════════════════════════════════════════════════
 
-    restart() {
-        this.stop();
-        this.isDetecting = false;
-        this.livenessPassed = false;
-        this.blinkCount = 0;
-        this.blinkState = 'open';
-        this.consecutiveDetections = 0;
-        this.consecutiveNoFace = 0;
-        this.earSamples = [];
-        this.collectedDescriptors = [];
-        this.perf = {
-            startTime: performance.now(),
-            modelLoadMs: 0,
-            cameraStartupMs: 0,
-            firstDetectionMs: 0,
-            livenessCompleteMs: 0,
-            totalVerificationMs: 0,
-            inferenceCount: 0,
-            totalInferenceMs: 0,
-        };
-        this.setProgress(0);
-        if (this.retryBtn) this.retryBtn.style.display = 'none';
-        this.setupCamera();
-    }
+    /**
+     * Jadwal loop responsif:
+     * - Stage 1 (SEARCHING): 80ms
+     * - Stage 2 (LIVENESS) : 50ms (Ultra-fast head pose estimation ~20 FPS)
+     * - Stage 3 (SAMPLING) : 60ms
+     */
+    _scheduleNextLoop() {
+        if (this.isStopped || this.currentStage === TokobiiFaceVerification.STAGE.FINISHED) return;
 
-    calculateEAR(eyePoints) {
-        const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
-        const vertical1 = dist(eyePoints[1], eyePoints[5]);
-        const vertical2 = dist(eyePoints[2], eyePoints[4]);
-        const horizontal = dist(eyePoints[0], eyePoints[3]);
-        if (horizontal === 0) return 0.28;
-        return (vertical1 + vertical2) / (2.0 * horizontal);
-    }
-
-    evaluateFaceGeometry(box, videoW, videoH) {
-        const faceW = box.width;
-        const faceH = box.height;
-        const faceCenterX = box.x + (faceW / 2);
-        const faceCenterY = box.y + (faceH / 2);
-
-        const relW = faceW / videoW;
-        const relCenterX = faceCenterX / videoW;
-        const relCenterY = faceCenterY / videoH;
-
-        if (relW < 0.15) {
-            return { valid: false, message: 'Dekatkan wajah sedikit ke kamera.', state: 'warning' };
-        }
-        if (relW > 0.78) {
-            return { valid: false, message: 'Jauhkan wajah sedikit dari kamera.', state: 'warning' };
-        }
-        if (relCenterX < 0.22) {
-            return { valid: false, message: 'Geser posisi wajah sedikit ke kanan.', state: 'warning' };
-        }
-        if (relCenterX > 0.78) {
-            return { valid: false, message: 'Geser posisi wajah sedikit ke kiri.', state: 'warning' };
-        }
-        if (relCenterY < 0.15) {
-            return { valid: false, message: 'Turunkan posisi wajah sedikit.', state: 'warning' };
-        }
-        if (relCenterY > 0.85) {
-            return { valid: false, message: 'Naikkan posisi wajah sedikit.', state: 'warning' };
+        let delay = 80;
+        if (this.currentStage === TokobiiFaceVerification.STAGE.LIVENESS) {
+            delay = 50; // Ultra responsif untuk deteksi gerakan menengok
+        } else if (this.currentStage === TokobiiFaceVerification.STAGE.SAMPLING) {
+            delay = 60;
         }
 
-        return { valid: true, message: 'Posisi wajah tepat. Pertahankan posisi...', state: 'success' };
-    }
-
-    startDetectionLoop() {
-        const DETECTION_INTERVAL_MS = 60; // Throttling optimal ~16 FPS
-
-        const scheduleNext = () => {
-            if (this.isStopped || !this.video) return;
-            this.loopTimer = setTimeout(async () => {
-                await this.processFrame();
-                scheduleNext();
-            }, DETECTION_INTERVAL_MS);
-        };
-
-        scheduleNext();
+        this.timerHandle = setTimeout(async () => {
+            await this._processFrame();
+            this._scheduleNextLoop();
+        }, delay);
     }
 
     /**
-     * Staged Frame Processing:
-     * Menjalankan neural network secara bertahap sesuai kebutuhan stage aktif.
+     * Stage-based Frame Processing
      */
-    async processFrame() {
-        // Mutex Guard: Cegah overlapping inference jika frame sebelumnya belum selesai
+    async _processFrame() {
         if (this.isDetecting || this.isStopped || !TokobiiFaceVerification.areModelsReady) return;
         if (!this.video || this.video.paused || this.video.ended || this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
 
         this.isDetecting = true;
-        const frameStartT = performance.now();
+        const t0 = performance.now();
 
         try {
-            const videoW = this.video.videoWidth || 640;
-            const videoH = this.video.videoHeight || 480;
+            const vw = this.video.videoWidth || 640;
+            const vh = this.video.videoHeight || 480;
 
-            // =========================================================================
-            // TAHAP 1: SEARCHING PHASE (Ultra-fast TinyFaceDetector ~15ms)
-            // =========================================================================
-            if (this.currentStage === this.STAGE.SEARCHING) {
-                // Hanya jalankan deteksi bounding box ringan tanpa landmark atau recognition
-                const detections = await faceapi.detectAllFaces(this.video, this.detectorOptions);
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // STAGE 1: SEARCHING — Posisi Wajah Lurus di Tengah
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            if (this.currentStage === TokobiiFaceVerification.STAGE.SEARCHING) {
+                const detection = await faceapi
+                    .detectSingleFace(this.video, this.detectorOptions)
+                    .withFaceLandmarks();
 
-                if (detections.length === 0) {
+                if (!detection) {
                     this.consecutiveNoFace++;
                     if (this.consecutiveNoFace >= 3) {
                         this.consecutiveDetections = 0;
-                        this.setStatus('Wajah belum terdeteksi', 'warning');
-                        this.setInstruction('Posisikan wajah Anda tepat di dalam bingkai oval.');
-                        this.setOvalGuideState('searching');
-                        this.setProgress(20);
+                        this._setStatus('Mencari wajah...', 'info');
+                        this._setInstruction('Posisikan wajah Anda tepat di dalam bingkai oval.');
+                        this._setOvalGuideState('searching');
+                        this._setProgress(20);
                     }
                     return;
                 }
 
-                if (detections.length > 1) {
+                this.consecutiveNoFace = 0;
+
+                // Evaluasi posisi geometri oval
+                const geo = this._evaluateGeometry(detection.detection.box, vw, vh);
+                if (!geo.valid) {
                     this.consecutiveDetections = 0;
-                    this.setStatus('Terdeteksi lebih dari 1 wajah', 'danger');
-                    this.setInstruction('Pastikan hanya ada satu orang di depan kamera.');
-                    this.setOvalGuideState('danger');
-                    this.setProgress(15);
+                    this._setStatus('Sesuaikan Posisi', geo.state);
+                    this._setInstruction(geo.message);
+                    this._setOvalGuideState(geo.state);
+                    this._setProgress(30);
                     return;
                 }
 
-                // Tepat SATU wajah ditemukan
-                this.consecutiveNoFace = 0;
+                // Cek apakah wajah menghadap lurus (Centered Yaw)
+                const yaw = this._calculateYaw(detection.landmarks);
+                if (!yaw.isCentered) {
+                    this._setStatus('Hadapkan Wajah Lurus', 'warning');
+                    this._setInstruction('Posisikan kepala menghadap lurus ke arah kamera.');
+                    this._setOvalGuideState('warning');
+                    this._setProgress(35);
+                    return;
+                }
+
                 this.consecutiveDetections++;
 
-                const faceBox = detections[0].box;
-                const geometry = this.evaluateFaceGeometry(faceBox, videoW, videoH);
-
-                if (!geometry.valid) {
-                    this.setStatus('Sesuaikan Posisi', geometry.state);
-                    this.setInstruction(geometry.message);
-                    this.setOvalGuideState(geometry.state);
-                    this.setProgress(35);
-                    return;
-                }
-
-                // INSTANT FEEDBACK: Wajah terdeteksi langsung diberikan indikator visual split second
                 if (this.perf.firstDetectionMs === 0) {
                     this.perf.firstDetectionMs = Math.round(performance.now() - this.perf.startTime);
-                    this.log(`First Face Detected in ${this.perf.firstDetectionMs}ms`);
+                    this._log(`First face detected in ${this.perf.firstDetectionMs}ms`);
                 }
 
-                this.setStatus('Wajah terdeteksi ✓', 'success');
-                this.setInstruction('Posisi wajah tepat. Bersiap untuk uji liveness...');
-                this.setOvalGuideState('success');
-                this.setProgress(50);
+                this._setStatus('Wajah Lurus Terdeteksi ✓', 'success');
+                this._setInstruction('Posisi tepat. Bersiap uji gerakan...');
+                this._setOvalGuideState('success');
+                this._setProgress(45);
 
-                // Setelah 2 frame stabil, langsung masuk ke Tahap Liveness
+                // Setelah 2 frame posisi lurus terkonfirmasi, langsung masuk Stage 2 LIVENESS
                 if (this.consecutiveDetections >= 2) {
-                    this.currentStage = this.STAGE.LIVENESS;
+                    this.currentStage = TokobiiFaceVerification.STAGE.LIVENESS;
+                    this.centerBaselineYaw = yaw.ratio; // Simpan baseline posisi lurus user
+                    this.livenessStartTime = performance.now();
+
+                    this._setStatus('Uji Gerakan: Silakan Menengok', 'purple');
+                    this._setInstruction('Tengok ke kiri atau kanan sedikit...');
+                    this._setOvalGuideState('liveness');
+                    this._setProgress(55);
+                    this._log(`Transitioned to STAGE 2: LIVENESS (Baseline Yaw: ${this.centerBaselineYaw.toFixed(3)})`);
                 }
                 return;
             }
 
-            // =========================================================================
-            // TAHAP 2: LIVENESS PHASE (Face Detection + 68 Landmark Net ~25ms)
-            // =========================================================================
-            if (this.currentStage === this.STAGE.LIVENESS) {
-                const singleDetection = await faceapi.detectSingleFace(this.video, this.detectorOptions)
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // STAGE 2: LIVENESS — Head Turn / Yaw Pose Estimation (~20ms)
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            if (this.currentStage === TokobiiFaceVerification.STAGE.LIVENESS) {
+                const result = await faceapi
+                    .detectSingleFace(this.video, this.detectorOptions)
                     .withFaceLandmarks();
 
-                if (!singleDetection) {
+                if (!result) {
                     this.consecutiveNoFace++;
-                    if (this.consecutiveNoFace >= 4) {
-                        this.currentStage = this.STAGE.SEARCHING;
+                    if (this.consecutiveNoFace >= 6) {
+                        // Wajah hilang beberapa frame, kembali ke SEARCHING
+                        this.currentStage = TokobiiFaceVerification.STAGE.SEARCHING;
+                        this.consecutiveDetections = 0;
+                        this._setStatus('Wajah hilang', 'warning');
+                        this._setInstruction('Posisikan wajah kembali di dalam bingkai oval.');
+                        this._setOvalGuideState('searching');
+                        this._setProgress(30);
                     }
                     return;
                 }
-
                 this.consecutiveNoFace = 0;
-                this.setOvalGuideState('liveness');
-                this.setStatus('Uji Liveness: Silakan Berkedip', 'purple');
-                this.setInstruction('Kedipkan mata Anda sekali secara alami untuk verifikasi keamanan...');
-                this.setProgress(60);
 
-                const landmarks = singleDetection.landmarks;
-                const leftEAR = this.calculateEAR(landmarks.getLeftEye());
-                const rightEAR = this.calculateEAR(landmarks.getRightEye());
-                const currentEAR = (leftEAR + rightEAR) / 2.0;
+                const yaw = this._calculateYaw(result.landmarks);
+                const isTurnDetected = (yaw.direction === 'left' || yaw.direction === 'right' || yaw.turnDelta >= this.YAW_TURN_DELTA);
 
-                // Kalibrasi dinamis baseline EAR mata terbuka
-                if (this.earSamples.length < 4) {
-                    this.earSamples.push(currentEAR);
-                    this.baselineEAR = this.earSamples.reduce((a, b) => a + b, 0) / this.earSamples.length;
-                }
-
-                const blinkClosedThreshold = this.baselineEAR * 0.74;
-                const blinkOpenThreshold = this.baselineEAR * 0.88;
-
-                if (currentEAR < blinkClosedThreshold && this.blinkState === 'open') {
-                    this.blinkState = 'closed';
-                    this.log(`Blink down: EAR ${currentEAR.toFixed(3)} < ${blinkClosedThreshold.toFixed(3)}`);
-                } else if (currentEAR > blinkOpenThreshold && this.blinkState === 'closed') {
-                    this.blinkState = 'open';
-                    this.blinkCount += 1;
-                    this.log(`Blink confirmed! Total blinks: ${this.blinkCount}`);
-                }
-
-                if (this.blinkCount >= 1) {
+                if (isTurnDetected) {
+                    // Gerakan kepala valid terkonfirmasi!
                     this.livenessPassed = true;
                     this.perf.livenessCompleteMs = Math.round(performance.now() - this.perf.startTime);
-                    this.log(`Liveness Verified in ${this.perf.livenessCompleteMs}ms`);
+                    this._log(`✓ Head Turn CONFIRMED (${yaw.direction.toUpperCase()}, Yaw=${yaw.ratio.toFixed(3)}, Delta=${yaw.turnDelta.toFixed(3)}) in ${this.perf.livenessCompleteMs}ms`);
 
-                    this.setStatus('Liveness Terverifikasi!', 'success');
-                    this.setInstruction('Pertahankan posisi wajah, sedang merekam biometrik...');
-                    this.setOvalGuideState('success');
-                    this.setProgress(75);
+                    this._setStatus('Gerakan Terdeteksi! ✓', 'success');
+                    this._setInstruction('Gerakan terverifikasi. Merekam data biometrik...');
+                    this._setOvalGuideState('success');
+                    this._setProgress(75);
 
-                    this.currentStage = this.STAGE.SAMPLING;
+                    // LANGSUNG masuk Stage 3: SAMPLING tanpa jeda
+                    this.currentStage = TokobiiFaceVerification.STAGE.SAMPLING;
+                    this.collectedDescriptors = [];
+                } else {
+                    const elapsed = performance.now() - this.livenessStartTime;
+                    if (elapsed > 5000 && elapsed <= 10000) {
+                        this._setInstruction('Putar kepala Anda ke kiri atau kanan sedikit...');
+                    }
                 }
                 return;
             }
 
-            // =========================================================================
-            // TAHAP 3: SAMPLING & RECOGNITION (Dijalankan HANYA setelah Liveness lolos)
-            // =========================================================================
-            if (this.currentStage === this.STAGE.SAMPLING) {
-                const sampleResult = await faceapi.detectSingleFace(this.video, this.detectorOptions)
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // STAGE 3: SAMPLING — Instant 128-D Descriptors (~35ms)
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            if (this.currentStage === TokobiiFaceVerification.STAGE.SAMPLING) {
+                const sampleResult = await faceapi
+                    .detectSingleFace(this.video, this.detectorOptions)
                     .withFaceLandmarks()
                     .withFaceDescriptor();
 
-                if (sampleResult && sampleResult.descriptor) {
+                if (sampleResult?.descriptor) {
                     this.collectedDescriptors.push(Array.from(sampleResult.descriptor));
-                    const progressVal = 75 + (this.collectedDescriptors.length * 8);
-                    this.setProgress(progressVal);
-                    this.setStatus('Merekam Fitur Biometrik...', 'info');
-                    this.setInstruction(`Merekam sampel ${this.collectedDescriptors.length} dari ${this.targetSamples}...`);
+                    const currentCount = this.collectedDescriptors.length;
+                    const pct = 75 + Math.round((currentCount / this.targetSamples) * 20);
+                    this._setProgress(pct);
+                    this._setStatus('Merekam Biometrik...', 'info');
+                    this._setInstruction(`Mengambil sampel ${currentCount}/${this.targetSamples}...`);
+                    this._log(`Sample ${currentCount}/${this.targetSamples} captured`);
+                } else {
+                    this._log('Sampling frame skipped (realigning)');
                 }
 
                 if (this.collectedDescriptors.length >= this.targetSamples) {
-                    this.currentStage = this.STAGE.SUBMITTING;
-                    this.setProgress(100);
-                    this.setStatus('Memproses ke Server...', 'info');
-                    this.setInstruction('Sedang melakukan verifikasi biometrik dengan server Tokobii...');
+                    const avgDescriptor = this._averageDescriptors(this.collectedDescriptors);
 
-                    // Hitung rata-rata vektor 128-D
-                    const finalVector = new Array(128).fill(0);
-                    const count = this.collectedDescriptors.length;
+                    this.currentStage = TokobiiFaceVerification.STAGE.SUBMITTING;
+                    this._setProgress(98);
+                    this._setStatus('Mengirim ke Server...', 'info');
+                    this._setInstruction('Memproses verifikasi biometrik...');
 
-                    for (let i = 0; i < 128; i++) {
-                        let sum = 0;
-                        for (let s = 0; s < count; s++) {
-                            sum += this.collectedDescriptors[s][i];
-                        }
-                        finalVector[i] = sum / count;
-                    }
-
-                    await this.submitBiometric(finalVector);
+                    await this._submitBiometric(avgDescriptor);
                 }
             }
 
         } catch (err) {
-            console.error('Frame processing error:', err);
+            this._log('Frame processing error:', err);
         } finally {
-            const frameDuration = Math.round(performance.now() - frameStartT);
+            const frameMs = Math.round(performance.now() - t0);
             this.perf.inferenceCount++;
-            this.perf.totalInferenceMs += frameDuration;
-            this.perf.avgInferenceMs = Math.round(this.perf.totalInferenceMs / this.perf.inferenceCount);
+            this.perf.totalInferenceMs += frameMs;
             this.isDetecting = false;
         }
     }
 
-    async submitBiometric(descriptorVector) {
+    // ═══════════════════════════════════════════════════════════════════
+    //  HEAD POSE / YAW ESTIMATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Hitung rasio Yaw (arah hadap horizontal wajah) menggunakan landmark 68-titik.
+     *
+     * Titik referensi:
+     * - Landmark 0  : Kontur pipi/rahang paling kiri
+     * - Landmark 16 : Kontur pipi/rahang paling kanan
+     * - Landmark 30 : Ujung hidung (nose tip)
+     *
+     * Rasio Yaw = d_left / (d_left + d_right)
+     * - Wajah lurus (Center) : ~0.46 - 0.54
+     * - Nengok Kiri / Kanan  : <= 0.39 atau >= 0.61 (perubahan delta >= 0.11)
+     */
+    _calculateYaw(landmarks) {
+        if (!landmarks || !landmarks.positions || landmarks.positions.length < 31) {
+            return { ratio: 0.5, isCentered: true, direction: 'center', turnDelta: 0 };
+        }
+
+        const pos = landmarks.positions;
+        const leftCheek  = pos[0];   // Titik paling kiri kontur wajah
+        const rightCheek = pos[16];  // Titik paling kanan kontur wajah
+        const noseTip    = pos[30];  // Ujung hidung
+
+        const distLeft  = Math.abs(noseTip.x - leftCheek.x);
+        const distRight = Math.abs(noseTip.x - rightCheek.x);
+        const totalSpan = distLeft + distRight;
+
+        if (totalSpan < 1) {
+            return { ratio: 0.5, isCentered: true, direction: 'center', turnDelta: 0 };
+        }
+
+        const ratio = distLeft / totalSpan;
+        const turnDelta = Math.abs(ratio - this.centerBaselineYaw);
+
+        // Klasifikasi arah hadap
+        let direction = 'center';
+        if (ratio <= this.YAW_LEFT_THRESHOLD || (this.centerBaselineYaw - ratio) >= this.YAW_TURN_DELTA) {
+            direction = 'left';
+        } else if (ratio >= this.YAW_RIGHT_THRESHOLD || (ratio - this.centerBaselineYaw) >= this.YAW_TURN_DELTA) {
+            direction = 'right';
+        }
+
+        // Posisi lurus jika rasio seimbang di rentang 0.44 - 0.56
+        const isCentered = ratio >= 0.44 && ratio <= 0.56;
+
+        return { ratio, isCentered, direction, turnDelta };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  GEOMETRY VALIDATION (face position inside oval)
+    // ═══════════════════════════════════════════════════════════════════
+
+    _evaluateGeometry(box, videoW, videoH) {
+        const relW       = box.width / videoW;
+        const relCenterX = (box.x + box.width / 2) / videoW;
+        const relCenterY = (box.y + box.height / 2) / videoH;
+
+        if (relW < 0.15) return { valid: false, message: 'Dekatkan wajah sedikit ke kamera.', state: 'warning' };
+        if (relW > 0.78) return { valid: false, message: 'Jauhkan wajah sedikit dari kamera.', state: 'warning' };
+        if (relCenterX < 0.22) return { valid: false, message: 'Geser posisi wajah sedikit ke kanan.', state: 'warning' };
+        if (relCenterX > 0.78) return { valid: false, message: 'Geser posisi wajah sedikit ke kiri.', state: 'warning' };
+        if (relCenterY < 0.15) return { valid: false, message: 'Turunkan posisi wajah sedikit.', state: 'warning' };
+        if (relCenterY > 0.85) return { valid: false, message: 'Naikkan posisi wajah sedikit.', state: 'warning' };
+
+        return { valid: true, message: 'Posisi wajah tepat.', state: 'success' };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  DESCRIPTOR AVERAGING
+    // ═══════════════════════════════════════════════════════════════════
+
+    _averageDescriptors(descriptors) {
+        const dim = 128;
+        const count = descriptors.length;
+        const avg = new Array(dim);
+
+        for (let i = 0; i < dim; i++) {
+            let sum = 0;
+            for (let s = 0; s < count; s++) {
+                sum += descriptors[s][i];
+            }
+            avg[i] = sum / count;
+        }
+
+        return avg;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  BIOMETRIC SUBMISSION
+    // ═══════════════════════════════════════════════════════════════════
+
+    async _submitBiometric(descriptor) {
         if (this.config.mode === 'enroll') {
-            await this.submitEnrollment(descriptorVector);
+            await this._submitEnrollment(descriptor);
         } else {
-            await this.submitVerification(descriptorVector);
+            await this._submitVerification(descriptor);
         }
     }
 
-    async submitVerification(descriptorVector) {
+    async _submitVerification(descriptor) {
         try {
-            const response = await fetch(this.config.verifyUrl, {
+            const res = await fetch(this.config.verifyUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': this.config.csrfToken,
                 },
-                body: JSON.stringify({
-                    descriptor: descriptorVector,
-                }),
+                body: JSON.stringify({ descriptor }),
             });
 
-            const data = await response.json();
+            const data = await res.json();
             this.perf.totalVerificationMs = Math.round(performance.now() - this.perf.startTime);
 
-            if (response.ok && data.success) {
-                this.setStatus('Verifikasi Berhasil!', 'success');
-                this.setInstruction('Autentikasi biometrik berhasil. Mengarahkan ke dashboard...');
-                this.setOvalGuideState('success');
-                this.stop();
-
-                this.log('Performance Summary:', {
-                    modelLoad: `${this.perf.modelLoadMs}ms`,
-                    cameraStartup: `${this.perf.cameraStartupMs}ms`,
-                    firstDetection: `${this.perf.firstDetectionMs}ms`,
-                    livenessComplete: `${this.perf.livenessCompleteMs}ms`,
-                    totalVerification: `${this.perf.totalVerificationMs}ms`,
-                    avgInference: `${this.perf.avgInferenceMs}ms`,
-                });
-
-                if (typeof this.config.onSuccess === 'function') {
-                    this.config.onSuccess(data);
-                } else if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                }
+            if (res.ok && data.success) {
+                this._onVerifySuccess(data);
             } else {
-                this.setStatus(data.message || 'Verifikasi wajah gagal.', 'danger');
-                this.setInstruction(data.message || 'Wajah tidak cocok dengan data biometrik akun ini.');
-                this.setOvalGuideState('danger');
-                this.stop();
-                if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
-
-                if (typeof this.config.onError === 'function') {
-                    this.config.onError(data);
-                }
+                this._onVerifyFail(data);
             }
         } catch (err) {
-            console.error('Submit verification error:', err);
-            this.setStatus('Kesalahan Jaringan', 'danger');
-            this.setInstruction('Gagal menghubungi server Tokobii. Silakan coba lagi.');
-            this.setOvalGuideState('danger');
-            this.stop();
-            if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+            this._log('Network error:', err);
+            this._onNetworkError();
         }
     }
 
-    async submitEnrollment(descriptorVector) {
+    async _submitEnrollment(descriptor) {
         const passwordInput = document.getElementById('enrollPassword');
-        const password = passwordInput ? passwordInput.value : '';
+        const password = passwordInput?.value || '';
 
         if (!password) {
-            this.setStatus('Kata Sandi Diperlukan', 'danger');
-            this.setInstruction('Masukkan kata sandi akun Anda pada formulir untuk menyelesaikan pendaftaran.');
-            this.setOvalGuideState('danger');
-            this.currentStage = this.STAGE.FINISHED;
+            this._setStatus('Kata Sandi Diperlukan', 'danger');
+            this._setInstruction('Masukkan kata sandi akun Anda untuk menyelesaikan pendaftaran.');
+            this._setOvalGuideState('danger');
+            this.currentStage = TokobiiFaceVerification.STAGE.FINISHED;
             return;
         }
 
         try {
-            const response = await fetch(this.config.enrollUrl, {
+            const res = await fetch(this.config.enrollUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': this.config.csrfToken,
                 },
-                body: JSON.stringify({
-                    password: password,
-                    descriptor: descriptorVector,
-                }),
+                body: JSON.stringify({ password, descriptor }),
             });
 
-            const data = await response.json();
+            const data = await res.json();
 
-            if (response.ok && data.success) {
-                this.setStatus('Pendaftaran Berhasil!', 'success');
-                this.setInstruction(data.message || 'Data biometrik wajah Anda berhasil didaftarkan.');
-                this.setOvalGuideState('success');
+            if (res.ok && data.success) {
+                this._setStatus('Pendaftaran Berhasil! ✓', 'success');
+                this._setInstruction(data.message || 'Data biometrik wajah berhasil didaftarkan.');
+                this._setOvalGuideState('success');
+                this._setProgress(100);
                 this.stop();
 
                 if (typeof this.config.onSuccess === 'function') {
@@ -717,9 +662,9 @@ class TokobiiFaceVerification {
                     setTimeout(() => window.location.reload(), 1200);
                 }
             } else {
-                this.setStatus(data.message || 'Pendaftaran biometrik gagal.', 'danger');
-                this.setInstruction(data.message || 'Gagal mendaftarkan biometrik wajah.');
-                this.setOvalGuideState('danger');
+                this._setStatus(data.message || 'Pendaftaran gagal.', 'danger');
+                this._setInstruction(data.message || 'Gagal mendaftarkan biometrik.');
+                this._setOvalGuideState('danger');
                 this.stop();
                 if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
 
@@ -728,12 +673,153 @@ class TokobiiFaceVerification {
                 }
             }
         } catch (err) {
-            console.error('Submit enrollment error:', err);
-            this.setStatus('Kesalahan Jaringan', 'danger');
-            this.setInstruction('Gagal menghubungi server Tokobii. Silakan coba lagi.');
-            this.setOvalGuideState('danger');
-            this.stop();
-            if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+            this._log('Enrollment network error:', err);
+            this._onNetworkError();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  RESULT HANDLERS
+    // ═══════════════════════════════════════════════════════════════════
+
+    _onVerifySuccess(data) {
+        this._setStatus('Verifikasi Berhasil! ✓', 'success');
+        this._setInstruction('Autentikasi biometrik berhasil. Mengarahkan ke dashboard...');
+        this._setOvalGuideState('success');
+        this._setProgress(100);
+        this.stop();
+
+        this._log('Performance Summary:', {
+            modelLoad:      `${this.perf.modelLoadMs}ms`,
+            cameraStartup:  `${this.perf.cameraStartupMs}ms`,
+            firstDetection: `${this.perf.firstDetectionMs}ms`,
+            livenessTotal:  `${this.perf.livenessCompleteMs}ms`,
+            totalFlow:      `${this.perf.totalVerificationMs}ms`,
+            avgInference:   `${Math.round(this.perf.totalInferenceMs / Math.max(1, this.perf.inferenceCount))}ms`,
+        });
+
+        if (typeof this.config.onSuccess === 'function') {
+            this.config.onSuccess(data);
+        } else if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+    }
+
+    _onVerifyFail(data) {
+        this._setStatus(data.message || 'Verifikasi wajah gagal.', 'danger');
+        this._setInstruction(data.message || 'Wajah tidak cocok dengan data biometrik akun ini.');
+        this._setOvalGuideState('danger');
+        this.stop();
+        if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+
+        if (typeof this.config.onError === 'function') {
+            this.config.onError(data);
+        }
+    }
+
+    _onNetworkError() {
+        this._setStatus('Kesalahan Jaringan', 'danger');
+        this._setInstruction('Gagal menghubungi server. Silakan coba lagi.');
+        this._setOvalGuideState('danger');
+        this.stop();
+        if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  LIFECYCLE CONTROLS
+    // ═══════════════════════════════════════════════════════════════════
+
+    stop() {
+        this.isStopped = true;
+        this.currentStage = TokobiiFaceVerification.STAGE.FINISHED;
+        this._stopCameraStream();
+    }
+
+    restart() {
+        this.stop();
+
+        this.isDetecting           = false;
+        this.livenessPassed        = false;
+        this.consecutiveDetections = 0;
+        this.consecutiveNoFace     = 0;
+        this.centerBaselineYaw     = 0.50;
+        this.collectedDescriptors  = [];
+        this.perf                  = this._createPerfObject();
+
+        this._setProgress(0);
+        if (this.retryBtn) this.retryBtn.style.display = 'none';
+
+        this.isStopped = false;
+        this.currentStage = TokobiiFaceVerification.STAGE.SEARCHING;
+        this._setStatus('Mencari wajah...', 'info');
+        this._setInstruction('Posisikan wajah Anda lurus di dalam bingkai oval.');
+        this._setOvalGuideState('searching');
+        this._setProgress(30);
+
+        this._setupCamera().then(() => {
+            this._scheduleNextLoop();
+        }).catch(() => {});
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  UI HELPERS
+    // ═══════════════════════════════════════════════════════════════════
+
+    _setStatus(text, type = 'info') {
+        if (!this.statusEl) return;
+        const colors = {
+            info:    'bg-blue-50 text-blue-700 border-blue-200',
+            success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            warning: 'bg-amber-50 text-amber-700 border-amber-200',
+            danger:  'bg-rose-50 text-rose-700 border-rose-200',
+            purple:  'bg-purple-50 text-purple-700 border-purple-200',
+        };
+        this.statusEl.className = `tokobii-badge ${colors[type] || colors.info} px-3 py-1.5 small fw-semibold border shadow-sm`;
+        this.statusEl.innerHTML = text;
+    }
+
+    _setInstruction(text) {
+        if (this.instructionEl) this.instructionEl.textContent = text;
+    }
+
+    _setProgress(pct) {
+        if (this.progressBar) this.progressBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+    }
+
+    _setOvalGuideState(state) {
+        if (!this.ovalGuide) return;
+        const styles = {
+            searching: { color: 'rgba(59,130,246,0.8)',   style: 'dashed', glow: '' },
+            success:   { color: 'rgba(16,185,129,0.95)',   style: 'solid',  glow: '0 0 20px rgba(16,185,129,0.5),' },
+            warning:   { color: 'rgba(245,158,11,0.95)',   style: 'dashed', glow: '0 0 10px rgba(245,158,11,0.3),' },
+            danger:    { color: 'rgba(244,63,94,0.95)',     style: 'dashed', glow: '0 0 10px rgba(244,63,94,0.3),' },
+            liveness:  { color: 'rgba(147,51,234,0.95)',   style: 'solid',  glow: '0 0 15px rgba(147,51,234,0.4),' },
+        };
+        const s = styles[state] || styles.searching;
+        this.ovalGuide.style.borderColor = s.color;
+        this.ovalGuide.style.borderStyle = s.style;
+        this.ovalGuide.style.boxShadow = `${s.glow} 0 0 0 9999px rgba(15,23,42,0.55)`;
+    }
+
+    _createPerfObject() {
+        return {
+            startTime:          performance.now(),
+            modelLoadMs:        0,
+            cameraStartupMs:    0,
+            firstDetectionMs:   0,
+            livenessCompleteMs: 0,
+            totalVerificationMs:0,
+            inferenceCount:     0,
+            totalInferenceMs:   0,
+        };
+    }
+
+    _log(message, data = null) {
+        if (!this.config.debug) return;
+        if (data !== null) {
+            console.log(`[TokobiiFace] ${message}`, data);
+        } else {
+            console.log(`[TokobiiFace] ${message}`);
         }
     }
 }

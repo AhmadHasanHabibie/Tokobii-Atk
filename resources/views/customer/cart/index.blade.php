@@ -4,36 +4,7 @@
 
 @section('content')
 
-{{-- Custom Tokobii Confirmation Modal --}}
-<style>
-    .tokobii-confirm-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(15, 23, 42, 0.5);
-        backdrop-filter: blur(4px);
-    }
-    .tokobii-confirm-overlay.show {
-        display: flex;
-    }
-    .tokobii-confirm-modal {
-        width: 100%;
-        max-width: 420px;
-        background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
-        overflow: hidden;
-        transform: translateY(10px);
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tokobii-confirm-overlay.show .tokobii-confirm-modal {
-        transform: translateY(0);
-    }
-</style>
+
 
 <div class="container-fluid px-0">
 
@@ -256,7 +227,12 @@
         document.getElementById('confirmModalTitle').innerText = 'Kosongkan Semua Keranjang?';
         document.getElementById('confirmModalText').innerText = 'Semua produk di dalam keranjang belanja Anda akan dihapus sekaligus.';
         document.getElementById('confirmCartBtnText').innerText = 'Ya, Kosongkan';
-        document.getElementById('confirmModalOverlay').classList.add('show');
+        if (window.openTokobiiModal) {
+            window.openTokobiiModal('confirmModalOverlay');
+        } else {
+            document.getElementById('confirmModalOverlay').classList.add('show');
+            document.body.classList.add('modal-open', 'tokobii-modal-open');
+        }
         return false;
     }
 
@@ -266,12 +242,22 @@
         document.getElementById('confirmModalTitle').innerText = 'Hapus Produk dari Keranjang?';
         document.getElementById('confirmModalText').innerText = 'Produk "' + productName + '" akan dikeluarkan dari keranjang belanja Anda.';
         document.getElementById('confirmCartBtnText').innerText = 'Ya, Hapus';
-        document.getElementById('confirmModalOverlay').classList.add('show');
+        if (window.openTokobiiModal) {
+            window.openTokobiiModal('confirmModalOverlay');
+        } else {
+            document.getElementById('confirmModalOverlay').classList.add('show');
+            document.body.classList.add('modal-open', 'tokobii-modal-open');
+        }
         return false;
     }
 
     function closeConfirmModal() {
-        document.getElementById('confirmModalOverlay').classList.remove('show');
+        if (window.closeTokobiiModal) {
+            window.closeTokobiiModal('confirmModalOverlay');
+        } else {
+            document.getElementById('confirmModalOverlay').classList.remove('show');
+            document.body.classList.remove('modal-open', 'tokobii-modal-open');
+        }
         activeForm = null;
     }
 

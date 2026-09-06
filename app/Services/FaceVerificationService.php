@@ -14,7 +14,7 @@ class FaceVerificationService
      * Distance <= 0.48 represents the exact same person.
      * Distance > 0.48 represents a different person or mismatch.
      */
-    public const MATCH_THRESHOLD = 0.48;
+    public const MATCH_THRESHOLD = 0.45;
 
     /**
      * Maximum allowed failed face verification attempts before lockout.
