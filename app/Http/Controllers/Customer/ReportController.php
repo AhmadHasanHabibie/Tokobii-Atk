@@ -82,6 +82,49 @@ class ReportController extends Controller
             ->with('success', 'Laporan produk berhasil dikirim dan menunggu balasan Admin.');
     }
 
+    /**
+     * Kirim balasan pelanggan terhadap tanggapan admin.
+     */
+    public function reply(Request $request, Report $report): RedirectResponse
+    {
+        abort_unless($report->user_id === auth()->id(), 403, 'Akses tidak sah.');
+
+        $data = $request->validate([
+            'reply' => 'required|string|max:2000',
+        ], [
+            'reply.required' => 'Pesan balasan wajib diisi.',
+            'reply.string'   => 'Pesan balasan harus berupa teks.',
+            'reply.max'      => 'Pesan balasan maksimal 2000 karakter.',
+        ]);
+
+        $updatedDescription = $report->description 
+            . "\n\n--- Balasan Pelanggan (" . now()->format('d M Y, H:i') . " WIB) ---\n" 
+            . trim($data['reply']);
+
+        $report->update([
+            'description' => $updatedDescription,
+            'status'      => 'pending',
+        ]);
+
+        return redirect()->route('customer.reports.index')
+            ->with('success', 'Balasan Anda berhasil dikirim ke Admin.');
+    }
+
+    /**
+     * Selesaikan laporan masalah oleh pelanggan.
+     */
+    public function resolve(Report $report): RedirectResponse
+    {
+        abort_unless($report->user_id === auth()->id(), 403, 'Akses tidak sah.');
+
+        $report->update([
+            'status' => 'resolved',
+        ]);
+
+        return redirect()->route('customer.reports.index')
+            ->with('success', 'Laporan masalah berhasil diselesaikan.');
+    }
+
     private function authorizeItem(Order $order, OrderItem $item): void
     {
         abort_unless($order->user_id === auth()->id(), 403);

@@ -588,149 +588,206 @@ body.tokobii-modal-open {
 }
 
 /* ============================================================
-   BUTTONS
+   BUTTONS (GLOBAL PERFECT ALIGNMENT & TYPOGRAPHY)
    ============================================================ */
+.btn,
+a.btn,
+button.btn,
+input[type="submit"].btn,
+.btn-tokobii-primary,
+.btn-tokobii-secondary,
+.btn-tokobii-danger,
+.btn-tokobii-success,
+.btn-tokobii-warning,
+.btn-tokobii-sm,
+.btn-tokobii-lg {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.45rem !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    line-height: 1.25 !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure icons inside all buttons are vertically centered and never cause stacking */
+.btn svg,
+a.btn svg,
+button.btn svg,
+.btn-tokobii-primary svg,
+.btn-tokobii-secondary svg,
+.btn-tokobii-danger svg,
+.btn-tokobii-success svg,
+.btn-tokobii-warning svg {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-self: center !important;
+}
+
+/* Ensure text spans inside all buttons are vertically centered and aligned */
+.btn span,
+a.btn span,
+button.btn span,
+.btn-tokobii-primary span,
+.btn-tokobii-secondary span,
+.btn-tokobii-danger span,
+.btn-tokobii-success span,
+.btn-tokobii-warning span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
 .btn-tokobii-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: #ffffff;
-    border: 1px solid transparent;
-    border-radius: var(--tokobii-radius-sm);
-    padding: 0.575rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: var(--tokobii-transition-fast);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30), 0 1px 2px rgba(37, 99, 235, 0.15);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
-    letter-spacing: 0.01em;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    padding: 0.55rem 1.25rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.30), 0 1px 2px rgba(37, 99, 235, 0.15) !important;
+    cursor: pointer !important;
+    letter-spacing: 0.01em !important;
 }
 .btn-tokobii-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.40), 0 2px 4px rgba(37, 99, 235, 0.20);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.40), 0 2px 4px rgba(37, 99, 235, 0.20) !important;
 }
 .btn-tokobii-primary:active {
-    transform: translateY(0) scale(0.97);
-    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.20);
+    transform: translateY(0) scale(0.97) !important;
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.20) !important;
 }
 
 .btn-tokobii-secondary {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    color: #334155;
-    border: 1.5px solid #cbd5e1;
-    border-radius: var(--tokobii-radius-sm);
-    padding: 0.575rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: var(--tokobii-transition-fast);
-    box-shadow: var(--tokobii-shadow-xs);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+    color: #1d4ed8 !important;
+    border: 1.5px solid #bfdbfe !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    padding: 0.55rem 1.25rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08) !important;
+    cursor: pointer !important;
+}
+.btn-tokobii-secondary svg {
+    color: #2563eb !important;
+    transition: var(--tokobii-transition-fast) !important;
 }
 .btn-tokobii-secondary:hover {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    color: #0f172a;
-    border-color: #94a3b8;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.10);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35) !important;
+}
+.btn-tokobii-secondary:hover svg {
+    color: #ffffff !important;
 }
 .btn-tokobii-secondary:active {
-    transform: translateY(0) scale(0.97);
+    transform: translateY(0) scale(0.97) !important;
+    background: #1e40af !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-secondary {
+    color: #1d4ed8 !important;
+    border-color: #bfdbfe !important;
+    background-color: #eff6ff !important;
+}
+.btn-outline-secondary:hover {
+    color: #ffffff !important;
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
 }
 
 .btn-tokobii-danger {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-    color: #ffffff;
-    border: 1px solid transparent;
-    border-radius: var(--tokobii-radius-sm);
-    padding: 0.575rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: var(--tokobii-transition-fast);
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.28);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    padding: 0.55rem 1.25rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.28) !important;
+    cursor: pointer !important;
 }
 .btn-tokobii-danger:hover {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.38);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.38) !important;
 }
-.btn-tokobii-danger:active { transform: translateY(0) scale(0.97); }
+.btn-tokobii-danger:active { transform: translateY(0) scale(0.97) !important; }
 
 .btn-tokobii-success {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-    color: #ffffff;
-    border: 1px solid transparent;
-    border-radius: var(--tokobii-radius-sm);
-    padding: 0.575rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: var(--tokobii-transition-fast);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    padding: 0.55rem 1.25rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28) !important;
+    cursor: pointer !important;
 }
 .btn-tokobii-success:hover {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.38);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.38) !important;
 }
-.btn-tokobii-success:active { transform: translateY(0) scale(0.97); }
+.btn-tokobii-success:active { transform: translateY(0) scale(0.97) !important; }
 
 .btn-tokobii-warning {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: #ffffff;
-    border: 1px solid transparent;
-    border-radius: var(--tokobii-radius-sm);
-    padding: 0.575rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: var(--tokobii-transition-fast);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.28);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    padding: 0.55rem 1.25rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.28) !important;
+    cursor: pointer !important;
 }
 .btn-tokobii-warning:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.38);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.38) !important;
 }
-.btn-tokobii-warning:active { transform: translateY(0) scale(0.97); }
+.btn-tokobii-warning:active { transform: translateY(0) scale(0.97) !important; }
 
 .btn-tokobii-sm {
-    padding: 0.4rem 0.9rem;
-    font-size: 0.8125rem;
-    border-radius: 10px;
+    padding: 0.42rem 0.85rem !important;
+    font-size: 0.8125rem !important;
+    border-radius: 10px !important;
+    min-height: 34px !important;
 }
 .btn-tokobii-lg {
-    padding: 0.85rem 1.75rem;
-    font-size: 0.9375rem;
-    border-radius: 14px;
+    padding: 0.75rem 1.6rem !important;
+    font-size: 0.9375rem !important;
+    border-radius: 14px !important;
+    min-height: 44px !important;
 }
 
 /* ============================================================

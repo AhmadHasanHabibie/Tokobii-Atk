@@ -58,7 +58,7 @@
                     <span class="tokobii-badge tokobii-badge-neutral mb-2">
                         {{ $types[$report->report_type] ?? $report->report_type }}
                     </span>
-                    <p class="text-slate-700 small mb-0" style="line-height: 1.6;">
+                    <p class="text-slate-700 small mb-0" style="line-height: 1.6; white-space: pre-line;">
                         {{ $report->description }}
                     </p>
                 </div>
@@ -78,6 +78,60 @@
                         <span class="text-slate-400 font-monospace" style="font-size: 0.7rem;">
                             Dibalas oleh {{ $report->repliedBy?->name ?? 'Administrator' }} · {{ $report->replied_at ? $report->replied_at->format('d M Y, H:i') : '' }} WIB
                         </span>
+                    </div>
+                @endif
+
+                {{-- Customer Reply & Resolve Section --}}
+                @if($report->status === 'menunggu_balasan_customer' || $report->status === 'replied')
+                    <div class="mt-4 pt-3 border-top border-slate-100">
+                        {{-- Reply Form --}}
+                        <form method="POST" action="{{ route('customer.reports.reply', $report) }}" class="mb-3">
+                            @csrf
+                            <div class="mb-2.5">
+                                <label for="reply_{{ $report->id }}" class="form-label fw-semibold text-slate-700 small mb-1.5 d-flex align-items-center gap-1.5">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                                    </svg>
+                                    <span>Balas Tanggapan Admin</span>
+                                </label>
+                                <textarea
+                                    id="reply_{{ $report->id }}"
+                                    name="reply"
+                                    rows="3"
+                                    required
+                                    placeholder="Tulis tanggapan atau informasi tambahan untuk Admin..."
+                                    class="form-control tokobii-input w-100 @error('reply') is-invalid @enderror"
+                                    style="font-size: 0.875rem;"
+                                >{{ old('reply') }}</textarea>
+                                @error('reply')
+                                    <div class="invalid-feedback d-block text-rose-600 small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm shadow-sm d-inline-flex align-items-center gap-1.5">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                <span>Kirim Balasan</span>
+                            </button>
+                        </form>
+
+                        {{-- Resolve Action Box --}}
+                        <div class="p-3 bg-emerald-50 rounded-3 border border-emerald-200 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2.5">
+                            <div class="small text-emerald-900">
+                                <strong class="d-block">Kendala Anda sudah terselesaikan?</strong>
+                                <span class="text-emerald-700">Klik tombol di samping jika kendala telah beres dan ingin menutup laporan ini.</span>
+                            </div>
+                            <form method="POST" action="{{ route('customer.reports.resolve', $report) }}" onsubmit="return confirm('Apakah Anda yakin kendala ini sudah tuntas dan ingin menyelesaikan laporan?')">
+                                @csrf
+                                <button type="submit" class="btn btn-tokobii-success btn-tokobii-sm text-nowrap d-inline-flex align-items-center gap-1.5">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span>Selesaikan Laporan</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @endif
             </div>

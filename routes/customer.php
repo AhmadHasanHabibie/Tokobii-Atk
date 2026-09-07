@@ -110,6 +110,8 @@ Route::middleware(['auth', 'verified', 'customer'])
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/orders/{order}/items/{item}/report', [ReportController::class, 'create'])->name('orders.reports.create');
         Route::post('/orders/{order}/items/{item}/report', [ReportController::class, 'store'])->name('orders.reports.store');
+        Route::post('/reports/{report}/reply', [ReportController::class, 'reply'])->name('reports.reply');
+        Route::post('/reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
 
         /*
         |--------------------------------------------------------------------------

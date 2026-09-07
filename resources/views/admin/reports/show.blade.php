@@ -77,7 +77,7 @@
 
                     <div class="border-top border-slate-100 pt-3">
                         <h6 class="fw-bold text-slate-900 mb-2" style="font-size: 0.9375rem;">Deskripsi Keluhan Pelanggan:</h6>
-                        <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-slate-700" style="font-size: 0.875rem; line-height: 1.6;">
+                        <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-slate-700" style="font-size: 0.875rem; line-height: 1.6; white-space: pre-line;">
                             {{ $report->description }}
                         </div>
                     </div>

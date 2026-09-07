@@ -43,7 +43,7 @@
                     </div>
                 </div>
 
-                <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-slate-700 small mb-3" style="line-height: 1.6;">
+                <div class="p-3 bg-blue-50/50 rounded-3 border border-blue-100 text-slate-800 small mb-3" style="line-height: 1.6;">
                     {{ $review->comment }}
                 </div>
 
