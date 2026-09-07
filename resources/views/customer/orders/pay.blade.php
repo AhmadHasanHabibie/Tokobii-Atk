@@ -52,12 +52,22 @@
 
                     {{-- QR Code Display --}}
                     <div class="mb-4">
-                        <div class="d-inline-block bg-white p-3 border border-slate-200 rounded-3 shadow-sm mb-2">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=TOKOBII-QRIS-{{ urlencode($order->invoice_number) }}" 
-                                 alt="QRIS Tokobii Code {{ $order->invoice_number }}" 
-                                 class="img-fluid" style="width: 200px; height: 200px;">
+                        <div class="d-inline-block bg-white p-2.5 border border-slate-200 rounded-3 shadow-sm mb-2">
+                            <a href="{{ asset('images/Qr_Pembayaran.jpeg') }}" target="_blank" title="Klik untuk memperbesar QRIS">
+                                <img src="{{ asset('images/Qr_Pembayaran.jpeg') }}" 
+                                     alt="QRIS Tokobii Code {{ $order->invoice_number }}" 
+                                     class="img-fluid rounded-2" style="max-width: 270px; width: 100%; height: auto;">
+                            </a>
                         </div>
-                        <span class="d-block text-slate-400 small">NMID: ID1029384756102 - TOKOBII OFFICIAL STORE</span>
+                        <div class="d-flex justify-content-center gap-2 mt-2 mb-2">
+                            <a href="{{ asset('images/Qr_Pembayaran.jpeg') }}" target="_blank" download="QRIS-Tokobii-{{ $order->invoice_number }}.jpeg" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                <span>Unduh / Buka QRIS Penuh</span>
+                            </a>
+                        </div>
+                        <span class="d-block text-slate-500 font-monospace small">NMID: ID1026585888914 · TOKOBII, ALAT TULIS KANTOR</span>
                     </div>
 
                     {{-- Payment Steps Card --}}

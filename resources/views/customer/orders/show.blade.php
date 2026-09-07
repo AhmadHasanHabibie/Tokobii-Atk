@@ -162,6 +162,65 @@
                 </div>
             </div>
 
+            {{-- QRIS Store Payment Card (Only for Non-Tunai / QRIS) --}}
+            @if($order->payment_method === 'qris')
+                <div class="tokobii-card mb-4 overflow-hidden">
+                    <div class="tokobii-card-header d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                            </svg>
+                            <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">QRIS Pembayaran Toko</h5>
+                        </div>
+                        <span class="tokobii-badge tokobii-badge-info">QRIS Resmi Tokobii</span>
+                    </div>
+                    <div class="p-4 text-center">
+                        <div class="mb-3">
+                            <span class="text-slate-500 small d-block mb-1">Total Tagihan:</span>
+                            <h3 class="fw-bold text-blue-600 font-monospace mb-1" style="color: #2563eb;">
+                                Rp {{ number_format($order->grand_total, 0, ',', '.') }}
+                            </h3>
+                            <span class="text-slate-500 font-monospace small" style="font-size: 0.75rem;">NMID: ID1026585888914 · TOKOBII, ALAT TULIS KANTOR</span>
+                        </div>
+
+                        {{-- Static Official QRIS Standee Image --}}
+                        <div class="p-2 bg-white border border-slate-200 rounded-3 d-inline-block shadow-sm mb-3">
+                            <a href="{{ asset('images/Qr_Pembayaran.jpeg') }}" target="_blank" title="Klik untuk memperbesar gambar QRIS">
+                                <img src="{{ asset('images/Qr_Pembayaran.jpeg') }}" 
+                                     alt="QRIS Tokobii Official" 
+                                     class="img-fluid rounded-2" 
+                                     style="max-width: 250px; width: 100%; height: auto; object-fit: contain;">
+                            </a>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <a href="{{ asset('images/Qr_Pembayaran.jpeg') }}" target="_blank" download="QRIS-Tokobii-{{ $order->invoice_number }}.jpeg" class="btn btn-tokobii-secondary btn-tokobii-sm">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                <span>Unduh / Buka QRIS Penuh</span>
+                            </a>
+                        </div>
+
+                        {{-- Instructions --}}
+                        <div class="p-3 bg-blue-50/60 border border-blue-100 rounded-3 text-start small text-slate-700">
+                            <div class="fw-bold text-blue-900 mb-1.5 d-flex align-items-center gap-1.5">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-blue-600">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Petunjuk Pembayaran QRIS:</span>
+                            </div>
+                            <ol class="mb-0 ps-3 text-slate-600" style="line-height: 1.6; font-size: 0.8125rem;">
+                                <li>Buka aplikasi Mobile Banking / E-Wallet Anda (BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay, dll.).</li>
+                                <li>Pindai / Scan QRIS Tokobii di atas.</li>
+                                <li>Pastikan nama merchant adalah <strong>TOKOBII, ALAT TULIS KANTOR</strong> dan nominal tepat <strong>Rp {{ number_format($order->grand_total, 0, ',', '.') }}</strong>.</li>
+                                <li>Simpan bukti transfer dan unggah pada formulir bukti transfer di bawah.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Pickup QR Code Card --}}
             <div class="tokobii-card p-4 text-center mb-4">
                 <h6 class="fw-bold text-slate-900 mb-2">Kode QR Struk Pengambilan</h6>
