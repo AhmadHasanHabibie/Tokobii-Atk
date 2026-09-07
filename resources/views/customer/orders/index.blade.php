@@ -50,27 +50,45 @@
                 </div>
             </div>
 
-            {{-- Status Filter --}}
-            <div class="col-12 col-sm-6 col-md-4">
-                <select name="status" class="form-select tokobii-select" aria-label="Filter Status" onchange="this.form.submit()">
-                    <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>Semua Status Pesanan</option>
-                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                    <option value="waiting_verification" {{ request('status') === 'waiting_verification' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-                    <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Sedang Diproses</option>
-                    <option value="ready_for_pickup" {{ request('status') === 'ready_for_pickup' ? 'selected' : '' }}>Siap Diambil</option>
-                    <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Selesai</option>
-                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Dibatalkan</option>
+            {{-- Custom Order Status Select --}}
+            @php
+                $statusLabels = [
+                    'all' => 'Semua Status Pesanan',
+                    'pending' => 'Menunggu Pembayaran',
+                    'waiting_verification' => 'Menunggu Verifikasi',
+                    'processing' => 'Sedang Diproses',
+                    'ready_for_pickup' => 'Siap Diambil',
+                    'completed' => 'Selesai',
+                    'rejected' => 'Dibatalkan',
+                ];
+                $currentStatusVal = request('status', 'all');
+            @endphp
+            <div class="col-12 col-sm-6 col-md-3">
+                <select name="status" class="form-select tokobii-select w-100" onchange="this.form.submit()" aria-label="Filter Status Pesanan">
+                    @foreach($statusLabels as $val => $lbl)
+                        <option value="{{ $val }}" {{ $currentStatusVal === $val ? 'selected' : '' }}>
+                            {{ $lbl }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
-            {{-- Submit Button --}}
-            <div class="col-12 col-sm-6 col-md-2">
-                <button type="submit" class="btn btn-tokobii-primary w-100" style="height: 42px;">
+            {{-- Actions --}}
+            <div class="col-12 col-sm-6 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-tokobii-primary flex-grow-1" style="height: 42px;">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     <span>Cari</span>
                 </button>
+                @if(request('search') || (request('status') && request('status') !== 'all'))
+                    <a href="{{ route('customer.orders.index') }}" class="btn btn-tokobii-secondary" style="height: 42px;" title="Reset Semua Filter">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Reset</span>
+                    </a>
+                @endif
             </div>
 
         </form>

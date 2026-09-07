@@ -67,6 +67,19 @@ body {
     }
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
+.hover-bg-blue-50:hover {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
 /* ============================================================
    KEYFRAME ANIMATIONS
    ============================================================ */
@@ -526,9 +539,9 @@ body.tokobii-modal-open {
 }
 
 /* ============================================================
-   FORM INPUTS
+   FORM INPUTS & SELECTS (100% Bespoke, No Raw Browser UI)
    ============================================================ */
-.tokobii-input, .tokobii-select {
+.tokobii-input {
     border-radius: var(--tokobii-radius-sm);
     border: 1.5px solid #cbd5e1;
     padding: 0.575rem 1rem;
@@ -546,7 +559,7 @@ body.tokobii-modal-open {
 .tokobii-input:hover {
     border-color: #94a3b8;
 }
-.tokobii-input:focus, .tokobii-select:focus {
+.tokobii-input:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), var(--tokobii-shadow-xs);
     outline: none;
@@ -554,6 +567,116 @@ body.tokobii-modal-open {
 .tokobii-input.is-invalid {
     border-color: #f43f5e;
     box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.10);
+}
+
+.tokobii-select,
+select.tokobii-select,
+select.form-select,
+select.form-control,
+select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border-radius: var(--tokobii-radius-sm) !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 0.55rem 2.5rem 0.55rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232563eb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.875rem center !important;
+    background-size: 16px 16px !important;
+    transition: var(--tokobii-transition-fast) !important;
+    box-shadow: var(--tokobii-shadow-xs) !important;
+    width: 100% !important;
+    height: 42px !important;
+    line-height: 1.5 !important;
+    cursor: pointer !important;
+}
+
+.tokobii-select:hover,
+select.tokobii-select:hover,
+select.form-select:hover,
+select.form-control:hover,
+select:hover {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05) !important;
+}
+
+.tokobii-select:focus,
+select.tokobii-select:focus,
+select.form-select:focus,
+select.form-control:focus,
+select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14), var(--tokobii-shadow-xs) !important;
+    outline: none !important;
+}
+
+.tokobii-select option,
+select.tokobii-select option,
+select.form-select option,
+select.form-control option,
+select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    padding: 10px 14px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+}
+
+/* Category Pill Navigation */
+.tokobii-category-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    padding: 0.5rem 1.125rem !important;
+    border-radius: 9999px !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: var(--tokobii-transition-fast) !important;
+    border: 1.5px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+}
+.tokobii-category-pill svg {
+    color: #94a3b8 !important;
+    transition: var(--tokobii-transition-fast) !important;
+}
+.tokobii-category-pill:hover {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+    color: #1d4ed8 !important;
+    border-color: #bfdbfe !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12) !important;
+}
+.tokobii-category-pill:hover svg {
+    color: #2563eb !important;
+}
+.tokobii-category-pill.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+.tokobii-category-pill.active svg {
+    color: #ffffff !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+}
+.no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
 }
 
 .form-label {

@@ -29,12 +29,35 @@
         </div>
     </div>
 
+    {{-- Category Quick Pills --}}
+    <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+        <a href="{{ route('customer.shop.index', array_merge(request()->except(['category', 'page']), ['category' => ''])) }}" 
+           class="tokobii-category-pill {{ !request('category') ? 'active' : '' }}">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            <span>Semua Kategori</span>
+        </a>
+        @foreach($categories as $cat)
+            <a href="{{ route('customer.shop.index', array_merge(request()->except(['category', 'page']), ['category' => $cat->slug])) }}" 
+               class="tokobii-category-pill {{ request('category') === $cat->slug ? 'active' : '' }}">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                <span>{{ $cat->name }}</span>
+            </a>
+        @endforeach
+    </div>
+
     {{-- Dedicated Filter Card --}}
     <div class="tokobii-filter-card">
-        <form action="{{ route('customer.shop.index') }}" method="GET" class="row g-2 align-items-center">
-            
+        <form action="{{ route('customer.shop.index') }}" method="GET" class="row g-2 align-items-center" id="customerShopFilterForm">
+            @if(request('category'))
+                <input type="hidden" name="category" value="{{ request('category') }}">
+            @endif
+
             {{-- Search Input (Name / SKU) --}}
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-md-6">
                 <div class="input-group">
                     <span class="input-group-text bg-slate-50 border-slate-300 text-slate-400 ps-3">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,37 +73,33 @@
                 </div>
             </div>
 
-            {{-- Category Filter --}}
+            {{-- Custom Sorting Select --}}
             <div class="col-12 col-sm-6 col-md-3">
-                <select name="category" class="form-select tokobii-select" aria-label="Filter Kategori" onchange="this.form.submit()">
-                    <option value="">Semua Kategori</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->slug }}" {{ (request('category') === $cat->slug || (isset($selectedCategory) && $selectedCategory->id === $cat->id)) ? 'selected' : '' }}>
-                            {{ $cat->name }}
-                        </option>
-                    @endforeach
+                <select name="sort" class="form-select tokobii-select w-100" onchange="this.form.submit()" aria-label="Urutkan Produk">
+                    <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Urutan: Terbaru</option>
+                    <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama: A - Z</option>
+                    <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama: Z - A</option>
+                    <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Harga: Terendah</option>
+                    <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Harga: Tertinggi</option>
                 </select>
             </div>
 
-            {{-- Sorting --}}
-            <div class="col-12 col-sm-6 col-md-2">
-                <select name="sort" class="form-select tokobii-select" aria-label="Urutkan Produk" onchange="this.form.submit()">
-                    <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Terbaru</option>
-                    <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama (A-Z)</option>
-                    <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama (Z-A)</option>
-                    <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Harga Terendah</option>
-                    <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Harga Tertinggi</option>
-                </select>
-            </div>
-
-            {{-- Submit Button --}}
-            <div class="col-12 col-md-2">
-                <button type="submit" class="btn btn-tokobii-primary w-100" style="height: 42px;">
+            {{-- Actions --}}
+            <div class="col-12 col-sm-6 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-tokobii-primary flex-grow-1" style="height: 42px;">
                     <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
-                    <span>Terapkan</span>
+                    <span>Cari</span>
                 </button>
+                @if(request('search') || request('category') || request('sort'))
+                    <a href="{{ route('customer.shop.index') }}" class="btn btn-tokobii-secondary" style="height: 42px;" title="Reset Semua Filter">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Reset</span>
+                    </a>
+                @endif
             </div>
 
         </form>
@@ -92,18 +111,21 @@
             <div class="col-6 col-md-4 col-lg-3">
                 <div class="tokobii-product-card">
                     {{-- Thumbnail --}}
-                    <div class="product-image-container position-relative bg-slate-100 d-flex align-items-center justify-content-center p-3" style="height: 180px;">
+                    <div class="product-image-container position-relative d-flex align-items-center justify-content-center p-3" style="height: 185px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
                         @if($product->thumbnail)
                             <img src="{{ asset('storage/' . $product->thumbnail) }}" 
                                  alt="{{ $product->name }}" 
                                  class="product-image img-fluid object-fit-contain h-100 w-100" 
                                  loading="lazy">
                         @else
-                            <div class="text-slate-400 text-center">
-                                <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-1">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                </svg>
-                                <span class="d-block" style="font-size: 0.7rem;">Tanpa Foto</span>
+                            <div class="d-flex flex-column align-items-center justify-content-center text-center p-2">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle mb-2 shadow-sm" style="width: 44px; height: 44px; background-color: #dbeafe; color: #2563eb;">
+                                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-slate-600 fw-semibold" style="font-size: 0.75rem;">Produk Tokobii</span>
+                                <span class="text-slate-400 font-monospace" style="font-size: 0.65rem;">ATK Berkualitas</span>
                             </div>
                         @endif
 
