@@ -73,8 +73,8 @@
                 </svg>
             </div>
             <div>
-                <strong class="d-block" style="font-size: 0.9rem;">Bukti Pembayaran Sedang Diverifikasi Kasir</strong>
-                <span class="small text-amber-800">Bukti pembayaran Anda telah dikirim. Kasir Tokobii akan segera memeriksa dan memproses pesanan Anda.</span>
+                <strong class="d-block" style="font-size: 0.9rem;">Bukti Pembayaran Sedang Diverifikasi Admin</strong>
+                <span class="small text-amber-800">Bukti pembayaran Anda telah dikirim. Admin Tokobii akan segera memeriksa dan memproses pesanan Anda.</span>
             </div>
         </div>
     @elseif($order->status === 'pending' && $order->payment_method === 'qris')

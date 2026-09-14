@@ -14,7 +14,15 @@
                 <div class="fw-semibold text-slate-400" style="font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;">Panel Admin</div>
             </div>
         </a>
-        <button type="button" class="btn-close d-lg-none shadow-none" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebarMenu" aria-label="Tutup"></button>
+        <button type="button" 
+                class="admin-sidebar-toggle-btn border-0 bg-white p-1 rounded-3 shadow-none d-flex align-items-center justify-content-center"
+                aria-label="Tutup Sidebar" 
+                title="Tutup Sidebar"
+                style="width: 34px; height: 34px; color: #64748b; cursor: pointer; transition: all 0.2s ease;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
     </div>
 
     {{-- Navigation Body --}}

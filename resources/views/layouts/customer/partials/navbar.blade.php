@@ -3,16 +3,15 @@
 
         {{-- Left: Mobile Toggle + Search --}}
         <div class="d-flex align-items-center gap-2">
-            <button class="btn d-lg-none p-2 border border-slate-200 bg-white shadow-sm"
-                    type="button"
-                    data-bs-toggle="offcanvas"
-                    data-bs-target="#customerSidebarMenu"
-                    aria-controls="customerSidebarMenu"
-                    style="border-radius: 12px;">
-                <svg class="text-slate-600" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
+        {{-- Sidebar Reopen Hamburger Button (Hanya tampil saat sidebar tertutup) --}}
+        <button class="customer-sidebar-toggle-btn customer-navbar-toggle-btn customer-hamburger-btn me-2"
+                type="button"
+                aria-label="Toggle Menu"
+                title="Buka Sidebar">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
 
             <a href="{{ route('customer.shop.index') }}"
                class="btn btn-tokobii-secondary btn-tokobii-sm d-none d-sm-inline-flex align-items-center gap-2">

@@ -12,9 +12,128 @@
         'resources/css/app.css',
         'resources/js/app.js'
     ])
+    <style>
+        /* Smooth Customer Sidebar Transitions */
+        .tokobii-sidebar {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, opacity 0.3s ease !important;
+            will-change: transform;
+        }
+
+        .tokobii-main-wrapper {
+            transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            will-change: margin-left;
+        }
+
+        /* Desktop: Collapsed State */
+        @media (min-width: 992px) {
+            body.customer-sidebar-collapsed .tokobii-sidebar {
+                transform: translateX(-100%) !important;
+                box-shadow: none !important;
+                visibility: hidden !important;
+                pointer-events: none;
+            }
+
+            body.customer-sidebar-collapsed .tokobii-main-wrapper {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Mobile / Tablet: Default hidden, Slide in when open */
+        @media (max-width: 991.98px) {
+            .tokobii-sidebar {
+                transform: translateX(-100%);
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                height: 100vh;
+                z-index: 1050;
+                box-shadow: none;
+                visibility: hidden;
+            }
+
+            body.customer-sidebar-open .tokobii-sidebar {
+                transform: translateX(0) !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+                visibility: visible !important;
+            }
+
+            .customer-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                z-index: 1045;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.35s ease, visibility 0.35s ease;
+            }
+
+            body.customer-sidebar-open .customer-sidebar-overlay {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        /* Hamburger Toggle Button Styling */
+        .customer-hamburger-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background-color: #ffffff;
+            color: #64748b;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+        }
+
+        .customer-hamburger-btn:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            color: #10b981;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.15);
+        }
+
+        .customer-hamburger-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Navbar Reopen Button: Hidden by default when sidebar is open */
+        .customer-navbar-toggle-btn {
+            display: none !important;
+        }
+
+        /* Only show navbar button when sidebar is collapsed on desktop */
+        @media (min-width: 992px) {
+            body.customer-sidebar-collapsed .customer-navbar-toggle-btn {
+                display: inline-flex !important;
+            }
+        }
+
+        /* Mobile visibility */
+        @media (max-width: 991.98px) {
+            .customer-navbar-toggle-btn {
+                display: inline-flex !important;
+            }
+            body.customer-sidebar-open .customer-navbar-toggle-btn {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="antialiased font-sans" style="background-color: var(--tokobii-bg);">
+
+    {{-- Mobile Overlay Backdrop --}}
+    <div class="customer-sidebar-overlay" id="customerSidebarOverlay"></div>
 
     {{-- Sidebar Drawer (Desktop Fixed, Mobile Offcanvas) --}}
     @include('layouts.customer.partials.sidebar')
@@ -83,6 +202,45 @@
     @include('components.flash-guidance-modal')
 
     @stack('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleButtons = document.querySelectorAll('.customer-sidebar-toggle-btn');
+            const overlay = document.getElementById('customerSidebarOverlay');
+            const isMobile = () => window.innerWidth < 992;
+
+            // Restore saved desktop state
+            const savedState = localStorage.getItem('tokobii_customer_sidebar_collapsed');
+            if (!isMobile() && savedState === 'true') {
+                document.body.classList.add('customer-sidebar-collapsed');
+            }
+
+            toggleButtons.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (isMobile()) {
+                        document.body.classList.toggle('customer-sidebar-open');
+                    } else {
+                        document.body.classList.toggle('customer-sidebar-collapsed');
+                        localStorage.setItem('tokobii_customer_sidebar_collapsed', document.body.classList.contains('customer-sidebar-collapsed'));
+                    }
+                });
+            });
+
+            if (overlay) {
+                overlay.addEventListener('click', function () {
+                    document.body.classList.remove('customer-sidebar-open');
+                });
+            }
+
+            // Close mobile menu on resize to desktop
+            window.addEventListener('resize', function() {
+                if (!isMobile()) {
+                    document.body.classList.remove('customer-sidebar-open');
+                }
+            });
+        });
+    </script>
 
 </body>
 
