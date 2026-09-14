@@ -22,6 +22,23 @@
         <div class="col-12 col-md-8 col-lg-6">
             <div class="tokobii-card p-4 p-md-5">
 
+                @if ($errors->any())
+                    <div class="alert tokobii-alert tokobii-alert-error mb-4" role="alert">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <div class="fw-semibold">Gagal memperbarui profil:</div>
+                            <ul class="mb-0 ps-3 small mt-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('customer.profile.update') }}">
                     @csrf
                     @method('PUT')
@@ -82,7 +99,8 @@
                                type="password" 
                                name="password" 
                                class="form-control tokobii-input @error('password') is-invalid @enderror" 
-                               placeholder="Minimal 8 karakter...">
+                               placeholder="Minimal 8 karakter..."
+                               autocomplete="new-password">
                         @error('password')
                             <div class="invalid-feedback d-block text-rose-600 small mt-1">{{ $message }}</div>
                         @enderror
@@ -94,8 +112,12 @@
                         <input id="password_confirmation" 
                                type="password" 
                                name="password_confirmation" 
-                               class="form-control tokobii-input" 
-                               placeholder="Ulangi kata sandi baru...">
+                               class="form-control tokobii-input @error('password_confirmation') is-invalid @enderror" 
+                               placeholder="Ulangi kata sandi baru..."
+                               autocomplete="new-password">
+                        @error('password_confirmation')
+                            <div class="invalid-feedback d-block text-rose-600 small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     {{-- Action Buttons --}}

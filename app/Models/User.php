@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
+use App\Notifications\SendOtpEmailVerification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -27,6 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'status',
         'two_factor_enabled',
         'face_verification_enabled',
+        'email_verification_otp',
+        'email_verification_otp_expires_at',
     ];
 
     /**
@@ -46,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'email_verification_otp_expires_at' => 'datetime',
         'password' => 'hashed',
         'two_factor_enabled' => 'boolean',
         'face_verification_enabled' => 'boolean',
@@ -56,6 +60,11 @@ class User extends Authenticatable implements MustVerifyEmail
     | Role Helpers
     |--------------------------------------------------------------------------
     */
+
+    public function isSuperadmin(): bool
+    {
+        return $this->role === 'superadmin';
+    }
 
     public function isAdmin(): bool
     {
@@ -104,10 +113,33 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new ResetPasswordNotification($token));
     }
 
-    /** Send the email verification notification using Tokobii's localized notification. */
+    /** Send the email verification notification using 6-digit OTP code with 15 minutes validity. */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailNotification());
+        $otp = $this->generateEmailVerificationOtp();
+        $this->notify(new SendOtpEmailVerification($otp));
+    }
+
+    /** Generate and store 6-digit OTP with 15 minutes expiration */
+    public function generateEmailVerificationOtp(): string
+    {
+        $otp = (string) random_int(100000, 999999);
+
+        $this->forceFill([
+            'email_verification_otp' => $otp,
+            'email_verification_otp_expires_at' => now()->addMinutes(15),
+        ])->saveQuietly();
+
+        return $otp;
+    }
+
+    /** Clear OTP fields upon successful verification */
+    public function clearEmailVerificationOtp(): void
+    {
+        $this->forceFill([
+            'email_verification_otp' => null,
+            'email_verification_otp_expires_at' => null,
+        ])->saveQuietly();
     }
 
     /**
@@ -162,5 +194,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function faceVerification(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(FaceVerification::class);
+    }
+
+    public function securityLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SecurityLog::class);
     }
 }

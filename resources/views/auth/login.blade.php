@@ -15,6 +15,31 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="p-3 mb-3 d-flex align-items-center gap-2 rounded-xl" style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 12px; font-size: 0.8125rem;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink: 0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{{ session('error') }}</span>
+    </div>
+@endif
+
+@if(app()->isDownForMaintenance())
+    <div class="p-3 mb-4 d-flex align-items-start gap-2.5 shadow-xs" style="background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1px solid #fde68a; border-radius: 14px;">
+        <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning text-dark flex-shrink-0" style="width: 30px; height: 30px; margin-top: 2px;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        <div class="min-w-0">
+            <div class="fw-bold text-amber-950 mb-0.5" style="font-size: 0.84rem;">Mode Pemeliharaan Sedang Aktif</div>
+            <div class="text-amber-900" style="font-size: 0.775rem; line-height: 1.45;">
+                Saat ini sistem Tokobii sedang dalam proses pemeliharaan berkala untuk peningkatan performa dan keandalan layanan. Akses masuk ditangguhkan sementara waktu.
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="text-center mb-4">
     <h2 class="fw-bold text-slate-900 mb-1" style="font-size: 1.3125rem; letter-spacing: -0.01em;">Selamat Datang Kembali</h2>
     <p class="text-slate-500 mb-0" style="font-size: 0.85rem;">Masuk dengan email dan kata sandi Anda</p>
@@ -82,12 +107,6 @@
                 {{ $message }}
             </div>
         @enderror
-    </div>
-
-    {{-- Remember Me --}}
-    <div class="form-check mb-4">
-        <input class="form-check-input" type="checkbox" id="remember" name="remember" style="border-color: #cbd5e1; border-radius: 5px;">
-        <label class="form-check-label text-slate-500 small" for="remember">Ingat saya di perangkat ini</label>
     </div>
 
     {{-- Submit --}}

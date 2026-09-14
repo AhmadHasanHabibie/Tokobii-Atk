@@ -27,6 +27,20 @@ class AuthenticatedSessionController extends Controller
     {
         $user = $request->validateCredentials();
 
+        // 0. Superadmin Login (100% Isolated IT Security Role)
+        if ($user->isSuperadmin()) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
+            return redirect()->route('superadmin.dashboard');
+        }
+
+        // Maintenance Mode Check: Non-superadmin is redirected to maintenance popup
+        if (app()->isDownForMaintenance()) {
+            return redirect()->route('maintenance.page')
+                ->with('error', 'Akses Ditolak: Aplikasi Tokobii sedang dalam mode pemeliharaan. Silakan coba kembali beberapa saat lagi.');
+        }
+
         // 1. Admin Login
         if ($user->isAdmin()) {
             if ($user->hasFaceVerificationEnabled()) {

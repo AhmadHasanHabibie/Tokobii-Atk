@@ -38,5 +38,18 @@ class AdminSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        User::updateOrCreate(
+            [
+                'email' => 'superadmin@tokobii.test',
+            ],
+            [
+                'name' => 'IT Security Superadmin',
+                'password' => Hash::make('Superadmin123!'),
+                'role' => 'superadmin',
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

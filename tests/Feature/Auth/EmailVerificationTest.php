@@ -3,10 +3,11 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Notifications\SendOtpEmailVerification;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase
@@ -22,89 +23,90 @@ class EmailVerificationTest extends TestCase
         $response = $this->actingAs($user)->get('/verify-email');
 
         $response->assertStatus(200);
-        $response->assertSee('Periksa Email Anda');
+        $response->assertSee('Verifikasi Alamat Email');
+        $response->assertSee('Masukkan 6 Digit Kode OTP');
     }
 
-    public function test_email_can_be_verified(): void
+    public function test_email_can_be_verified_with_valid_otp(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => null,
+            'email_verification_otp' => '123456',
+            'email_verification_otp_expires_at' => now()->addMinutes(15),
         ]);
 
         Event::fake();
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
-
-        // CASE 1: User authenticated di laptop klik link -> auto redirect ke dashboard customer
-        $response = $this->actingAs($user)->get($verificationUrl);
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => '123456',
+        ]);
 
         Event::assertDispatched(Verified::class);
-        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $user->refresh();
+        $this->assertTrue($user->hasVerifiedEmail());
+        $this->assertNull($user->email_verification_otp);
+        $this->assertNull($user->email_verification_otp_expires_at);
         $response->assertRedirect(route('customer.dashboard'));
     }
 
-    public function test_email_can_be_verified_from_another_device_without_login(): void
+    public function test_email_cannot_be_verified_with_invalid_otp(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => null,
+            'email_verification_otp' => '123456',
+            'email_verification_otp_expires_at' => now()->addMinutes(15),
         ]);
 
         Event::fake();
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => '654321',
+        ]);
 
-        // CASE 3: Tanpa actingAs($user) - mensimulasikan device/browser lain (misal dari HP via LAN)
-        $response = $this->get($verificationUrl);
-
-        Event::assertDispatched(Verified::class);
-        $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertStatus(200);
-        $response->assertSee('Email Berhasil Diverifikasi');
-        $response->assertSee('Masuk ke Akun Tokobii');
+        Event::assertNotDispatched(Verified::class);
+        $user->refresh();
+        $this->assertFalse($user->hasVerifiedEmail());
+        $response->assertSessionHas('error', 'Kode OTP yang Anda masukkan salah. Silakan periksa kembali email Anda.');
     }
 
-    public function test_email_is_not_verified_with_invalid_hash(): void
+    public function test_email_cannot_be_verified_with_expired_otp(): void
     {
         $user = User::factory()->create([
             'email_verified_at' => null,
+            'email_verification_otp' => '123456',
+            'email_verification_otp_expires_at' => now()->subMinute(),
         ]);
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1('wrong-email')]
-        );
+        Event::fake();
 
-        $response = $this->actingAs($user)->get($verificationUrl);
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => '123456',
+        ]);
 
-        $this->assertFalse($user->fresh()->hasVerifiedEmail());
-        $response->assertStatus(403);
-        $response->assertSee('Link Verifikasi Tidak Valid');
+        Event::assertNotDispatched(Verified::class);
+        $user->refresh();
+        $this->assertFalse($user->hasVerifiedEmail());
+        $response->assertSessionHas('error', 'Kode OTP telah kedaluwarsa (masa aktif 15 menit). Silakan klik "Kirim Ulang Kode".');
     }
 
-    public function test_already_verified_email_link_shows_already_verified_page(): void
+    public function test_otp_can_be_resent(): void
     {
+        Notification::fake();
+
         $user = User::factory()->create([
-            'email_verified_at' => now(),
+            'email_verified_at' => null,
+            'email_verification_otp' => '111111',
+            'email_verification_otp_expires_at' => now()->subMinute(),
         ]);
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
+        $response = $this->actingAs($user)->post('/email/verification-notification');
 
-        $response = $this->get($verificationUrl);
+        $response->assertSessionHas('status', 'verification-link-sent');
+        $user->refresh();
+        $this->assertNotNull($user->email_verification_otp);
+        $this->assertNotEquals('111111', $user->email_verification_otp);
+        $this->assertTrue($user->email_verification_otp_expires_at->isFuture());
 
-        $response->assertStatus(200);
-        $response->assertSee('Email Sudah Terverifikasi');
+        Notification::assertSentTo($user, SendOtpEmailVerification::class);
     }
 }

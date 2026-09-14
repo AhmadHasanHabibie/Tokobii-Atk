@@ -101,17 +101,53 @@
             </a>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-3 g-md-4">
             @forelse($categories as $category)
-                <div class="col-6 col-sm-4 col-md-3 col-lg-3">
-                    <a href="{{ route('customer.shop.category', $category->slug) }}" class="tokobii-card p-3 text-decoration-none text-slate-800 d-flex flex-column align-items-center text-center h-100 tokobii-card-interactive">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; background-color: #eff6ff; color: #2563eb;">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                            </svg>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ route('customer.shop.category', $category->slug) }}" class="tokobii-category-card">
+                        {{-- Category Image Container --}}
+                        <div class="category-image-container">
+                            @if($category->thumbnail)
+                                <img src="{{ asset('storage/' . $category->thumbnail) }}" 
+                                     alt="{{ $category->name }}" 
+                                     class="category-image" 
+                                     loading="lazy">
+                            @else
+                                <div class="d-flex flex-column align-items-center justify-content-center text-slate-400">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-1 shadow-sm" style="width: 44px; height: 44px; background-color: #dbeafe; color: #2563eb;">
+                                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="text-slate-500 fw-medium" style="font-size: 0.7rem;">Kategori ATK</span>
+                                </div>
+                            @endif
+
+                            {{-- Product Count Badge --}}
+                            <div class="position-absolute bottom-0 start-0 m-2">
+                                <span class="tokobii-badge bg-white text-slate-700 shadow-sm border border-slate-100 px-2 py-1" style="font-size: 0.6875rem; font-weight: 600;">
+                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1 text-blue-600" style="display:inline; vertical-align:-1px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    {{ $category->products_count ?? $category->products()->count() }} Produk
+                                </span>
+                            </div>
                         </div>
-                        <h6 class="fw-bold mb-1 text-truncate w-100" style="font-size: 0.875rem;" title="{{ $category->name }}">{{ $category->name }}</h6>
-                        <span class="text-slate-400" style="font-size: 0.75rem;">{{ $category->products_count ?? $category->products()->count() }} Produk</span>
+
+                        {{-- Category Footer/Details --}}
+                        <div class="category-body">
+                            <div class="text-start pe-2 text-truncate">
+                                <h6 class="fw-bold text-slate-900 mb-0 text-truncate" style="font-size: 0.9rem;" title="{{ $category->name }}">
+                                    {{ $category->name }}
+                                </h6>
+                                <span class="text-slate-400" style="font-size: 0.725rem;">Lihat Produk &rarr;</span>
+                            </div>
+                            <div class="category-arrow-btn">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </a>
                 </div>
             @empty

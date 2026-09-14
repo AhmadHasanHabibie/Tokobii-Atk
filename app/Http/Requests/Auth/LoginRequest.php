@@ -62,8 +62,12 @@ class LoginRequest extends FormRequest
             'password' => $this->input('password'),
         ];
 
+        $user = \App\Models\User::where('email', $credentials['email'])->first();
+
         if (! Auth::validate($credentials)) {
             RateLimiter::hit($this->throttleKey());
+
+            event(new \Illuminate\Auth\Events\Failed('web', $user, $credentials));
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -72,7 +76,7 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
-        return \App\Models\User::where('email', $credentials['email'])->firstOrFail();
+        return $user ?? \App\Models\User::where('email', $credentials['email'])->firstOrFail();
     }
 
     /**

@@ -16,7 +16,8 @@ return new class extends Migration
             $table->enum('role', [
                 'admin',
                 'owner',
-                'customer'
+                'customer',
+                'superadmin',
             ])->default('customer')->after('email');
 
             $table->enum('status', [

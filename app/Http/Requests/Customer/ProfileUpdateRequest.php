@@ -35,6 +35,12 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique('users')->ignore($this->user()->id),
             ],
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
         ];
     }
 
@@ -52,6 +58,8 @@ class ProfileUpdateRequest extends FormRequest
             'email.email' => 'Format alamat email tidak valid.',
             'email.max' => 'Alamat email maksimal 255 karakter.',
             'email.unique' => 'Alamat email tersebut sudah digunakan oleh akun lain.',
+            'password.min' => 'Kata sandi baru minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ];
     }
 }

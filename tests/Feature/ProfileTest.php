@@ -96,4 +96,72 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_customer_can_update_password_directly_with_new_password_and_confirmation(): void
+    {
+        $user = User::factory()->create([
+            'password' => bcrypt('old-password123'),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/customer/profile/edit')
+            ->put('/customer/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'new-password123',
+                'password_confirmation' => 'new-password123',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success')
+            ->assertRedirect(route('customer.profile.index'));
+
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('new-password123', $user->fresh()->password));
+    }
+
+    public function test_customer_cannot_update_password_with_short_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => bcrypt('old-password123'),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/customer/profile/edit')
+            ->put('/customer/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'short',
+                'password_confirmation' => 'short',
+            ]);
+
+        $response
+            ->assertSessionHasErrors('password')
+            ->assertRedirect('/customer/profile/edit');
+
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('old-password123', $user->fresh()->password));
+    }
+
+    public function test_customer_cannot_update_password_with_mismatched_confirmation(): void
+    {
+        $user = User::factory()->create([
+            'password' => bcrypt('old-password123'),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/customer/profile/edit')
+            ->put('/customer/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => 'new-password123',
+                'password_confirmation' => 'different-password',
+            ]);
+
+        $response
+            ->assertSessionHasErrors('password')
+            ->assertRedirect('/customer/profile/edit');
+    }
 }

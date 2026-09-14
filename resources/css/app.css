@@ -946,6 +946,74 @@ button.btn span,
 }
 
 /* ============================================================
+   CATEGORY CARDS
+   ============================================================ */
+.tokobii-category-card {
+    background: #ffffff;
+    border: 1px solid var(--tokobii-border);
+    border-radius: var(--tokobii-radius);
+    overflow: hidden;
+    transition: var(--tokobii-transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: var(--tokobii-shadow);
+    position: relative;
+    text-decoration: none;
+    color: #1e293b;
+}
+.tokobii-category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--tokobii-shadow-hover);
+    border-color: #93c5fd;
+    color: #1e293b;
+}
+.tokobii-category-card .category-image-container {
+    height: 135px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tokobii-category-card .category-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tokobii-category-card:hover .category-image {
+    transform: scale(1.08);
+}
+.tokobii-category-card .category-body {
+    padding: 0.875rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.tokobii-category-card .category-arrow-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tokobii-category-card:hover .category-arrow-btn {
+    background-color: #2563eb;
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+/* ============================================================
    STAT CARDS
    ============================================================ */
 .tokobii-stat-card {

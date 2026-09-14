@@ -27,7 +27,7 @@ class DashboardController extends Controller
         }
 
         // Real categories data from Admin (max 8)
-        $categories = Category::latest()->take(8)->get();
+        $categories = Category::withCount('products')->latest()->take(8)->get();
         $totalCategories = Category::count();
 
         // Real products data from Admin (latest & popular placeholder)
