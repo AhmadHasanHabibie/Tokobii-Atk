@@ -85,6 +85,16 @@ class GuestController extends Controller
         $product = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->firstOrFail();
         $reviews = $product->reviews()->with('user')->latest()->paginate(10);
 
+        // Rating breakdown statistics
+        $totalReviews = $product->reviews_count ?? $product->reviews()->count();
+        $ratingStats = [
+            5 => $totalReviews > 0 ? $product->reviews()->where('rating', 5)->count() : 0,
+            4 => $totalReviews > 0 ? $product->reviews()->where('rating', 4)->count() : 0,
+            3 => $totalReviews > 0 ? $product->reviews()->where('rating', 3)->count() : 0,
+            2 => $totalReviews > 0 ? $product->reviews()->where('rating', 2)->count() : 0,
+            1 => $totalReviews > 0 ? $product->reviews()->where('rating', 1)->count() : 0,
+        ];
+
         $relatedProducts = Product::with('category')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
@@ -92,7 +102,7 @@ class GuestController extends Controller
             ->take(4)
             ->get();
 
-        return view('guest.product.show', compact('product', 'relatedProducts', 'reviews'));
+        return view('guest.product.show', compact('product', 'relatedProducts', 'reviews', 'ratingStats', 'totalReviews'));
     }
 
     /**

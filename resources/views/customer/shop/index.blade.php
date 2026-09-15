@@ -109,9 +109,9 @@
     <div class="row g-3 g-md-4 mb-4">
         @forelse($products as $product)
             <div class="col-6 col-md-4 col-lg-3">
-                <div class="tokobii-product-card">
+                <div class="tokobii-product-card" onclick="if(!event.target.closest('button, form, a')) window.location='{{ route('customer.shop.show', $product->slug) }}';">
                     {{-- Thumbnail --}}
-                    <div class="product-image-container position-relative d-flex align-items-center justify-content-center p-3" style="height: 185px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
+                    <a href="{{ route('customer.shop.show', $product->slug) }}" class="product-image-container position-relative d-flex align-items-center justify-content-center p-3 text-decoration-none" style="height: 185px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
                         @if($product->thumbnail)
                             <img src="{{ asset('storage/' . $product->thumbnail) }}" 
                                  alt="{{ $product->name }}" 
@@ -141,7 +141,7 @@
                                 </span>
                             @endif
                         </div>
-                    </div>
+                    </a>
 
                     {{-- Info --}}
                     <div class="p-3 d-flex flex-column flex-grow-1">
@@ -173,7 +173,7 @@
                             </span>
 
                             @if($product->stock > 0)
-                                <form action="{{ route('customer.cart.add') }}" method="POST" class="m-0">
+                                <form action="{{ route('customer.cart.add') }}" method="POST" class="m-0" onclick="event.stopPropagation();">
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                                     <input type="hidden" name="qty" value="1">

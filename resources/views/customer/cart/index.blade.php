@@ -3,9 +3,6 @@
 @section('title', 'Keranjang Belanja - ' . config('app.name', 'Tokobii'))
 
 @section('content')
-
-
-
 <div class="container-fluid px-0">
 
     {{-- Dedicated Header Card --}}
@@ -20,11 +17,11 @@
                     </ol>
                 </nav>
                 <h1 class="h3 fw-bold text-slate-900 mb-1" style="color: #0f172a;">Keranjang Belanja Anda</h1>
-                <p class="text-slate-500 mb-0 small">Tinjau daftar produk ATK sebelum melanjutkan proses checkout.</p>
+                <p class="text-slate-500 mb-0 small">Centang produk yang ingin Anda beli untuk melanjutkan proses checkout.</p>
             </div>
 
             @if(!empty($cart))
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     <form id="clearCartForm" action="{{ route('customer.cart.clear') }}" method="POST" onsubmit="return openClearCartModal(event);">
                         @csrf
                         <button type="submit" class="btn btn-tokobii-danger btn-tokobii-sm">
@@ -45,27 +42,46 @@
             {{-- Cart Items Table Card --}}
             <div class="col-12 col-lg-8">
                 <div class="tokobii-table-container">
-                    <div class="p-3.5 bg-white border-bottom border-slate-100 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0 text-slate-900 fs-6">Daftar Produk di Keranjang</h5>
-                        <span class="tokobii-badge tokobii-badge-info">{{ count($cart) }} Macam Produk</span>
+                    <div class="p-3.5 bg-white border-bottom border-slate-100 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="form-check m-0 d-flex align-items-center gap-2">
+                                <input type="checkbox" id="selectAllTop" class="form-check-input mt-0" checked onchange="toggleSelectAll(this);" style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
+                                <label for="selectAllTop" class="form-check-label fw-bold text-slate-900 small mb-0" style="cursor: pointer;">
+                                    Pilih Semua ({{ count($cart) }})
+                                </label>
+                            </div>
+                        </div>
+                        <span class="tokobii-badge tokobii-badge-info" id="selectedBadge">{{ count($cart) }} Macam Produk Dipilih</span>
                     </div>
                     <div class="table-responsive">
                         <table class="tokobii-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 5%;" class="text-center"></th>
                                     <th style="width: 14%;">Foto</th>
                                     <th>Nama Produk</th>
-                                    <th class="text-end" style="width: 18%;">Harga</th>
+                                    <th class="text-end" style="width: 17%;">Harga</th>
                                     <th class="text-center" style="width: 18%;">Jumlah</th>
-                                    <th class="text-end" style="width: 20%;">Subtotal</th>
+                                    <th class="text-end" style="width: 18%;">Subtotal</th>
                                     <th class="text-center" style="width: 8%;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($cart as $id => $item)
-                                    <tr>
-                                        <td class="text-slate-400 font-monospace">{{ $loop->iteration }}</td>
+                                    <tr id="cart-row-{{ $id }}">
+                                        <td class="text-center">
+                                            <input type="checkbox" 
+                                                   name="selected_items[]" 
+                                                   value="{{ $id }}" 
+                                                   form="proceedCheckoutForm"
+                                                   class="form-check-input cart-item-checkbox mt-0" 
+                                                   data-id="{{ $id }}" 
+                                                   data-price="{{ $item['price'] }}" 
+                                                   data-qty="{{ $item['qty'] }}" 
+                                                   checked 
+                                                   onchange="updateCartSelection();"
+                                                   style="cursor: pointer; width: 1.15rem; height: 1.15rem;">
+                                        </td>
                                         <td>
                                             @if(isset($item['thumbnail']) && $item['thumbnail'])
                                                 <img src="{{ asset('storage/' . $item['thumbnail']) }}" 
@@ -134,13 +150,17 @@
 
             {{-- Cart Summary Card --}}
             <div class="col-12 col-lg-4">
-                <div class="tokobii-card p-4 sticky-top" style="top: 84px;">
+                <div class="tokobii-card p-4 sticky-top shadow-sm" style="top: 84px;">
                     <h5 class="fw-bold text-slate-900 mb-3 pb-2 border-bottom border-slate-100" style="font-size: 1.05rem;">Ringkasan Belanja</h5>
 
                     <div class="d-flex flex-column gap-2.5 mb-4 text-slate-600 small">
                         <div class="d-flex justify-content-between">
+                            <span>Produk Terpilih</span>
+                            <span class="fw-semibold text-slate-800" id="summarySelectedCount">{{ count($cart) }} Macam</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
                             <span>Total Item</span>
-                            <span class="fw-semibold text-slate-800">{{ $totalItems ?? array_sum(array_column($cart, 'qty')) }} Pcs</span>
+                            <span class="fw-semibold text-slate-800" id="summaryTotalItems">{{ $totalItems ?? array_sum(array_column($cart, 'qty')) }} Pcs</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Metode Pengambilan</span>
@@ -153,24 +173,34 @@
                         <hr class="my-1 border-slate-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-slate-900 fs-6">Total Pembayaran</span>
-                            <span class="h4 fw-bold text-blue-600 font-monospace mb-0" style="color: #2563eb;">
+                            <span class="h4 fw-bold text-blue-600 font-monospace mb-0" id="summaryTotalPrice" style="color: #2563eb;">
                                 Rp {{ number_format($subtotal ?? 0, 0, ',', '.') }}
                             </span>
                         </div>
                     </div>
 
-                    <a href="{{ route('customer.checkout.index') }}" class="btn btn-tokobii-primary btn-tokobii-lg w-100 mb-3">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    {{-- Form Submit to Checkout --}}
+                    <form action="{{ route('customer.checkout.index') }}" method="GET" id="proceedCheckoutForm" onsubmit="return validateCheckoutSelection(event);">
+                        <button type="submit" id="checkoutSubmitBtn" class="btn btn-tokobii-primary btn-tokobii-lg w-100 mb-3 shadow-sm">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span id="checkoutBtnLabel">Lanjut ke Checkout (<span id="btnSelectedCount">{{ count($cart) }}</span>)</span>
+                        </button>
+                    </form>
+
+                    <div id="noSelectionAlert" class="p-2.5 bg-amber-50 rounded-3 border border-amber-200 text-amber-800 small d-none mb-3">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                         </svg>
-                        <span>Lanjut ke Checkout</span>
-                    </a>
+                        <span>Pilih minimal 1 produk untuk melanjutkan checkout.</span>
+                    </div>
 
                     <div class="d-flex align-items-center gap-2 p-2.5 bg-slate-50 rounded-3 border border-slate-200 text-slate-500 small">
                         <svg class="text-blue-600 flex-shrink-0" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>Pesanan dapat diambil dan dibayar langsung di kasir atau via QRIS.</span>
+                        <span>Produk yang tidak dicentang akan tetap tersimpan di keranjang Anda.</span>
                     </div>
                 </div>
             </div>
@@ -220,6 +250,101 @@
 @push('scripts')
 <script>
     let activeForm = null;
+
+    function formatRupiah(number) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(number);
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+        const isChecked = masterCheckbox.checked;
+        const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+        
+        itemCheckboxes.forEach(cb => {
+            cb.checked = isChecked;
+        });
+
+        updateCartSelection();
+    }
+
+    function updateCartSelection() {
+        const itemCheckboxes = document.querySelectorAll('.cart-item-checkbox');
+        let selectedCount = 0;
+        let totalItemsQty = 0;
+        let totalPrice = 0;
+        const totalItemsInCart = itemCheckboxes.length;
+
+        itemCheckboxes.forEach(cb => {
+            const row = document.getElementById('cart-row-' + cb.dataset.id);
+            if (cb.checked) {
+                selectedCount++;
+                const price = parseFloat(cb.dataset.price) || 0;
+                const qty = parseInt(cb.dataset.qty) || 0;
+                totalItemsQty += qty;
+                totalPrice += (price * qty);
+                if (row) row.classList.remove('opacity-50');
+            } else {
+                if (row) row.classList.add('opacity-50');
+            }
+        });
+
+        // Sync master checkbox state
+        const topCb = document.getElementById('selectAllTop');
+        const isAllSelected = (selectedCount === totalItemsInCart && totalItemsInCart > 0);
+        const isIndeterminate = (selectedCount > 0 && selectedCount < totalItemsInCart);
+
+        if (topCb) {
+            topCb.checked = isAllSelected;
+            topCb.indeterminate = isIndeterminate;
+        }
+
+        // Update Summary DOM elements
+        const summarySelectedCount = document.getElementById('summarySelectedCount');
+        const summaryTotalItems = document.getElementById('summaryTotalItems');
+        const summaryTotalPrice = document.getElementById('summaryTotalPrice');
+        const btnSelectedCount = document.getElementById('btnSelectedCount');
+        const selectedBadge = document.getElementById('selectedBadge');
+        const checkoutBtn = document.getElementById('checkoutSubmitBtn');
+        const noSelectionAlert = document.getElementById('noSelectionAlert');
+
+        if (summarySelectedCount) summarySelectedCount.innerText = selectedCount + ' Macam';
+        if (summaryTotalItems) summaryTotalItems.innerText = totalItemsQty + ' Pcs';
+        if (summaryTotalPrice) summaryTotalPrice.innerText = formatRupiah(totalPrice);
+        if (btnSelectedCount) btnSelectedCount.innerText = selectedCount;
+        if (selectedBadge) selectedBadge.innerText = selectedCount + ' Macam Produk Dipilih';
+
+        if (selectedCount === 0) {
+            if (checkoutBtn) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('opacity-50');
+            }
+            if (noSelectionAlert) noSelectionAlert.classList.remove('d-none');
+        } else {
+            if (checkoutBtn) {
+                checkoutBtn.disabled = false;
+                checkoutBtn.classList.remove('opacity-50');
+            }
+            if (noSelectionAlert) noSelectionAlert.classList.add('d-none');
+        }
+    }
+
+    function validateCheckoutSelection(event) {
+        const checkedItems = document.querySelectorAll('.cart-item-checkbox:checked');
+        if (checkedItems.length === 0) {
+            event.preventDefault();
+            const alertBox = document.getElementById('noSelectionAlert');
+            if (alertBox) {
+                alertBox.classList.remove('d-none');
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+        return true;
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCartSelection();
+    });
 
     function openClearCartModal(event) {
         event.preventDefault();

@@ -19,23 +19,23 @@
     </nav>
 
     {{-- Main Product Card --}}
-    <div class="tokobii-card p-4 p-md-5 mb-5">
+    <div class="tokobii-card p-4 p-md-5 mb-5 shadow-sm">
         <div class="row g-4 g-lg-5">
             
             {{-- Image Column --}}
             <div class="col-12 col-md-5 text-center">
-                <div class="bg-slate-50 rounded-4 p-4 border border-slate-200 position-relative d-flex align-items-center justify-content-center" style="min-height: 340px;">
+                <div class="bg-slate-50 rounded-4 p-4 border border-slate-200 position-relative d-flex align-items-center justify-content-center overflow-hidden" style="min-height: 360px;">
                     @if($product->thumbnail)
                         <img src="{{ asset('storage/' . $product->thumbnail) }}" 
                              alt="Gambar {{ $product->name }}" 
                              class="img-fluid object-fit-contain" 
-                             style="max-height: 320px;">
+                             style="max-height: 330px;">
                     @else
                         <div class="py-5 text-slate-400 text-center">
-                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            <svg width="56" height="56" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-2 opacity-50">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
-                            <span class="small d-block">Tidak ada gambar produk</span>
+                            <span class="small d-block text-slate-500 fw-medium">Tidak ada gambar produk</span>
                         </div>
                     @endif
 
@@ -43,10 +43,16 @@
                     <div class="position-absolute top-0 start-0 m-3">
                         @if($product->stock > 5)
                             <span class="tokobii-badge tokobii-badge-success px-3 py-1.5 shadow-sm">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 Stok Tersedia ({{ $product->stock }})
                             </span>
                         @elseif($product->stock > 0)
                             <span class="tokobii-badge tokobii-badge-warning px-3 py-1.5 shadow-sm">
+                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
                                 Stok Menipis ({{ $product->stock }})
                             </span>
                         @else
@@ -65,48 +71,61 @@
                     <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                         @if($product->category)
                             <a href="{{ route('shop', ['category' => $product->category->slug]) }}" class="tokobii-badge tokobii-badge-info text-decoration-none">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
                                 {{ $product->category->name }}
                             </a>
                         @endif
                         @if($product->sku)
-                            <span class="text-slate-400 font-monospace" style="font-size: 0.75rem;">SKU: {{ $product->sku }}</span>
+                            <span class="tokobii-badge bg-slate-100 text-slate-600 font-monospace border border-slate-200" style="font-size: 0.75rem;">
+                                SKU: {{ $product->sku }}
+                            </span>
                         @endif
                     </div>
 
                     <h1 class="h3 fw-bold text-slate-900 mb-2" style="color: #0f172a;">{{ $product->name }}</h1>
 
                     {{-- Rating --}}
-                    <div class="d-flex align-items-center gap-2 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
                         <div class="d-flex text-amber-500">
                             @for($i = 1; $i <= 5; $i++)
-                                <svg width="16" height="16" fill="{{ $i <= round($product->reviews_avg_rating ?? 0) ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
+                                <svg width="17" height="17" fill="{{ $i <= round($product->reviews_avg_rating ?? 0) ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                 </svg>
                             @endfor
                         </div>
-                        <span class="fw-semibold text-slate-700 small">
+                        <span class="fw-bold text-slate-800 small">
                             {{ number_format($product->reviews_avg_rating ?? 0, 1) }}
                         </span>
-                        <span class="text-slate-400 small">
-                            ({{ $product->reviews_count ?? 0 }} ulasan pelanggan)
-                        </span>
+                        <span class="text-slate-400 small">·</span>
+                        <a href="#reviews-section" class="text-blue-600 text-decoration-none small fw-semibold hover-text-blue-700">
+                            ({{ $totalReviews ?? ($product->reviews_count ?? 0) }} ulasan pembeli)
+                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ms-0.5" style="display:inline;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </a>
                     </div>
 
                     {{-- Price --}}
-                    <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 mb-4">
-                        <span class="text-slate-500 small d-block mb-1">Harga Satuan</span>
-                        <h2 class="text-blue-600 fw-bold mb-0 font-monospace" style="color: #2563eb;">
-                            Rp {{ number_format($product->price, 0, ',', '.') }}
-                        </h2>
+                    <div class="p-3.5 bg-slate-50 rounded-3 border border-slate-200 mb-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-slate-500 small d-block mb-0.5" style="font-size: 0.8125rem;">Harga Satuan</span>
+                            <h2 class="text-blue-600 fw-bold mb-0 font-monospace" style="color: #2563eb; font-size: 1.75rem;">
+                                Rp {{ number_format($product->price, 0, ',', '.') }}
+                            </h2>
+                        </div>
+                        <div class="text-end">
+                            <span class="tokobii-badge bg-white text-slate-700 border border-slate-200 px-2.5 py-1">
+                                Ambil di Toko
+                            </span>
+                        </div>
                     </div>
 
                     {{-- Description --}}
                     <div class="mb-4">
-                        <h6 class="fw-bold text-slate-900 mb-2" style="font-size: 0.875rem;">Deskripsi Produk:</h6>
-                        <div class="text-slate-600 small" style="line-height: 1.7;">
+                        <h6 class="fw-bold text-slate-900 mb-2" style="font-size: 0.9rem;">Deskripsi Produk:</h6>
+                        <div class="text-slate-600 small" style="line-height: 1.75;">
                             {!! nl2br(e($product->description ?? 'Tidak ada deskripsi rinci untuk produk ini.')) !!}
                         </div>
                     </div>
@@ -115,29 +134,44 @@
                 {{-- Action / Login Prompt --}}
                 <div class="pt-4 border-top border-slate-100">
                     @auth
-                        <form action="{{ route('customer.cart.add') }}" method="POST" class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                            <input type="hidden" name="quantity" value="1">
-                            <button type="submit" class="btn btn-tokobii-primary btn-tokobii-lg flex-grow-1 shadow-sm">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                                <span>Tambah ke Keranjang</span>
-                            </button>
-                        </form>
+                        @if($product->stock > 0)
+                            <form action="{{ route('customer.cart.add') }}" method="POST" class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="qtyInput" class="form-label fw-semibold text-slate-700 small mb-0">Jumlah:</label>
+                                    <div class="tokobii-qty-control">
+                                        <button type="button" class="tokobii-qty-btn" onclick="let el=document.getElementById('qtyInput'); if(parseInt(el.value)>1) el.value=parseInt(el.value)-1;">-</button>
+                                        <input type="number" id="qtyInput" name="qty" value="1" min="1" max="{{ $product->stock }}" class="tokobii-qty-input" onchange="if(parseInt(this.value)<1) this.value=1; if(parseInt(this.value)>{{ $product->stock }}) this.value={{ $product->stock }};">
+                                        <button type="button" class="tokobii-qty-btn" onclick="let el=document.getElementById('qtyInput'); if(parseInt(el.value)<{{ $product->stock }}) el.value=parseInt(el.value)+1;">+</button>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-tokobii-primary btn-tokobii-lg flex-grow-1 shadow-sm">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <span>Tambah ke Keranjang</span>
+                                </button>
+                            </form>
+                        @else
+                            <div class="p-3.5 bg-rose-50 text-rose-800 rounded-3 border border-rose-200 small fw-semibold text-center">
+                                Produk ini sedang habis stok. Silakan periksa kembali beberapa saat lagi.
+                            </div>
+                        @endif
                     @else
-                        <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                        <div class="p-3.5 bg-slate-50 rounded-3 border border-slate-200 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
                             <div>
                                 <span class="fw-bold text-slate-900 d-block small">Ingin Membeli Produk Ini?</span>
-                                <span class="text-slate-500 small" style="font-size: 0.75rem;">Silakan masuk atau buat akun baru untuk mulai memesan.</span>
+                                <span class="text-slate-500 small" style="font-size: 0.75rem;">Silakan masuk atau daftar akun pelanggan untuk mulai memesan barang.</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <a href="{{ route('login') }}" class="btn btn-tokobii-secondary btn-tokobii-sm">
-                                    <span>Masuk</span>
+                                    <span>Masuk Akun</span>
                                 </a>
                                 <a href="{{ route('register') }}" class="btn btn-tokobii-primary btn-tokobii-sm">
-                                    <span>Daftar</span>
+                                    <span>Daftar Sekarang</span>
                                 </a>
                             </div>
                         </div>
@@ -148,45 +182,108 @@
         </div>
     </div>
 
-    {{-- Reviews Section --}}
-    <div class="tokobii-card p-4 p-md-5 mb-5">
+    {{-- Customer Reviews Section Card --}}
+    <div class="tokobii-card p-4 p-md-5 mb-5 shadow-sm" id="reviews-section">
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-slate-100">
             <div>
-                <h4 class="fw-bold text-slate-900 mb-1" style="font-size: 1.15rem;">Ulasan Pelanggan</h4>
-                <p class="text-slate-500 small mb-0">Ulasan pembeli terverifikasi di Tokobii.</p>
+                <h4 class="fw-bold text-slate-900 mb-1" style="font-size: 1.25rem;">Ulasan dari Semua Pengguna</h4>
+                <p class="text-slate-500 small mb-0">Ulasan asli dari para pembeli terverifikasi di Tokobii.</p>
             </div>
-            <div class="text-end">
-                <span class="h3 fw-bold text-slate-900 font-monospace mb-0">{{ number_format($product->reviews_avg_rating ?? 0, 1) }}</span>
-                <span class="text-slate-400 small">/ 5.0</span>
+            <div class="d-none d-sm-block text-end">
+                <span class="tokobii-badge tokobii-badge-info px-3 py-1.5">
+                    {{ $totalReviews ?? ($product->reviews_count ?? 0) }} Total Ulasan
+                </span>
             </div>
         </div>
 
+        {{-- Review Rating Overview & Breakdown --}}
+        <div class="row g-4 mb-4 pb-3">
+            <div class="col-12 col-md-4">
+                <div class="p-4 bg-slate-50 rounded-4 border border-slate-200 text-center h-100 d-flex flex-column justify-content-center align-items-center">
+                    <span class="display-4 fw-bold text-slate-900 font-monospace mb-1">
+                        {{ number_format($product->reviews_avg_rating ?? 0, 1) }}
+                    </span>
+                    <div class="d-flex text-amber-500 mb-2">
+                        @for($i = 1; $i <= 5; $i++)
+                            <svg width="20" height="20" fill="{{ $i <= round($product->reviews_avg_rating ?? 0) ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                            </svg>
+                        @endfor
+                    </div>
+                    <span class="text-slate-500 small">Berdasarkan {{ $totalReviews ?? ($product->reviews_count ?? 0) }} ulasan pembeli</span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-8">
+                <div class="p-4 bg-slate-50 rounded-4 border border-slate-200 h-100 d-flex flex-column justify-content-center">
+                    @php
+                        $totRev = ($totalReviews ?? ($product->reviews_count ?? 0));
+                    @endphp
+                    @for($star = 5; $star >= 1; $star--)
+                        @php
+                            $count = isset($ratingStats[$star]) ? $ratingStats[$star] : 0;
+                            $pct = $totRev > 0 ? round(($count / $totRev) * 100) : 0;
+                        @endphp
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="d-flex align-items-center gap-1 text-slate-700 small fw-semibold" style="width: 75px;">
+                                <span>{{ $star }}</span>
+                                <svg width="14" height="14" fill="#f59e0b" stroke="#f59e0b" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                            </div>
+                            <div class="tokobii-rating-bar-track flex-grow-1">
+                                <div class="tokobii-rating-bar-fill" style="width: {{ $pct }}%;"></div>
+                            </div>
+                            <span class="text-slate-400 small text-end font-monospace" style="width: 45px;">
+                                {{ $count }}
+                            </span>
+                        </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
+
+        {{-- Reviews List --}}
         <div class="d-flex flex-column gap-3">
             @forelse($reviews as $review)
-                <div class="p-3 bg-slate-50 rounded-3 border border-slate-200">
+                <div class="p-3.5 bg-slate-50 rounded-3 border border-slate-200 transition">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-blue-100 text-blue-700 fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.75rem; background-color: #eff6ff; color: #2563eb;">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle bg-blue-100 text-blue-700 fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 0.8125rem; background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;">
                                 {{ strtoupper(substr($review->user->name ?? 'P', 0, 1)) }}
                             </div>
                             <div>
-                                <h6 class="fw-bold text-slate-900 mb-0" style="font-size: 0.875rem;">{{ $review->user->name ?? 'Pelanggan' }}</h6>
-                                <span class="text-slate-400" style="font-size: 0.6875rem;">{{ $review->created_at->format('d M Y') }}</span>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <h6 class="fw-bold text-slate-900 mb-0" style="font-size: 0.9rem;">{{ $review->user->name ?? 'Pelanggan Tokobii' }}</h6>
+                                    <span class="tokobii-badge tokobii-badge-success py-0 px-1.5" style="font-size: 0.65rem;">
+                                        <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-0.5" style="display:inline;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Pembeli Terverifikasi
+                                    </span>
+                                </div>
+                                <span class="text-slate-400" style="font-size: 0.6875rem;">{{ $review->created_at->translatedFormat('d F Y, H:i') }} WIB</span>
                             </div>
                         </div>
                         <div class="d-flex text-amber-500">
                             @for($i = 1; $i <= 5; $i++)
-                                <svg width="14" height="14" fill="{{ $i <= $review->rating ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
+                                <svg width="15" height="15" fill="{{ $i <= $review->rating ? '#f59e0b' : 'none' }}" stroke="#f59e0b" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                 </svg>
                             @endfor
                         </div>
                     </div>
-                    <p class="text-slate-700 small mb-0" style="line-height: 1.6;">{{ $review->comment }}</p>
+                    <p class="text-slate-700 small mb-0 ps-1" style="line-height: 1.65; white-space: pre-line;">{{ $review->comment }}</p>
                 </div>
             @empty
-                <div class="text-center py-4 text-slate-400 small">
-                    Belum ada ulasan untuk produk ini.
+                <div class="text-center py-5 text-slate-400 bg-slate-50 rounded-4 border border-dashed border-slate-200">
+                    <div class="rounded-circle d-inline-flex p-3 bg-white shadow-xs mb-3 text-slate-400">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <h6 class="fw-bold text-slate-700 mb-1">Belum Ada Ulasan untuk Produk Ini</h6>
+                    <p class="small text-slate-400 mb-0">Jadilah pembeli pertama yang memberikan penilaian setelah memesan produk ini di Tokobii!</p>
                 </div>
             @endforelse
         </div>
@@ -200,15 +297,15 @@
 
     {{-- Related Products --}}
     @if(isset($relatedProducts) && $relatedProducts->count() > 0)
-        <div class="mb-4">
-            <h4 class="fw-bold text-slate-900 mb-3" style="font-size: 1.15rem;">Produk Terkait</h4>
+        <div class="tokobii-card p-4 shadow-sm mb-4">
+            <h4 class="fw-bold text-slate-900 mb-3" style="font-size: 1.15rem;">Produk Terkait Lainnya</h4>
             <div class="row g-3 g-md-4">
                 @foreach($relatedProducts as $rel)
                     <div class="col-6 col-md-3">
-                        <div class="tokobii-product-card">
-                            <div class="position-relative bg-slate-100 d-flex align-items-center justify-content-center p-3" style="height: 150px;">
+                        <div class="tokobii-product-card" onclick="if(!event.target.closest('button, form, a')) window.location='{{ route('product.show', $rel->slug) }}';">
+                            <a href="{{ route('product.show', $rel->slug) }}" class="product-image-container position-relative bg-slate-100 d-flex align-items-center justify-content-center p-3 text-decoration-none" style="height: 150px;">
                                 @if($rel->thumbnail)
-                                    <img src="{{ asset('storage/' . $rel->thumbnail) }}" alt="{{ $rel->name }}" class="img-fluid object-fit-contain h-100 w-100" loading="lazy">
+                                    <img src="{{ asset('storage/' . $rel->thumbnail) }}" alt="{{ $rel->name }}" class="product-image img-fluid object-fit-contain h-100 w-100" loading="lazy">
                                 @else
                                     <div class="text-slate-400 text-center">
                                         <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mx-auto mb-1">
@@ -216,9 +313,9 @@
                                         </svg>
                                     </div>
                                 @endif
-                            </div>
+                            </a>
                             <div class="p-3 d-flex flex-column flex-grow-1">
-                                <a href="{{ route('product.show', $rel->slug) }}" class="fw-bold text-slate-900 text-decoration-none mb-1 text-truncate small" title="{{ $rel->name }}">
+                                <a href="{{ route('product.show', $rel->slug) }}" class="fw-bold text-slate-900 text-decoration-none mb-1 text-truncate small hover-text-blue-600" title="{{ $rel->name }}">
                                     {{ $rel->name }}
                                 </a>
                                 <span class="fw-bold text-blue-600 font-monospace small mt-auto" style="color: #2563eb;">

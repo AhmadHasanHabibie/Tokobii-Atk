@@ -125,6 +125,16 @@ class ShopController extends Controller
         $product = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->firstOrFail();
         $reviews = $product->reviews()->with('user')->latest()->paginate(10);
 
+        // Rating breakdown statistics
+        $totalReviews = $product->reviews_count ?? $product->reviews()->count();
+        $ratingStats = [
+            5 => $totalReviews > 0 ? $product->reviews()->where('rating', 5)->count() : 0,
+            4 => $totalReviews > 0 ? $product->reviews()->where('rating', 4)->count() : 0,
+            3 => $totalReviews > 0 ? $product->reviews()->where('rating', 3)->count() : 0,
+            2 => $totalReviews > 0 ? $product->reviews()->where('rating', 2)->count() : 0,
+            1 => $totalReviews > 0 ? $product->reviews()->where('rating', 1)->count() : 0,
+        ];
+
         // Related Products (Same category max 4, fallback to latest if empty)
         $relatedProducts = Product::with('category')
             ->where('category_id', $product->category_id)
@@ -143,6 +153,6 @@ class ShopController extends Controller
             $relatedProducts = $relatedProducts->concat($additionalProducts);
         }
 
-        return view('customer.shop.show', compact('product', 'relatedProducts', 'reviews'));
+        return view('customer.shop.show', compact('product', 'relatedProducts', 'reviews', 'ratingStats', 'totalReviews'));
     }
 }

@@ -125,13 +125,13 @@
     <div class="row g-3 g-md-4 mb-4">
         @forelse($products as $product)
             <div class="col-6 col-md-4 col-lg-3">
-                <div class="tokobii-product-card">
+                <div class="tokobii-product-card" onclick="if(!event.target.closest('button, form, a')) window.location='{{ route('product.show', $product->slug) }}';">
                     {{-- Thumbnail --}}
-                    <div class="position-relative d-flex align-items-center justify-content-center p-3" style="height: 185px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
+                    <a href="{{ route('product.show', $product->slug) }}" class="product-image-container position-relative d-flex align-items-center justify-content-center p-3 text-decoration-none" style="height: 185px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
                         @if($product->thumbnail)
                             <img src="{{ asset('storage/' . $product->thumbnail) }}" 
                                  alt="{{ $product->name }}" 
-                                 class="img-fluid object-fit-contain h-100 w-100" 
+                                 class="product-image img-fluid object-fit-contain h-100 w-100" 
                                  loading="lazy">
                         @else
                             <div class="d-flex flex-column align-items-center justify-content-center text-center p-2">
@@ -157,14 +157,14 @@
                                 </span>
                             @endif
                         </div>
-                    </div>
+                    </a>
 
                     {{-- Details --}}
                     <div class="p-3 d-flex flex-column flex-grow-1">
                         <span class="text-slate-400 text-uppercase fw-semibold mb-1" style="font-size: 0.6875rem; letter-spacing: 0.05em;">
                             {{ $product->category->name ?? 'Umum' }}
                         </span>
-                        <a href="{{ route('product.show', $product->slug) }}" class="fw-bold text-slate-900 text-decoration-none mb-1 text-truncate" title="{{ $product->name }}" style="font-size: 0.9rem;">
+                        <a href="{{ route('product.show', $product->slug) }}" class="fw-bold text-slate-900 text-decoration-none mb-1 text-truncate hover-text-blue-600" title="{{ $product->name }}" style="font-size: 0.9rem;">
                             {{ $product->name }}
                         </a>
 

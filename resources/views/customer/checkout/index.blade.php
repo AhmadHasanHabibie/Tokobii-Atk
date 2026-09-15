@@ -21,6 +21,12 @@
     <form action="{{ route('customer.checkout.store') }}" method="POST" id="checkoutForm">
         @csrf
 
+        @if(!empty($selectedIds))
+            @foreach($selectedIds as $selId)
+                <input type="hidden" name="selected_items[]" value="{{ $selId }}">
+            @endforeach
+        @endif
+
         <div class="row g-4">
             
             {{-- Left Column: Product Summary & Notes --}}

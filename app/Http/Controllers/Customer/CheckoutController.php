@@ -17,7 +17,10 @@ class CheckoutController extends Controller
     /**
      * Display the checkout page.
      */
-    public function index(): View|RedirectResponse
+    /**
+     * Display the checkout page.
+     */
+    public function index(Request $request): View|RedirectResponse
     {
         $cart = session()->get('cart', []);
 
@@ -26,12 +29,37 @@ class CheckoutController extends Controller
                 ->with('warning', 'Keranjang belanja Anda masih kosong. Silakan pilih produk terlebih dahulu.');
         }
 
+        // Determine selected items from request or session fallback
+        $selectedIds = $request->input('selected_items');
+        if (is_null($selectedIds)) {
+            $selectedIds = session()->get('checkout_selected', array_keys($cart));
+        }
+
+        if (!is_array($selectedIds)) {
+            $selectedIds = [$selectedIds];
+        }
+
+        // Filter cart to only include selected items
+        $checkoutCart = array_intersect_key($cart, array_flip($selectedIds));
+
+        if (empty($checkoutCart)) {
+            return redirect()->route('customer.cart.index')
+                ->with('warning', 'Silakan centang minimal satu produk di keranjang belanja untuk melanjutkan checkout.');
+        }
+
+        // Save selected keys in session for subsequent store processing
+        session()->put('checkout_selected', array_keys($checkoutCart));
+
         $subtotal = 0;
-        foreach ($cart as $item) {
+        foreach ($checkoutCart as $item) {
             $subtotal += $item['price'] * $item['qty'];
         }
 
-        return view('customer.checkout.index', compact('cart', 'subtotal'));
+        return view('customer.checkout.index', [
+            'cart' => $checkoutCart,
+            'subtotal' => $subtotal,
+            'selectedIds' => array_keys($checkoutCart),
+        ]);
     }
 
     /**
@@ -46,6 +74,19 @@ class CheckoutController extends Controller
                 ->with('error', 'Keranjang belanja kosong. Transaksi tidak dapat diproses.');
         }
 
+        // Determine items to checkout
+        $selectedIds = $request->input('selected_items', session()->get('checkout_selected', array_keys($cart)));
+        if (!is_array($selectedIds)) {
+            $selectedIds = [$selectedIds];
+        }
+
+        $checkoutCart = array_intersect_key($cart, array_flip($selectedIds));
+
+        if (empty($checkoutCart)) {
+            return redirect()->route('customer.cart.index')
+                ->with('error', 'Tidak ada produk yang dipilih untuk di-checkout.');
+        }
+
         $request->validate([
             'payment_method' => 'required|in:cash,qris',
             'notes' => 'nullable|string|max:500',
@@ -55,8 +96,8 @@ class CheckoutController extends Controller
             'notes.max' => 'Catatan pesanan maksimal 500 karakter.',
         ]);
 
-        // Stock validation check
-        foreach ($cart as $item) {
+        // Stock validation check on selected items
+        foreach ($checkoutCart as $item) {
             $product = Product::find($item['id']);
             if (!$product || $product->stock < $item['qty']) {
                 return back()->with('error', 'Stok produk "' . $item['name'] . '" tidak mencukupi saat ini.');
@@ -64,14 +105,14 @@ class CheckoutController extends Controller
         }
 
         $subtotal = 0;
-        foreach ($cart as $item) {
+        foreach ($checkoutCart as $item) {
             $subtotal += $item['price'] * $item['qty'];
         }
 
         $paymentMethod = $request->input('payment_method');
         $notes = $request->input('notes');
 
-        $order = DB::transaction(function () use ($cart, $subtotal, $paymentMethod, $notes) {
+        $order = DB::transaction(function () use ($cart, $checkoutCart, $subtotal, $paymentMethod, $notes) {
             $invoiceNumber = Order::generateInvoiceNumber();
 
             // Cash orders can be prepared immediately, while QRIS orders remain
@@ -90,7 +131,7 @@ class CheckoutController extends Controller
                 'notes' => $notes,
             ]);
 
-            foreach ($cart as $item) {
+            foreach ($checkoutCart as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item['id'],
@@ -113,7 +154,15 @@ class CheckoutController extends Controller
                 'payment_date' => now(),
             ]);
 
-            session()->forget('cart');
+            // Remove only the checked-out items from cart, keeping unselected items intact
+            $remainingCart = array_diff_key($cart, $checkoutCart);
+            if (empty($remainingCart)) {
+                session()->forget('cart');
+            } else {
+                session()->put('cart', $remainingCart);
+            }
+
+            session()->forget('checkout_selected');
 
             return $order;
         });
