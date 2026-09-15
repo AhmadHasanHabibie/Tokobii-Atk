@@ -624,10 +624,16 @@
                 {{-- Status --}}
                 <td>
 
-                    @if($product->status === 'active')
+                    @if($product->status === 'active' && (!$product->category || $product->category->status === 'active'))
 
                         <span class="tokobii-badge tokobii-badge-success">
                             Aktif
+                        </span>
+
+                    @elseif($product->status === 'active' && $product->category && $product->category->status === 'inactive')
+
+                        <span class="tokobii-badge tokobii-badge-neutral" title="Kategori ({{ $product->category->name }}) sedang tidak aktif">
+                            Tidak Aktif (Kategori)
                         </span>
 
                     @else

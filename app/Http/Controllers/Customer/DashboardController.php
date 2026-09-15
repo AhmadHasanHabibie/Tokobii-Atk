@@ -26,13 +26,19 @@ class DashboardController extends Controller
             $greeting = 'Selamat Malam';
         }
 
-        // Real categories data from Admin (max 8)
-        $categories = Category::withCount('products')->latest()->take(8)->get();
-        $totalCategories = Category::count();
+        // Real active categories data (max 8)
+        $categories = Category::where('status', 'active')
+            ->withCount(['products' => function ($q) {
+                $q->where('status', 'active');
+            }])
+            ->latest()
+            ->take(8)
+            ->get();
+        $totalCategories = Category::where('status', 'active')->count();
 
-        // Real products data from Admin (latest & popular placeholder)
-        $newProducts = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(8)->get();
-        $popularProducts = Product::withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(4)->get();
+        // Real active products data (latest & popular)
+        $newProducts = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(8)->get();
+        $popularProducts = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews')->latest()->take(4)->get();
 
         return view('customer.dashboard.index', compact(
             'greeting',

@@ -37,6 +37,18 @@
     </div>
 
     @if(!empty($cart))
+        @if($hasLockedItems ?? false)
+            <div class="alert alert-warning border-amber-200 bg-amber-50 text-amber-900 rounded-3 p-3 mb-4 d-flex align-items-start gap-2.5">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-amber-600 flex-shrink-0 mt-0.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div class="small">
+                    <strong class="d-block mb-0.5">Pemberitahuan Produk Kategori Nonaktif:</strong>
+                    Terdapat produk di keranjang Anda yang kategorinya sedang dinonaktifkan. Anda tetap dapat langsung melanjutkan checkout dengan jumlah yang ada, atau menghapusnya dari keranjang jika tidak ingin membeli (pengubahan kuantitas produk dikunci).
+                </div>
+            </div>
+        @endif
+
         <div class="row g-4">
 
             {{-- Cart Items Table Card --}}
@@ -100,22 +112,43 @@
                                             <a href="{{ route('customer.shop.show', $item['slug'] ?? '#') }}" class="fw-bold text-slate-900 text-decoration-none d-block text-truncate hover-text-blue-600" style="max-width: 200px;" title="{{ $item['name'] }}">
                                                 {{ $item['name'] }}
                                             </a>
-                                            <span class="text-slate-400 small">Stok: {{ $item['stock'] ?? 'Tersedia' }}</span>
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                <span class="text-slate-400 small">Stok: {{ $item['stock'] ?? 'Tersedia' }}</span>
+                                                @if(!empty($item['is_locked']))
+                                                    <span class="tokobii-badge tokobii-badge-warning d-inline-flex align-items-center gap-1" style="font-size: 0.65rem;" title="{{ $item['lock_reason'] ?? 'Kategori produk sedang tidak aktif' }}">
+                                                        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                                        </svg>
+                                                        <span>Jumlah Terkunci (Kategori Nonaktif)</span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="text-end font-monospace text-slate-700 small">
                                             Rp {{ number_format($item['price'], 0, ',', '.') }}
                                         </td>
                                         <td class="text-center">
-                                            {{-- Quantity Update Form --}}
-                                            <form action="{{ route('customer.cart.update') }}" method="POST" class="d-inline-flex align-items-center justify-content-center m-0">
-                                                @csrf
-                                                <input type="hidden" name="product_id" value="{{ $id }}">
-                                                <div class="tokobii-qty-control" style="transform: scale(0.88);">
-                                                    <button type="submit" name="qty" value="{{ max(1, $item['qty'] - 1) }}" class="tokobii-qty-btn" {{ $item['qty'] <= 1 ? 'disabled' : '' }}>-</button>
-                                                    <input type="text" readonly value="{{ $item['qty'] }}" class="tokobii-qty-input">
-                                                    <button type="submit" name="qty" value="{{ $item['qty'] + 1 }}" class="tokobii-qty-btn" {{ isset($item['stock']) && $item['qty'] >= $item['stock'] ? 'disabled' : '' }}>+</button>
+                                            @if(!empty($item['is_locked']))
+                                                <div class="d-inline-flex flex-column align-items-center">
+                                                    <div class="tokobii-qty-control opacity-75" style="transform: scale(0.88);" title="Kuantitas tidak dapat diubah karena kategori/produk sedang tidak aktif">
+                                                        <button type="button" class="tokobii-qty-btn" disabled style="cursor: not-allowed; opacity: 0.4;">-</button>
+                                                        <input type="text" readonly value="{{ $item['qty'] }}" class="tokobii-qty-input bg-slate-100 text-slate-500 fw-bold" style="cursor: not-allowed;">
+                                                        <button type="button" class="tokobii-qty-btn" disabled style="cursor: not-allowed; opacity: 0.4;">+</button>
+                                                    </div>
+                                                    <span class="text-amber-600 font-monospace" style="font-size: 0.6875rem;">(Hanya Checkout)</span>
                                                 </div>
-                                            </form>
+                                            @else
+                                                {{-- Quantity Update Form --}}
+                                                <form action="{{ route('customer.cart.update') }}" method="POST" class="d-inline-flex align-items-center justify-content-center m-0">
+                                                    @csrf
+                                                    <input type="hidden" name="product_id" value="{{ $id }}">
+                                                    <div class="tokobii-qty-control" style="transform: scale(0.88);">
+                                                        <button type="submit" name="qty" value="{{ max(1, $item['qty'] - 1) }}" class="tokobii-qty-btn" {{ $item['qty'] <= 1 ? 'disabled' : '' }}>-</button>
+                                                        <input type="text" readonly value="{{ $item['qty'] }}" class="tokobii-qty-input">
+                                                        <button type="submit" name="qty" value="{{ $item['qty'] + 1 }}" class="tokobii-qty-btn" {{ isset($item['stock']) && $item['qty'] >= $item['stock'] ? 'disabled' : '' }}>+</button>
+                                                    </div>
+                                                </form>
+                                            @endif
                                         </td>
                                         <td class="text-end fw-bold text-blue-600 font-monospace">
                                             Rp {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}

@@ -18,13 +18,31 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         $subtotal = 0;
         $totalItems = 0;
+        $hasLockedItems = false;
 
-        foreach ($cart as $item) {
+        $productIds = array_keys($cart);
+        $dbProducts = Product::with('category')->whereIn('id', $productIds)->get()->keyBy('id');
+
+        foreach ($cart as $id => &$item) {
             $subtotal += $item['price'] * $item['qty'];
             $totalItems += $item['qty'];
-        }
 
-        return view('customer.cart.index', compact('cart', 'subtotal', 'totalItems'));
+            $dbProduct = $dbProducts->get($id);
+            $isCategoryInactive = $dbProduct && $dbProduct->category && $dbProduct->category->status !== 'active';
+            $isProductInactive = !$dbProduct || $dbProduct->status !== 'active';
+
+            $item['is_locked'] = ($isCategoryInactive || $isProductInactive);
+            $item['lock_reason'] = $isCategoryInactive
+                ? 'Kategori "' . ($dbProduct->category->name ?? '') . '" sedang tidak aktif'
+                : ($isProductInactive ? 'Produk ini sedang tidak aktif' : null);
+
+            if ($item['is_locked']) {
+                $hasLockedItems = true;
+            }
+        }
+        unset($item);
+
+        return view('customer.cart.index', compact('cart', 'subtotal', 'totalItems', 'hasLockedItems'));
     }
 
     /**
@@ -42,8 +60,12 @@ class CartController extends Controller
             'qty.min' => 'Jumlah produk minimal 1 barang.',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
+        $product = Product::with('category')->findOrFail($request->product_id);
         $qty = (int) $request->input('qty', 1);
+
+        if (!$product->isActive()) {
+            return back()->with('error', 'Maaf, produk ini tidak dapat ditambahkan ke keranjang karena sedang tidak aktif atau kategorinya dinonaktifkan.');
+        }
 
         if ($product->stock <= 0) {
             return back()->with('error', 'Maaf, stok produk ini telah habis.');
@@ -107,8 +129,13 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
 
         if (isset($cart[$productId])) {
-            $product = Product::find($productId);
-            if ($product && $qty > $product->stock) {
+            $product = Product::with('category')->find($productId);
+
+            if (!$product || !$product->isActive()) {
+                return back()->with('error', 'Kuantitas produk tidak dapat diubah karena kategori atau produk sedang dinonaktifkan. Anda tetap dapat melanjutkan checkout dengan jumlah saat ini atau menghapusnya dari keranjang.');
+            }
+
+            if ($qty > $product->stock) {
                 return back()->with('error', 'Kuantitas melebihi stok yang tersedia (Maks: ' . $product->stock . ').');
             }
 

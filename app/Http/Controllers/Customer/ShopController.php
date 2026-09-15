@@ -15,7 +15,7 @@ class ShopController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews');
+        $query = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews');
 
         // Search by Product Name or SKU
         if ($request->filled('search')) {
@@ -26,13 +26,15 @@ class ShopController extends Controller
             });
         }
 
-        // Category Filter
+        // Category Filter (only active categories)
         $selectedCategory = null;
         if ($request->filled('category')) {
             $categorySlug = $request->input('category');
-            $selectedCategory = Category::where('slug', $categorySlug)->first();
+            $selectedCategory = Category::where('slug', $categorySlug)->where('status', 'active')->first();
             if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory->id);
+            } else {
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -58,7 +60,7 @@ class ShopController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::latest()->get();
+        $categories = Category::where('status', 'active')->latest()->get();
 
         return view('customer.shop.index', compact(
             'products',
@@ -73,8 +75,8 @@ class ShopController extends Controller
      */
     public function category(string $slug, Request $request): View
     {
-        $selectedCategory = Category::where('slug', $slug)->firstOrFail();
-        $query = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('category_id', $selectedCategory->id);
+        $selectedCategory = Category::where('slug', $slug)->where('status', 'active')->firstOrFail();
+        $query = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('category_id', $selectedCategory->id);
 
         // Search by Product Name or SKU
         if ($request->filled('search')) {
@@ -107,7 +109,7 @@ class ShopController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::latest()->get();
+        $categories = Category::where('status', 'active')->latest()->get();
 
         return view('customer.shop.index', compact(
             'products',
@@ -120,9 +122,15 @@ class ShopController extends Controller
     /**
      * Display the specified product detail.
      */
-    public function show(string $slug): View
+    public function show(string $slug)
     {
-        $product = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->firstOrFail();
+        $product = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->first();
+
+        if (!$product) {
+            return redirect()->route('customer.shop.index')
+                ->with('warning', 'Produk tidak ditemukan atau kategori produk sedang dinonaktifkan.');
+        }
+
         $reviews = $product->reviews()->with('user')->latest()->paginate(10);
 
         // Rating breakdown statistics
@@ -135,8 +143,8 @@ class ShopController extends Controller
             1 => $totalReviews > 0 ? $product->reviews()->where('rating', 1)->count() : 0,
         ];
 
-        // Related Products (Same category max 4, fallback to latest if empty)
-        $relatedProducts = Product::with('category')
+        // Related Products (Same category max 4, fallback to latest active if empty)
+        $relatedProducts = Product::active()->with('category')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->latest()
@@ -145,7 +153,7 @@ class ShopController extends Controller
 
         if ($relatedProducts->count() < 4) {
             $excludeIds = $relatedProducts->pluck('id')->push($product->id);
-            $additionalProducts = Product::with('category')
+            $additionalProducts = Product::active()->with('category')
                 ->whereNotIn('id', $excludeIds)
                 ->latest()
                 ->take(4 - $relatedProducts->count())

@@ -24,7 +24,7 @@ class GuestController extends Controller
      */
     public function shop(Request $request): View
     {
-        $query = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews');
+        $query = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews');
 
         // Search by Product Name or SKU
         if ($request->filled('search')) {
@@ -35,13 +35,15 @@ class GuestController extends Controller
             });
         }
 
-        // Category Filter
+        // Category Filter (only active categories)
         $selectedCategory = null;
         if ($request->filled('category')) {
             $categorySlug = $request->input('category');
-            $selectedCategory = Category::where('slug', $categorySlug)->first();
+            $selectedCategory = Category::where('slug', $categorySlug)->where('status', 'active')->first();
             if ($selectedCategory) {
                 $query->where('category_id', $selectedCategory->id);
+            } else {
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -67,7 +69,7 @@ class GuestController extends Controller
         }
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::latest()->get();
+        $categories = Category::where('status', 'active')->latest()->get();
 
         return view('guest.shop.index', compact(
             'products',
@@ -80,9 +82,15 @@ class GuestController extends Controller
     /**
      * Display Product Detail with real database product & related items.
      */
-    public function product(string $slug): View
+    public function product(string $slug)
     {
-        $product = Product::with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->firstOrFail();
+        $product = Product::active()->with('category')->withAvg('reviews', 'rating')->withCount('reviews')->where('slug', $slug)->first();
+
+        if (!$product) {
+            return redirect()->route('shop')
+                ->with('warning', 'Produk tidak ditemukan atau kategori produk sedang dinonaktifkan.');
+        }
+
         $reviews = $product->reviews()->with('user')->latest()->paginate(10);
 
         // Rating breakdown statistics
@@ -95,7 +103,7 @@ class GuestController extends Controller
             1 => $totalReviews > 0 ? $product->reviews()->where('rating', 1)->count() : 0,
         ];
 
-        $relatedProducts = Product::with('category')
+        $relatedProducts = Product::active()->with('category')
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->latest()
@@ -110,6 +118,11 @@ class GuestController extends Controller
      */
     public function category(string $slug): RedirectResponse
     {
+        $selectedCategory = Category::where('slug', $slug)->where('status', 'active')->first();
+        if (!$selectedCategory) {
+            return redirect()->route('shop')->with('warning', 'Kategori tidak ditemukan atau sedang dinonaktifkan.');
+        }
+
         return redirect()->route('shop', ['category' => $slug]);
     }
 

@@ -65,4 +65,23 @@ class Product extends Model
     {
         return $this->hasMany(Report::class);
     }
+
+    /**
+     * Scope a query to only include active products whose category is also active.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('products.status', 'active')
+            ->whereHas('category', function ($q) {
+                $q->where('status', 'active');
+            });
+    }
+
+    /**
+     * Determine if the product and its category are currently active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active' && ($this->category ? $this->category->status === 'active' : true);
+    }
 }

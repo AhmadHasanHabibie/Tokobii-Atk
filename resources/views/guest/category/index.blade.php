@@ -22,7 +22,11 @@
 
     <div class="row g-4">
         @php
-            $sampleCategories = \App\Models\Category::withCount('products')->get();
+            $sampleCategories = \App\Models\Category::where('status', 'active')
+                ->withCount(['products' => function ($q) {
+                    $q->where('status', 'active');
+                }])
+                ->get();
         @endphp
 
         @forelse($sampleCategories as $category)

@@ -22,8 +22,8 @@ class ProductController extends Controller
     {
         // Mini Dashboard Statistics
         $totalProducts = Product::count();
-        $activeProducts = Product::where('status', 'active')->count();
-        $inactiveProducts = Product::where('status', 'inactive')->count();
+        $activeProducts = Product::active()->count();
+        $inactiveProducts = $totalProducts - $activeProducts;
         $outOfStockProducts = Product::where('stock', 0)->count();
 
         $query = Product::with('category');
@@ -48,9 +48,18 @@ class ProductController extends Controller
             $query->where('category_id', $categoryId);
         }
 
-        // Filter by status
+        // Filter by status (including category active status cascade)
         if ($request->filled('status') && in_array($request->input('status'), ['active', 'inactive'])) {
-            $query->where('status', $request->input('status'));
+            if ($request->input('status') === 'active') {
+                $query->active();
+            } else {
+                $query->where(function ($q) {
+                    $q->where('products.status', 'inactive')
+                      ->orWhereHas('category', function ($catQ) {
+                          $catQ->where('status', 'inactive');
+                      });
+                });
+            }
         }
 
         // Filter by stock status
@@ -96,7 +105,7 @@ class ProductController extends Controller
         }
 
         $products = $query->paginate(10)->withQueryString();
-        $categories = Category::where('status', 'active')->get();
+        $categories = Category::orderBy('name')->get();
 
         return view('admin.products.index', compact(
             'products',
@@ -159,7 +168,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product): View
     {
-        $categories = Category::where('status', 'active')->get();
+        $categories = Category::orderBy('name')->get();
 
         return view('admin.products.edit', compact('product', 'categories'));
     }
