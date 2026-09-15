@@ -21,9 +21,6 @@
             <a href="{{ route('about') }}" class="text-decoration-none fw-semibold text-sm {{ request()->routeIs('about') ? 'text-blue-600' : 'text-slate-600 hover-text-blue-600' }}">
                 Tentang Tokobii
             </a>
-            <a href="{{ route('contact') }}" class="text-decoration-none fw-semibold text-sm {{ request()->routeIs('contact') ? 'text-blue-600' : 'text-slate-600 hover-text-blue-600' }}">
-                Hubungi Kami
-            </a>
         </div>
 
         {{-- Auth Action Buttons --}}

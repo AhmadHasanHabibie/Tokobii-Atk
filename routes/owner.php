@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\ProfileController;
+use App\Http\Controllers\Owner\SalesReportController;
 use App\Http\Controllers\Security\FaceVerificationProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,18 @@ Route::middleware(['auth', 'verified', 'owner', 'face.verified'])
 
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Laporan Penjualan (Harian, Mingguan, Bulanan & Download PDF)
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/sales', [SalesReportController::class, 'index'])
+            ->name('sales.index');
+
+        Route::get('/sales/pdf', [SalesReportController::class, 'exportPdf'])
+            ->name('sales.pdf');
 
         /*
         |--------------------------------------------------------------------------

@@ -17,6 +17,12 @@
                 <span class="tokobii-badge tokobii-badge-success">Mode Pemilik</span>
                 <span class="text-slate-400 fw-medium" style="font-size: 0.8125rem;">Ringkasan Eksekutif</span>
             </div>
+            <a href="{{ route('owner.sales.index') }}" class="btn btn-sm d-inline-flex align-items-center gap-1.5 fw-semibold {{ request()->routeIs('owner.sales.*') ? 'btn-primary' : 'btn-outline-primary' }} ms-2" style="border-radius: 8px; font-size: 0.8125rem; padding: 0.35rem 0.75rem;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <span>Laporan Penjualan</span>
+            </a>
         </div>
 
         {{-- Right: User Pill Dropdown --}}
@@ -49,6 +55,12 @@
                     <div class="text-truncate text-slate-400" style="font-size: 0.75rem;">{{ Auth::user()->email }}</div>
                 </li>
                 <li><hr class="tokobii-divider my-1 mx-2"></li>
+                <li>
+                    <a class="dropdown-item tokobii-dropdown-item" href="{{ route('owner.sales.index') }}">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>Laporan Penjualan (PDF)</span>
+                    </a>
+                </li>
                 <li>
                     <a class="dropdown-item tokobii-dropdown-item" href="{{ route('owner.profile.index') }}">
                         <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
