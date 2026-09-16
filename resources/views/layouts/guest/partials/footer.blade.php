@@ -30,7 +30,7 @@
                 <ul class="list-unstyled d-flex flex-column gap-2 small">
                     <li><a href="{{ route('shop') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Katalog Produk</a></li>
                     <li><a href="{{ route('about') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Tentang Kami</a></li>
-                    <li><a href="{{ route('contact') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Hubungi Kami</a></li>
+                    <li><a href="{{ route('contact') }}" class="text-decoration-none text-slate-500 hover-text-blue-600"></a></li>
                     <li><a href="{{ route('login') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Masuk Akun</a></li>
                     <li><a href="{{ route('register') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Daftar Pelanggan</a></li>
                 </ul>

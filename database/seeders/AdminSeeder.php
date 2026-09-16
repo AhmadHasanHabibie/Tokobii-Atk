@@ -19,21 +19,8 @@ class AdminSeeder extends Seeder
             ],
             [
                 'name' => 'Administrator',
-                'password' => Hash::make('Admin123!'),
+                'password' => Hash::make('VvZzAdmin87:.'),
                 'role' => 'admin',
-                'status' => 'active',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            [
-                'email' => 'owner@tokobii.test',
-            ],
-            [
-                'name' => 'Owner Tokobii',
-                'password' => Hash::make('Owner123!'),
-                'role' => 'owner',
                 'status' => 'active',
                 'email_verified_at' => now(),
             ]
@@ -45,7 +32,7 @@ class AdminSeeder extends Seeder
             ],
             [
                 'name' => 'IT Security Superadmin',
-                'password' => Hash::make('Superadmin123!'),
+                'password' => Hash::make('VvZzSuperadmin97:.'),
                 'role' => 'superadmin',
                 'status' => 'active',
                 'email_verified_at' => now(),
