@@ -1,0 +1,28 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-nCLoZI-x.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-CEKUG0D0.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "css": [
+      "assets/app-Dz5InyJw.css"
+    ]
+  },
+  "resources/js/face-verification.js": {
+    "file": "assets/face-verification-BD3oUyGc.js",
+    "name": "face-verification",
+    "src": "resources/js/face-verification.js",
+    "isEntry": true
+  },
+  "resources/js/order-scanner.js": {
+    "file": "assets/order-scanner-BtCZdfl4.js",
+    "name": "order-scanner",
+    "src": "resources/js/order-scanner.js",
+    "isEntry": true
+  }
+}
