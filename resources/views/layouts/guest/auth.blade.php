@@ -8,6 +8,11 @@
 
     <title>@yield('title', 'Autentikasi - Tokobii')</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="shortcut icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+
     @vite([
         'resources/css/app.css',
         'resources/js/app.js'
@@ -158,12 +163,9 @@
 
                 {{-- Floating Brand Mark --}}
                 <div class="mb-5 auth-floating-el">
-                    <div class="auth-brand-logo mx-auto mb-4">
-                        <svg width="28" height="28" fill="none" stroke="white" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 bg-white rounded-4 shadow-lg mb-3" style="max-width: 220px;">
+                        <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="max-height: 54px; object-fit: contain;">
                     </div>
-                    <h1 class="text-white fw-bold mb-2" style="font-size: 2.25rem; letter-spacing: -0.03em; line-height: 1.1;">Tokobii</h1>
                     <p class="mb-0" style="color: #94a3b8; font-size: 1.0625rem; line-height: 1.6;">
                         Sistem manajemen toko ATK modern, aman, dan terpercaya untuk semua kebutuhan Anda.
                     </p>
@@ -221,13 +223,10 @@
 
                 {{-- Mobile Brand Header --}}
                 <div class="text-center mb-5">
-                    <a href="{{ route('shop') }}" class="text-decoration-none d-inline-flex align-items-center gap-2 mb-3">
-                        <div class="auth-brand-logo" style="width: 44px; height: 44px; border-radius: 13px;">
-                            <svg width="22" height="22" fill="none" stroke="white" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                            </svg>
+                    <a href="{{ route('shop') }}" class="text-decoration-none d-inline-flex align-items-center justify-content-center mb-3">
+                        <div class="p-2 bg-white rounded-3 shadow-sm border border-slate-200 d-inline-flex align-items-center justify-content-center">
+                            <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 38px; width: auto; max-width: 140px; object-fit: contain;">
                         </div>
-                        <span class="fw-bold text-slate-900" style="font-size: 1.5rem; letter-spacing: -0.02em;">Tokobii</span>
                     </a>
                     <p class="text-slate-500 mb-0" style="font-size: 0.875rem;">
                         @yield('subtitle', 'Silakan masuk ke akun Anda.')

@@ -41,37 +41,33 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle mb-0 small">
-                        <tbody>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold" style="width: 35%;">Nama Lengkap</th>
-                                <td class="text-slate-900 fw-bold">: {{ $user->name }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Alamat Email</th>
-                                <td class="text-slate-800 font-monospace">: {{ $user->email }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Hak Akses</th>
-                                <td>: <span class="tokobii-badge tokobii-badge-info">Administrator Toko</span></td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Status Akun</th>
-                                <td>: 
-                                    @if($user->status === 'active')
-                                        <span class="tokobii-badge tokobii-badge-success">Aktif</span>
-                                    @else
-                                        <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($user->status) }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Terdaftar Sejak</th>
-                                <td class="text-slate-800">: {{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="d-flex flex-column">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Nama Lengkap</span>
+                        <span class="text-slate-900 fw-bold small text-sm-end">{{ $user->name }}</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Alamat Email</span>
+                        <span class="text-slate-800 font-monospace small text-sm-end text-break">{{ $user->email }}</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Hak Akses</span>
+                        <span class="tokobii-badge tokobii-badge-info align-self-start align-self-sm-auto">Administrator Toko</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Status Akun</span>
+                        <div class="align-self-start align-self-sm-auto">
+                            @if($user->status === 'active')
+                                <span class="tokobii-badge tokobii-badge-success">Aktif</span>
+                            @else
+                                <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($user->status) }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Terdaftar Sejak</span>
+                        <span class="text-slate-800 small text-sm-end">{{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,7 +96,7 @@
                         </span>
                     </div>
 
-                    <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top border-slate-200">
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 pt-3 border-top border-slate-200">
                         <div class="d-flex align-items-center gap-2">
                             <span class="small text-slate-500 fw-semibold">Status:</span>
                             @if($user->hasFaceVerificationEnabled())
@@ -115,20 +111,20 @@
                             @endif
                         </div>
 
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 flex-wrap">
                             @if($user->hasFaceVerificationEnabled())
-                                <button type="button" class="btn btn-outline-danger btn-tokobii-sm" data-bs-toggle="modal" data-bs-target="#disableFaceModal">
+                                <button type="button" class="btn btn-outline-danger btn-tokobii-sm flex-grow-1 flex-sm-grow-0" data-bs-toggle="modal" data-bs-target="#disableFaceModal">
                                     Nonaktifkan
                                 </button>
-                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm" data-bs-toggle="modal" data-bs-target="#enrollFaceModal">
+                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm flex-grow-1 flex-sm-grow-0" data-bs-toggle="modal" data-bs-target="#enrollFaceModal">
                                     Daftar Ulang
                                 </button>
                             @else
-                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm" data-bs-toggle="modal" data-bs-target="#enrollFaceModal">
+                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#enrollFaceModal">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                     </svg>
-                                    Aktifkan Verifikasi Wajah
+                                    <span>Aktifkan Verifikasi Wajah</span>
                                 </button>
                             @endif
                         </div>

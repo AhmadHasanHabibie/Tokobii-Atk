@@ -13,17 +13,17 @@
                     <span class="tokobii-badge bg-white text-blue-700 fw-bold px-3 py-1.5 text-uppercase mb-3 shadow-sm" style="font-size: 0.75rem; background-color: #ffffff; color: #1d4ed8;">
                         Pusat Alat Tulis Terlengkap & Resmi
                     </span>
-                    <h1 class="fw-bold display-6 mb-2 text-white">Katalog Produk Tokobii</h1>
+                    <h1 class="fw-bold fs-3 fs-md-2 mb-2 text-white">Katalog Produk Tokobii</h1>
                     <p class="lead mb-4 text-blue-100 small" style="max-width: 560px; opacity: 0.95; line-height: 1.6;">
                         Temukan perlengkapan kantor, sekolah, dan alat tulis kualitas terbaik dengan kemudahan pembelian dan pengambilan langsung di toko kami.
                     </p>
                     
                     @guest
-                        <div class="d-flex align-items-center gap-2.5 flex-wrap">
-                            <a href="{{ route('register') }}" class="btn fw-bold px-4 py-2.5 rounded-3 shadow-sm transition" style="background: #ffffff; color: #1d4ed8; border: none; font-size: 0.875rem;">
+                        <div class="d-flex align-items-stretch align-items-sm-center gap-2 flex-column flex-sm-row">
+                            <a href="{{ route('register') }}" class="btn fw-bold px-3.5 py-2.5 rounded-3 shadow-sm transition text-center" style="background: #ffffff; color: #1d4ed8; border: none; font-size: 0.875rem;">
                                 <span>Daftar Sebagai Pelanggan</span>
                             </a>
-                            <a href="{{ route('login') }}" class="btn fw-semibold px-4 py-2.5 rounded-3 transition" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(8px); font-size: 0.875rem;">
+                            <a href="{{ route('login') }}" class="btn fw-semibold px-3.5 py-2.5 rounded-3 transition text-center" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(8px); font-size: 0.875rem;">
                                 <span>Masuk Akun</span>
                             </a>
                         </div>
@@ -31,11 +31,9 @@
                 </div>
                 
                 <div class="col-12 col-md-4 text-center d-none d-md-block">
-                    <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-20 backdrop-blur d-inline-flex flex-column align-items-center justify-content-center">
-                        <div class="rounded-circle bg-white text-blue-600 p-3 mb-2 shadow-sm" style="background-color: #ffffff; color: #2563eb;">
-                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                            </svg>
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-20 backdrop-blur d-inline-flex flex-column align-items-center justify-content-center shadow-sm" style="min-width: 220px;">
+                        <div class="bg-white p-2.5 rounded-3 mb-2 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 68px;">
+                            <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                         </div>
                         <span class="fw-bold text-white fs-6">Tokobii Store</span>
                         <span class="text-blue-100 small" style="font-size: 0.75rem;">Terpercaya Sejak 2024</span>
@@ -183,12 +181,12 @@
                         </div>
 
                         {{-- Price & Detail Button --}}
-                        <div class="d-flex align-items-center justify-content-between mt-auto pt-2 border-top border-slate-100">
-                            <span class="fw-bold text-blue-600 font-monospace" style="font-size: 0.9375rem; color: #2563eb;">
+                        <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-1.5 mt-auto pt-2 border-top border-slate-100">
+                            <span class="fw-bold text-blue-600 font-monospace text-nowrap" style="font-size: 0.875rem; color: #2563eb;">
                                 Rp {{ number_format($product->price, 0, ',', '.') }}
                             </span>
 
-                            <a href="{{ route('product.show', $product->slug) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-1 px-2.5" title="Lihat Detail Produk">
+                            <a href="{{ route('product.show', $product->slug) }}" class="btn btn-tokobii-secondary btn-tokobii-sm py-1 px-2.5 text-nowrap align-self-stretch align-self-sm-auto" title="Lihat Detail Produk">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>

@@ -4,12 +4,7 @@
             {{-- Col 1: Brand Info --}}
             <div class="col-12 col-md-5 col-lg-4">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="d-inline-flex align-items-center justify-content-center bg-blue-600 text-white rounded-2 px-2.5 py-1.5 shadow-sm" style="background-color: #2563eb;">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
-                    </span>
-                    <span class="fw-bold text-slate-900 fs-4 tracking-tight">Tokobii</span>
+                    <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 42px; width: auto; max-width: 160px; object-fit: contain;">
                 </div>
                 <p class="text-slate-500 small mb-4" style="line-height: 1.6;">
                     Platform belanja perlengkapan alat tulis kantor (ATK) dan kebutuhan sekolah modern, cepat, aman, dan terpercaya.
@@ -30,7 +25,7 @@
                 <ul class="list-unstyled d-flex flex-column gap-2 small">
                     <li><a href="{{ route('shop') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Katalog Produk</a></li>
                     <li><a href="{{ route('about') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Tentang Kami</a></li>
-                    <li><a href="{{ route('contact') }}" class="text-decoration-none text-slate-500 hover-text-blue-600"></a></li>
+                    <li><a href="{{ route('contact') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Hubungi Kami</a></li>
                     <li><a href="{{ route('login') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Masuk Akun</a></li>
                     <li><a href="{{ route('register') }}" class="text-decoration-none text-slate-500 hover-text-blue-600">Daftar Pelanggan</a></li>
                 </ul>

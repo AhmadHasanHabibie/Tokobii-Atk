@@ -8,6 +8,11 @@
 
     <title>@yield('title', 'Superadmin IT Security') - {{ config('app.name', 'Tokobii') }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="shortcut icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+
     @vite([
         'resources/css/app.css',
         'resources/js/app.js'

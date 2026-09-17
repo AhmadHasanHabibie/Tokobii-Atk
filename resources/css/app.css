@@ -1543,14 +1543,161 @@ button.btn span,
 }
 
 /* ============================================================
-   SCROLLBAR STYLING (Webkit)
+   RESPONSIVE & MOBILE-FIRST DESIGN PERFECTION
    ============================================================ */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 99px;
+
+/* 1. Global Viewport & Horizontal Overflow Prevention */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
 }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Ensure images and media never cause horizontal scroll */
+img, svg, video, canvas, audio, iframe, embed, object {
+    max-width: 100%;
+}
+
+/* 2. Responsive Border Radii & Smooth Elements */
+@media (max-width: 767.98px) {
+    :root {
+        --tokobii-radius: 14px;
+        --tokobii-radius-sm: 10px;
+        --tokobii-radius-lg: 18px;
+    }
+
+    /* Cards smooth mobile padding and radius */
+    .tokobii-card {
+        border-radius: var(--tokobii-radius) !important;
+    }
+
+    .tokobii-card.p-4.p-md-5,
+    .tokobii-card.p-5 {
+        padding: 1.25rem !important;
+    }
+
+    .tokobii-card-header {
+        padding: 1rem 1.25rem !important;
+        border-top-left-radius: var(--tokobii-radius) !important;
+        border-top-right-radius: var(--tokobii-radius) !important;
+    }
+
+    /* Product Card Image Container */
+    .product-image-container {
+        height: 140px !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Product detail page image preview */
+    .product-detail-image-box {
+        min-height: 250px !important;
+    }
+
+    /* Typography scaling on mobile */
+    .display-5, h1.display-5 {
+        font-size: 1.75rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .display-6, h1.display-6 {
+        font-size: 1.5rem !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Buttons: comfortable touch target and safe flex */
+    .btn-tokobii-primary,
+    .btn-tokobii-secondary,
+    .btn-tokobii-danger,
+    .btn-tokobii-success,
+    .btn-tokobii-warning {
+        min-height: 38px !important;
+    }
+
+    /* Category pills: smooth touch momentum scrolling */
+    .tokobii-category-pill {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    /* Responsive tables */
+    .tokobii-table-container {
+        border-radius: var(--tokobii-radius) !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumb {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+    .breadcrumb::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Dropdowns prevent off-screen overflow */
+    .dropdown-menu,
+    .tokobii-dropdown-menu {
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+
+    /* Modals comfortable margin & touch targets */
+    .modal-dialog {
+        margin: 0.75rem auto !important;
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+    .modal-content.tokobii-card {
+        border-radius: var(--tokobii-radius-lg) !important;
+    }
+
+    /* Input & Select fields iOS touch prevention */
+    .form-control,
+    .form-select,
+    .tokobii-input,
+    .tokobii-select {
+        font-size: 15px !important;
+    }
+}
+
+/* Extra Small Screens (< 575.98px) */
+@media (max-width: 575.98px) {
+    .container {
+        padding-left: 0.875rem !important;
+        padding-right: 0.875rem !important;
+    }
+
+    .tokobii-card {
+        padding: 1rem !important;
+    }
+
+    .tokobii-card.p-3 {
+        padding: 0.875rem !important;
+    }
+
+    .tokobii-product-card .p-3 {
+        padding: 0.75rem !important;
+    }
+
+    /* Stat cards */
+    .tokobii-stat-card {
+        padding: 1rem !important;
+    }
+
+    /* Auth card on small devices */
+    .auth-card {
+        padding: 1.5rem 1.25rem !important;
+        border-radius: 18px !important;
+    }
+
+    /* Allow buttons with long text to wrap comfortably */
+    .btn-wrap-mobile {
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+}
 
 } /* end @layer components */
+

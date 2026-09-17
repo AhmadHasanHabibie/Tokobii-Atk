@@ -209,7 +209,7 @@ class SimplifiedSuperadminTest extends TestCase
 
         // Customer uses the logout button from the maintenance popup
         $logoutResponse = $this->actingAs($this->customer)->post(route('logout'));
-        $logoutResponse->assertRedirect(route('login'));
+        $logoutResponse->assertRedirect(route('shop'));
         $this->assertGuest();
     }
 }

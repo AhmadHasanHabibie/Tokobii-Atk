@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk Pengambilan - {{ $order->invoice_number }} - Tokobii</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="shortcut icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+
     @vite([
         'resources/css/app.css',
         'resources/js/app.js'
@@ -51,13 +56,8 @@
 
             {{-- Header Store --}}
             <div class="text-center border-bottom border-slate-200 pb-4 mb-4">
-                <div class="d-inline-flex align-items-center gap-2 mb-1">
-                    <span class="d-inline-flex align-items-center justify-content-center bg-blue-600 text-white rounded-2 px-2 py-1 shadow-sm" style="background-color: #2563eb;">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
-                    </span>
-                    <h2 class="fw-bold text-slate-900 mb-0 fs-3">TOKOBII STORE</h2>
+                <div class="d-inline-flex align-items-center justify-content-center mb-2">
+                    <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 44px; width: auto; max-width: 160px; object-fit: contain;">
                 </div>
                 <p class="text-slate-500 small mb-2">Pusat Belanja Alat Tulis Kantor & Perlengkapan Sekolah</p>
                 <span class="tokobii-badge tokobii-badge-info text-uppercase px-3 py-1">Struk Pengambilan Pesanan</span>

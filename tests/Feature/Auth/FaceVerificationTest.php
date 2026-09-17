@@ -426,7 +426,7 @@ class FaceVerificationTest extends TestCase
 
         $response = $this->post('/logout');
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect(route('shop'));
         $this->assertGuest();
         $this->assertFalse(session()->has('face_verified_at'));
     }

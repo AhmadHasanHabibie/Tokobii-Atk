@@ -43,58 +43,54 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle mb-0 small">
-                        <tbody>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold" style="width: 35%;">Nama Lengkap</th>
-                                <td class="text-slate-900 fw-bold">: {{ $user->name }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Alamat Email</th>
-                                <td class="text-slate-800 font-monospace">: {{ $user->email }}</td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Hak Akses</th>
-                                <td>: <span class="tokobii-badge tokobii-badge-info">Pelanggan (Customer)</span></td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Status Akun</th>
-                                <td>: 
-                                    @if($user->status === 'active')
-                                        <span class="tokobii-badge tokobii-badge-success">Aktif</span>
-                                    @else
-                                        <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($user->status) }}</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Verifikasi Email</th>
-                                <td>: 
-                                    @if($user->hasVerifiedEmail())
-                                        <span class="tokobii-badge tokobii-badge-success">
-                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline; vertical-align:-1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            Email Terverifikasi
-                                        </span>
-                                    @else
-                                        <div class="d-inline-flex align-items-center gap-2 flex-wrap">
-                                            <span class="tokobii-badge tokobii-badge-warning">Belum Terverifikasi</span>
-                                            <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2 small">
-                                                    Kirim Ulang Email Verifikasi
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 text-slate-500 fw-semibold">Terdaftar Sejak</th>
-                                <td class="text-slate-800">: {{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="d-flex flex-column">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Nama Lengkap</span>
+                        <span class="text-slate-900 fw-bold small text-sm-end">{{ $user->name }}</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Alamat Email</span>
+                        <span class="text-slate-800 font-monospace small text-sm-end text-break">{{ $user->email }}</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Hak Akses</span>
+                        <span class="tokobii-badge tokobii-badge-info align-self-start align-self-sm-auto">Pelanggan (Customer)</span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Status Akun</span>
+                        <div class="align-self-start align-self-sm-auto">
+                            @if($user->status === 'active')
+                                <span class="tokobii-badge tokobii-badge-success">Aktif</span>
+                            @else
+                                <span class="tokobii-badge tokobii-badge-neutral">{{ ucfirst($user->status) }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 border-bottom border-slate-100 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Verifikasi Email</span>
+                        <div class="align-self-start align-self-sm-auto">
+                            @if($user->hasVerifiedEmail())
+                                <span class="tokobii-badge tokobii-badge-success">
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline; vertical-align:-1px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Email Terverifikasi
+                                </span>
+                            @else
+                                <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                                    <span class="tokobii-badge tokobii-badge-warning">Belum Terverifikasi</span>
+                                    <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2 small">
+                                            Kirim Ulang Email Verifikasi
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center py-2.5 gap-1">
+                        <span class="text-slate-500 small fw-semibold">Terdaftar Sejak</span>
+                        <span class="text-slate-800 small text-sm-end">{{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }} WIB</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,7 +121,7 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top border-slate-200">
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 pt-3 border-top border-slate-200">
                         <div class="d-flex align-items-center gap-2">
                             <span class="small text-slate-500 fw-semibold">Status:</span>
                             @if($user->hasTwoFactorEnabled())
@@ -140,20 +136,20 @@
                             @endif
                         </div>
 
-                        <div>
+                        <div class="d-flex gap-2 flex-wrap">
                             @if($user->hasTwoFactorEnabled())
-                                <button type="button" class="btn btn-outline-danger btn-tokobii-sm" data-bs-toggle="modal" data-bs-target="#disableTwoFactorModal">
+                                <button type="button" class="btn btn-outline-danger btn-tokobii-sm w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#disableTwoFactorModal">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline; vertical-align:-1px;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
                                     </svg>
-                                    Nonaktifkan 2FA
+                                    <span>Nonaktifkan 2FA</span>
                                 </button>
                             @else
-                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm" data-bs-toggle="modal" data-bs-target="#enableTwoFactorModal">
+                                <button type="button" class="btn btn-tokobii-primary btn-tokobii-sm w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#enableTwoFactorModal">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display:inline; vertical-align:-1px;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                     </svg>
-                                    Aktifkan 2FA
+                                    <span>Aktifkan 2FA</span>
                                 </button>
                             @endif
                         </div>

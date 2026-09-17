@@ -35,7 +35,7 @@
             
             {{-- Product Image / Gallery Column --}}
             <div class="col-12 col-md-5 text-center">
-                <div class="bg-slate-50 rounded-4 p-4 border border-slate-200 position-relative d-flex align-items-center justify-content-center overflow-hidden" style="min-height: 360px;">
+                <div class="product-detail-image-box bg-slate-50 rounded-4 p-4 border border-slate-200 position-relative d-flex align-items-center justify-content-center overflow-hidden" style="min-height: 360px;">
                     @if($product->thumbnail)
                         <img src="{{ asset('storage/' . $product->thumbnail) }}" 
                              alt="Gambar {{ $product->name }}" 

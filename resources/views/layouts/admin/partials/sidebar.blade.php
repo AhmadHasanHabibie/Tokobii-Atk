@@ -3,16 +3,8 @@
     {{-- Brand Header --}}
     <div class="offcanvas-header px-4 py-3 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; height: 64px;">
         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none">
-            <div class="d-flex align-items-center justify-content-center text-white rounded-xl"
-                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 10px; box-shadow: 0 3px 10px rgba(37,99,235,0.35); flex-shrink: 0;">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-            </div>
-            <div>
-                <div class="fw-bold text-slate-900" style="font-size: 1.0625rem; line-height: 1.15; letter-spacing: -0.01em;">Tokobii</div>
-                <div class="fw-semibold text-slate-400" style="font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;">Panel Admin</div>
-            </div>
+            <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 36px; width: auto; max-width: 120px; object-fit: contain;">
+            <span class="tokobii-badge tokobii-badge-info" style="font-size: 0.65rem; padding: 0.2rem 0.5rem; letter-spacing: 0.05em;">ADMIN</span>
         </a>
         <button type="button" 
                 class="admin-sidebar-toggle-btn border-0 bg-white p-1 rounded-3 shadow-none d-flex align-items-center justify-content-center"

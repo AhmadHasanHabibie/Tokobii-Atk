@@ -6,6 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Mode Pemeliharaan - {{ config('app.name', 'Tokobii') }}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="shortcut icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -141,6 +146,11 @@
     <div class="bg-glow-2"></div>
 
     <div class="maintenance-card">
+
+        {{-- Tokobii Logo --}}
+        <div class="mb-4">
+            <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 44px; width: auto; max-width: 160px; object-fit: contain;">
+        </div>
 
         {{-- Flash Alert if redirected here --}}
         @if(session('error'))

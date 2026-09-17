@@ -45,11 +45,35 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_logout(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'customer']);
 
         $response = $this->actingAs($user)->post('/logout');
 
         $this->assertGuest();
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('shop'));
+    }
+
+    public function test_admin_and_owner_and_superadmin_logout_redirect_to_shop(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $response = $this->actingAs($admin)->post('/logout');
+        $this->assertGuest();
+        $response->assertRedirect(route('shop'));
+
+        $owner = User::factory()->create(['role' => 'owner']);
+        $response = $this->actingAs($owner)->post('/logout');
+        $this->assertGuest();
+        $response->assertRedirect(route('shop'));
+
+        $superadmin = User::factory()->create(['role' => 'superadmin']);
+        $response = $this->actingAs($superadmin)->post('/logout');
+        $this->assertGuest();
+        $response->assertRedirect(route('shop'));
+
+        // Test GET /logout also redirects to shop
+        $customer = User::factory()->create(['role' => 'customer']);
+        $getLogoutResponse = $this->actingAs($customer)->get('/logout');
+        $this->assertGuest();
+        $getLogoutResponse->assertRedirect(route('shop'));
     }
 }

@@ -3,16 +3,8 @@
     {{-- Brand Header --}}
     <div class="offcanvas-header px-4 py-3 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9; height: 64px;">
         <a href="{{ route('owner.dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none">
-            <div class="d-flex align-items-center justify-content-center text-white"
-                 style="width: 36px; height: 36px; background: linear-gradient(135deg, #a855f7, #7c3aed); border-radius: 10px; box-shadow: 0 3px 10px rgba(124,58,237,0.35); flex-shrink: 0;">
-                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-            </div>
-            <div>
-                <div class="fw-bold text-slate-900" style="font-size: 1.0625rem; line-height: 1.15; letter-spacing: -0.01em;">Tokobii</div>
-                <div class="fw-semibold text-slate-400" style="font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;">Panel Pemilik</div>
-            </div>
+            <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-2" style="height: 36px; width: auto; max-width: 120px; object-fit: contain;">
+            <span class="badge bg-purple-50 text-purple-700 border border-purple-200 fw-bold px-2 py-1" style="font-size: 0.65rem; letter-spacing: 0.05em; background-color: #f5f3ff; color: #7c3aed; border-color: #ddd6fe !important;">PEMILIK</span>
         </a>
         <button type="button" 
                 class="owner-sidebar-toggle-btn border-0 bg-white p-1 rounded-3 shadow-none d-flex align-items-center justify-content-center"

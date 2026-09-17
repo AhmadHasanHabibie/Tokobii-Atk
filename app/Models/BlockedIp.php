@@ -25,6 +25,10 @@ class BlockedIp extends Model
             return false;
         }
 
-        return static::where('ip_address', $ip)->exists();
+        try {
+            return static::where('ip_address', $ip)->exists();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }

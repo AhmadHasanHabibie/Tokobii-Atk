@@ -9,7 +9,10 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="shortcut icon" type="image/jpeg" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/Logo_Tokobiie.jpeg') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -120,14 +123,8 @@
     <header class="py-4 px-4 px-sm-5 position-relative" style="z-index: 20;">
         <div class="container-fluid d-flex align-items-center justify-content-between">
             <a href="{{ route('home') }}" class="d-inline-flex align-items-center gap-2.5 text-decoration-none">
-                <div class="d-flex align-items-center justify-content-center rounded-3 bg-blue-600 text-white shadow-sm" style="width: 38px; height: 38px; background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                    </svg>
-                </div>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold fs-5 text-slate-900 tracking-tight" style="line-height: 1.1;">Tokobii</span>
-                    <span class="text-slate-400 font-monospace" style="font-size: 0.65rem; letter-spacing: 0.05em;">OFFICIAL STORE</span>
+                <div class="p-1 bg-white rounded-2 shadow-xs border border-slate-200 d-inline-flex align-items-center justify-content-center">
+                    <img src="{{ asset('images/Logo_Tokobiie.jpeg') }}" alt="Tokobii" class="img-fluid rounded-1" style="height: 34px; width: auto; max-width: 120px; object-fit: contain;">
                 </div>
             </a>
 
