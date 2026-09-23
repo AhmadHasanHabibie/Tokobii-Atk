@@ -38,13 +38,16 @@ class TokobiiFaceVerification {
         this.config = Object.assign({
             mode: 'verify',                 // 'verify' | 'enroll'
             videoElementId: 'faceVideo',
+            canvasElementId: 'faceCanvas',
             statusElementId: 'faceStatus',
             instructionElementId: 'faceInstruction',
             progressBarId: 'faceProgress',
             ovalGuideId: 'faceOvalGuide',
             retryButtonId: 'btnRetryFace',
             cameraSelectId: 'faceCameraSelect',
-            modelsUri: '/models/face-api',
+            modelsUri: (typeof window !== 'undefined' && window.location?.origin)
+                ? `${window.location.origin}/models/face-api`
+                : '/models/face-api',
             verifyUrl: '/verify-face',
             enrollUrl: null,
             csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
@@ -55,6 +58,10 @@ class TokobiiFaceVerification {
 
         // ─── DOM Elements ───
         this.video         = document.getElementById(this.config.videoElementId);
+        this.canvas        = document.getElementById(this.config.canvasElementId);
+        if (!this.canvas && this.video && this.video.parentElement) {
+            this.canvas = this.video.parentElement.querySelector('canvas');
+        }
         this.statusEl      = document.getElementById(this.config.statusElementId);
         this.instructionEl = document.getElementById(this.config.instructionElementId);
         this.progressBar   = document.getElementById(this.config.progressBarId);
@@ -71,10 +78,10 @@ class TokobiiFaceVerification {
         this.isStopped    = false;
         this.timerHandle  = null;    // Dynamic setTimeout handle
 
-        // ─── Detector Config (Lightweight & Fast) ───
+        // ─── Detector Config (Lightweight & Fast TinyFaceDetector) ───
         this.detectorOptions = new faceapi.TinyFaceDetectorOptions({
             inputSize: 224,
-            scoreThreshold: 0.35,
+            scoreThreshold: 0.5,
         });
 
         // ─── Tracking Counters ───
@@ -97,6 +104,10 @@ class TokobiiFaceVerification {
 
         // ─── Performance Metrics ───
         this.perf = this._createPerfObject();
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', () => this._syncCanvasDimensions());
+        }
 
         // ─── Init ───
         this._init();
@@ -135,15 +146,34 @@ class TokobiiFaceVerification {
             this._scheduleNextLoop();
         } catch (err) {
             this._log('Initialization error:', err);
-            this._setStatus('Gagal memuat sistem AI', 'danger');
-            this._setInstruction('Terjadi kesalahan saat memuat. Silakan muat ulang halaman.');
+            console.error('Gagal memuat sistem AI, cek koneksi atau path folder model', err);
+            this._setStatus('Gagal memuat sistem AI, cek koneksi atau path folder model', 'danger');
+            this._setInstruction('Gagal memuat sistem AI, cek koneksi atau path folder model');
             if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+            if (typeof this.config.onError === 'function') {
+                this.config.onError({
+                    message: 'Gagal memuat sistem AI, cek koneksi atau path folder model',
+                    error: err,
+                });
+            }
         }
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  MODEL LOADING (Singleton + WebGL Acceleration)
+    //  MODEL LOADING (Singleton + WebGL Acceleration + Absolute URI)
     // ═══════════════════════════════════════════════════════════════════
+
+    _getAbsoluteModelsUri() {
+        let uri = this.config.modelsUri || '/models/face-api';
+        if (!uri.startsWith('http://') && !uri.startsWith('https://')) {
+            if (!uri.startsWith('/')) {
+                uri = '/' + uri;
+            }
+            const origin = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
+            uri = `${origin}${uri}`;
+        }
+        return uri;
+    }
 
     async _loadModels() {
         if (TokobiiFaceVerification.areModelsReady) {
@@ -154,30 +184,41 @@ class TokobiiFaceVerification {
         if (!TokobiiFaceVerification.modelsLoadedPromise) {
             const t0 = performance.now();
             TokobiiFaceVerification.modelsLoadedPromise = (async () => {
-                // WebGL GPU Acceleration
-                if (faceapi.tf) {
-                    try {
-                        if (faceapi.tf.getBackend() !== 'webgl') {
-                            await faceapi.tf.setBackend('webgl');
+                try {
+                    // WebGL GPU Acceleration
+                    if (faceapi.tf) {
+                        try {
+                            if (faceapi.tf.getBackend() !== 'webgl') {
+                                await faceapi.tf.setBackend('webgl');
+                            }
+                            faceapi.tf.enableProdMode();
+                            faceapi.tf.env().set('WEBGL_VERSION', 2);
+                            faceapi.tf.env().set('WEBGL_PACK', true);
+                        } catch (e) {
+                            this._log('WebGL fallback note:', e);
                         }
-                        faceapi.tf.enableProdMode();
-                        faceapi.tf.env().set('WEBGL_VERSION', 2);
-                        faceapi.tf.env().set('WEBGL_PACK', true);
-                    } catch (e) {
-                        this._log('WebGL fallback note:', e);
                     }
+
+                    // Gunakan path absolute: window.location.origin + '/models/face-api'
+                    const modelsUri = this._getAbsoluteModelsUri();
+                    this._log(`Memuat model Face-API dari: ${modelsUri}`);
+
+                    // Load 3 model secara paralel dengan TinyFaceDetector
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(modelsUri),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(modelsUri),
+                        faceapi.nets.faceRecognitionNet.loadFromUri(modelsUri),
+                    ]);
+
+                    TokobiiFaceVerification.areModelsReady = true;
+                    this.perf.modelLoadMs = Math.round(performance.now() - t0);
+                    this._log(`Model AI dimuat dalam ${this.perf.modelLoadMs}ms`);
+                } catch (loadErr) {
+                    TokobiiFaceVerification.modelsLoadedPromise = null;
+                    TokobiiFaceVerification.areModelsReady = false;
+                    console.error('Gagal memuat sistem AI, cek koneksi atau path folder model', loadErr);
+                    throw loadErr;
                 }
-
-                // Load 3 model secara paralel
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(this.config.modelsUri),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(this.config.modelsUri),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(this.config.modelsUri),
-                ]);
-
-                TokobiiFaceVerification.areModelsReady = true;
-                this.perf.modelLoadMs = Math.round(performance.now() - t0);
-                this._log(`Model AI dimuat dalam ${this.perf.modelLoadMs}ms`);
             })();
         }
 
@@ -255,6 +296,7 @@ class TokobiiFaceVerification {
 
             this.perf.cameraStartupMs = Math.round(performance.now() - t0);
             this._log(`Kamera aktif (${this.video.videoWidth}x${this.video.videoHeight}) dalam ${this.perf.cameraStartupMs}ms`);
+            this._syncCanvasDimensions();
         } catch (err) {
             this._handleCameraError(err);
             throw err;
@@ -343,6 +385,7 @@ class TokobiiFaceVerification {
                     .withFaceLandmarks();
 
                 if (!detection) {
+                    this._clearCanvas();
                     this.consecutiveNoFace++;
                     if (this.consecutiveNoFace >= 3) {
                         this.consecutiveDetections = 0;
@@ -355,6 +398,7 @@ class TokobiiFaceVerification {
                 }
 
                 this.consecutiveNoFace = 0;
+                this._drawDetectionsOnCanvas(detection);
 
                 // Evaluasi posisi geometri oval
                 const geo = this._evaluateGeometry(detection.detection.box, vw, vh);
@@ -413,6 +457,7 @@ class TokobiiFaceVerification {
                     .withFaceLandmarks();
 
                 if (!result) {
+                    this._clearCanvas();
                     this.consecutiveNoFace++;
                     if (this.consecutiveNoFace >= 6) {
                         // Wajah hilang beberapa frame, kembali ke SEARCHING
@@ -426,6 +471,7 @@ class TokobiiFaceVerification {
                     return;
                 }
                 this.consecutiveNoFace = 0;
+                this._drawDetectionsOnCanvas(result);
 
                 const yaw = this._calculateYaw(result.landmarks);
                 const isTurnDetected = (yaw.direction === 'left' || yaw.direction === 'right' || yaw.turnDelta >= this.YAW_TURN_DELTA);
@@ -463,6 +509,7 @@ class TokobiiFaceVerification {
                     .withFaceDescriptor();
 
                 if (sampleResult?.descriptor) {
+                    this._drawDetectionsOnCanvas(sampleResult);
                     this.collectedDescriptors.push(Array.from(sampleResult.descriptor));
                     const currentCount = this.collectedDescriptors.length;
                     const pct = 75 + Math.round((currentCount / this.targetSamples) * 20);
@@ -471,12 +518,14 @@ class TokobiiFaceVerification {
                     this._setInstruction(`Mengambil sampel ${currentCount}/${this.targetSamples}...`);
                     this._log(`Sample ${currentCount}/${this.targetSamples} captured`);
                 } else {
+                    this._clearCanvas();
                     this._log('Sampling frame skipped (realigning)');
                 }
 
                 if (this.collectedDescriptors.length >= this.targetSamples) {
                     const avgDescriptor = this._averageDescriptors(this.collectedDescriptors);
 
+                    this._clearCanvas();
                     this.currentStage = TokobiiFaceVerification.STAGE.SUBMITTING;
                     this._setProgress(98);
                     this._setStatus('Mengirim ke Server...', 'info');
@@ -732,6 +781,7 @@ class TokobiiFaceVerification {
     stop() {
         this.isStopped = true;
         this.currentStage = TokobiiFaceVerification.STAGE.FINISHED;
+        this._clearCanvas();
         this._stopCameraStream();
     }
 
@@ -799,6 +849,69 @@ class TokobiiFaceVerification {
         this.ovalGuide.style.borderColor = s.color;
         this.ovalGuide.style.borderStyle = s.style;
         this.ovalGuide.style.boxShadow = `${s.glow} 0 0 0 9999px rgba(15,23,42,0.55)`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  CANVAS & BOUNDING BOX / LANDMARK HELPERS
+    // ═══════════════════════════════════════════════════════════════════
+
+    _syncCanvasDimensions() {
+        if (!this.canvas || !this.video) return null;
+
+        const width = this.video.clientWidth || this.video.videoWidth || 640;
+        const height = this.video.clientHeight || this.video.videoHeight || 480;
+
+        if (width > 0 && height > 0 && (this.canvas.width !== width || this.canvas.height !== height)) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+            try {
+                faceapi.matchDimensions(this.canvas, { width, height });
+            } catch (e) {}
+        }
+
+        return { width, height };
+    }
+
+    _clearCanvas() {
+        if (!this.canvas) return;
+        const ctx = this.canvas.getContext('2d');
+        if (ctx) {
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+
+    _drawDetectionsOnCanvas(detection) {
+        if (!this.canvas || !detection) return;
+        const displaySize = this._syncCanvasDimensions();
+        if (!displaySize || displaySize.width === 0 || displaySize.height === 0) return;
+
+        try {
+            const resizedDetections = faceapi.resizeResults(detection, displaySize);
+            const ctx = this.canvas.getContext('2d');
+            if (ctx) {
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            // Gambar bounding box rapi tanpa label teks terbalik di video cermin
+            const box = resizedDetections.detection?.box || resizedDetections.box;
+            if (box) {
+                const drawBox = new faceapi.draw.DrawBox(box, {
+                    label: '',
+                    boxColor: '#3b82f6',
+                    lineWidth: 2,
+                });
+                drawBox.draw(this.canvas);
+            } else {
+                faceapi.draw.drawDetections(this.canvas, resizedDetections);
+            }
+
+            // Gambar titik landmark wajah (68 points) jika tersedia
+            if (detection.landmarks) {
+                faceapi.draw.drawFaceLandmarks(this.canvas, resizedDetections);
+            }
+        } catch (drawErr) {
+            // Abaikan kesalahan rendering frame canvas minor
+        }
     }
 
     _createPerfObject() {

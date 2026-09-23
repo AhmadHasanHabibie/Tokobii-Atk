@@ -40,15 +40,21 @@
         </p>
     </div>
 @else
-    {{-- Camera Container --}}
-    <div class="position-relative mb-3 rounded-2xl overflow-hidden" style="height: 310px; border-radius: 18px; background: #0f172a; box-shadow: 0 6px 24px rgba(15,23,42,0.25);">
+    {{-- Camera Container Wrapper --}}
+    <div class="face-camera-wrapper position-relative mb-3 rounded-2xl overflow-hidden"
+         style="position: relative; width: 100%; overflow: hidden; height: 310px; border-radius: 18px; background: #0f172a; box-shadow: 0 6px 24px rgba(15,23,42,0.25);">
         <video id="faceVideo"
                autoplay
                playsinline
                muted
                class="w-100 h-100"
-               style="transform: scaleX(-1); object-fit: cover; height: 100%; width: 100%;">
+               style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block;">
         </video>
+
+        {{-- Detection Canvas Overlay (Bounding Box / Landmarks) --}}
+        <canvas id="faceCanvas"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1);">
+        </canvas>
 
         {{-- Oval Guide --}}
         <div id="faceOvalGuide"
@@ -115,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
         new window.TokobiiFaceVerification({
             mode: 'verify',
             verifyUrl: '{{ route('face-verification.verify') }}',
-            modelsUri: '/models/face-api',
+            modelsUri: window.location.origin + '/models/face-api',
         });
     }
 });

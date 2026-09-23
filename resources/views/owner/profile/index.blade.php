@@ -178,15 +178,21 @@
                     <small class="text-slate-400">Kata sandi diperlukan demi keamanan otorisasi pendaftaran biometrik.</small>
                 </div>
 
-                {{-- Camera Preview with Oval Overlay --}}
-                <div class="position-relative mb-3 rounded-3 overflow-hidden bg-slate-950 shadow-inner" style="height: 260px;">
+                {{-- Camera Preview with Oval Overlay & Detection Canvas --}}
+                <div class="face-camera-wrapper position-relative mb-3 rounded-3 overflow-hidden bg-slate-950 shadow-inner"
+                     style="position: relative; width: 100%; overflow: hidden; height: 260px;">
                     <video id="faceVideo" 
                            autoplay 
                            playsinline 
                            muted 
                            class="w-100 h-100 object-cover" 
-                           style="transform: scaleX(-1); object-fit: cover;">
+                           style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block;">
                     </video>
+
+                    {{-- Detection Canvas Overlay (Bounding Box / Landmarks) --}}
+                    <canvas id="faceCanvas"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1);">
+                    </canvas>
 
                     {{-- Oval Overlay --}}
                     <div id="faceOvalGuide" class="position-absolute top-50 start-50 translate-middle pointer-events-none" 
@@ -286,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 faceInstance = new window.TokobiiFaceVerification({
                     mode: 'enroll',
                     enrollUrl: '{{ route('owner.profile.face-verification.enroll') }}',
-                    modelsUri: '/models/face-api',
+                    modelsUri: window.location.origin + '/models/face-api',
                 });
             }
         });

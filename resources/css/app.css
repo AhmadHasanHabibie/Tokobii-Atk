@@ -1701,3 +1701,34 @@ img, svg, video, canvas, audio, iframe, embed, object {
 
 } /* end @layer components */
 
+/* ---------------------------------------------------------
+ * Face Verification Camera & Canvas Wrapper (Responsive HP & Desktop)
+ * --------------------------------------------------------- */
+.face-camera-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.face-camera-wrapper video {
+    position: relative;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    transform: scaleX(-1);
+}
+
+.face-camera-wrapper canvas {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none !important;
+    transform: scaleX(-1);
+}
+
