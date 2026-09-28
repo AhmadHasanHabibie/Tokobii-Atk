@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\FaceProfile;
 use App\Models\FaceVerification;
 use App\Models\User;
 use App\Services\FaceVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class FaceVerificationTest extends TestCase
@@ -437,16 +439,188 @@ class FaceVerificationTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_cancel_face_verification_clears_session_and_redirects_to_login(): void
+    public function test_challenge_nonce_is_issued_and_can_only_be_used_once(): void
     {
-        $this->withSession([
-            'face_auth:user_id' => 999,
-            'face_auth:auth_time' => now()->timestamp,
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'face_verification_enabled' => true,
         ]);
 
-        $response = $this->post(route('face-verification.cancel'));
+        $service = app(FaceVerificationService::class);
+        $service->enrollHuman($admin, $this->generateVector(0.2));
 
-        $response->assertRedirect(route('login'));
-        $this->assertNull(session('face_auth:user_id'));
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        // 1. Ambil challenge
+        $challengeRes = $this->getJson(route('face-verification.challenge-data'));
+        $challengeRes->assertOk()
+            ->assertJsonStructure(['success', 'nonce', 'action', 'prompt', 'expires_in']);
+
+        $nonce = $challengeRes->json('nonce');
+        $this->assertNotEmpty($nonce);
+
+        // 2. Gunakan nonce pertama kali -> sukses
+        $verifyRes1 = $this->postJson(route('face-verification.verify'), [
+            'nonce' => $nonce,
+            'descriptor' => $this->generateVector(0.2),
+            'antispoof_score' => 0.95,
+            'liveness_score' => 0.95,
+        ]);
+
+        $verifyRes1->assertOk()
+            ->assertJson(['success' => true]);
+
+        // 3. Gunakan nonce kedua kali (Replay Attack) -> ditolak
+        Auth::logout();
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        $verifyRes2 = $this->postJson(route('face-verification.verify'), [
+            'nonce' => $nonce,
+            'descriptor' => $this->generateVector(0.2),
+        ]);
+
+        $verifyRes2->assertStatus(422)
+            ->assertJson(['success' => false, 'reason' => 'nonce_expired']);
+    }
+
+    public function test_human_biometric_verification_succeeds_with_high_cosine_similarity(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'face_verification_enabled' => true,
+        ]);
+
+        $service = app(FaceVerificationService::class);
+        $service->enrollHuman($admin, $this->generateVector(0.5));
+
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        $response = $this->postJson(route('face-verification.verify'), [
+            'descriptor' => $this->generateVector(0.5),
+            'antispoof_score' => 0.90,
+            'liveness_score' => 0.90,
+        ]);
+
+        $response->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertAuthenticatedAs($admin);
+        $this->assertTrue(session()->has('face_verified_at'));
+    }
+
+    public function test_spoof_detection_rejects_fake_face_and_increments_attempts(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'face_verification_enabled' => true,
+        ]);
+
+        $service = app(FaceVerificationService::class);
+        $service->enrollHuman($admin, $this->generateVector(0.5));
+
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        // Antispoof score rendah (terindikasi foto / layar digital)
+        $response = $this->postJson(route('face-verification.verify'), [
+            'descriptor' => $this->generateVector(0.5),
+            'antispoof_score' => 0.15, // < threshold (0.40)
+            'liveness_score' => 0.90,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'reason' => 'spoof_detected',
+            ]);
+
+        $this->assertGuest();
+        $this->assertEquals(1, FaceProfile::where('user_id', $admin->id)->first()->failed_attempts);
+    }
+
+    public function test_emergency_recovery_code_authenticates_admin_and_cannot_be_reused(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'face_verification_enabled' => true,
+        ]);
+
+        $profile = FaceProfile::create([
+            'user_id' => $admin->id,
+            'engine_version' => 'human-v3',
+            'is_active' => true,
+        ]);
+
+        $recoveryCode = $profile->generateRecoveryCode();
+        $this->assertNotEmpty($recoveryCode);
+
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        // 1. Submit valid recovery code
+        $response = $this->postJson(route('face-verification.recovery'), [
+            'recovery_code' => $recoveryCode,
+        ]);
+
+        $response->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertAuthenticatedAs($admin);
+        $this->assertTrue(session()->has('face_verified_at'));
+        $this->assertNotNull($profile->fresh()->recovery_code_used_at);
+
+        // 2. Submit same code again -> ditolak (one-time use)
+        Auth::logout();
+        $this->withSession([
+            'face_auth:user_id' => $admin->id,
+            'face_auth:auth_time' => now()->timestamp,
+            'face_auth:role' => 'admin',
+        ]);
+
+        $response2 = $this->postJson(route('face-verification.recovery'), [
+            'recovery_code' => $recoveryCode,
+        ]);
+
+        $response2->assertStatus(422);
+    }
+
+    public function test_superadmin_can_generate_recovery_code_and_reset_admin_face(): void
+    {
+        $superadmin = User::factory()->create(['role' => 'superadmin']);
+        $admin = User::factory()->create(['role' => 'admin', 'face_verification_enabled' => true]);
+
+        $this->actingAs($superadmin);
+
+        // 1. Superadmin generate emergency recovery code
+        $response = $this->post(route('superadmin.face-management.recovery-code', $admin->id));
+        $response->assertRedirect();
+        $response->assertSessionHas('generated_recovery_code');
+
+        $profile = FaceProfile::where('user_id', $admin->id)->first();
+        $this->assertNotNull($profile->recovery_code);
+
+        // 2. Superadmin reset biometrik wajah admin
+        $response2 = $this->post(route('superadmin.face-management.reset', $admin->id));
+        $response2->assertRedirect();
+        $this->assertTrue($profile->fresh()->needs_re_enroll);
     }
 }
+

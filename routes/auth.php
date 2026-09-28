@@ -49,9 +49,16 @@ Route::middleware('guest')->group(function () {
     Route::get('verify-face', [FaceVerificationLoginController::class, 'showChallenge'])
                 ->name('face-verification.challenge');
 
+    Route::get('verify-face/challenge-data', [FaceVerificationLoginController::class, 'getChallenge'])
+                ->name('face-verification.challenge-data');
+
     Route::post('verify-face', [FaceVerificationLoginController::class, 'verify'])
-                ->middleware('throttle:10,1')
+                ->middleware('throttle:5,1')
                 ->name('face-verification.verify');
+
+    Route::post('verify-face/recovery', [FaceVerificationLoginController::class, 'verifyRecoveryCode'])
+                ->middleware('throttle:5,1')
+                ->name('face-verification.recovery');
 
     Route::post('verify-face/cancel', [FaceVerificationLoginController::class, 'cancel'])
                 ->name('face-verification.cancel');

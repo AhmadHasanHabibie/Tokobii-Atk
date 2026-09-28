@@ -18,14 +18,17 @@ class FaceVerificationProfileController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'password' => ['required', 'current_password'],
-            'descriptor' => ['required', 'array', 'size:128'],
+            'descriptor' => ['required', 'array', 'min:16'],
             'descriptor.*' => ['required', 'numeric'],
+            'samples' => ['nullable', 'array'],
+            'samples.*' => ['array'],
+            'samples.*.*' => ['numeric'],
         ], [
             'password.required' => 'Kata sandi saat ini wajib diisi untuk konfirmasi keamanan.',
             'password.current_password' => 'Kata sandi yang Anda masukkan tidak sesuai.',
             'descriptor.required' => 'Data pemindaian wajah wajib disertakan.',
             'descriptor.array' => 'Format biometrik wajah tidak valid.',
-            'descriptor.size' => 'Vektor biometrik wajah harus tepat 128 dimensi.',
+            'descriptor.min' => 'Vektor biometrik wajah tidak lengkap.',
         ]);
 
         if ($validator->fails()) {
@@ -44,13 +47,21 @@ class FaceVerificationProfileController extends Controller
             ], 403);
         }
 
-        $service->enroll($user, $request->input('descriptor'), $request->userAgent());
+        $descriptor = $request->input('descriptor');
+        $samples = $request->input('samples', []);
+
+        // Enroll using encrypted FaceProfile
+        $service->enrollHuman($user, $descriptor, $samples, $request->userAgent());
 
         $request->session()->put('face_verified_at', now()->timestamp);
 
         return response()->json([
             'success' => true,
-            'message' => 'Verifikasi wajah berhasil didaftarkan dan diaktifkan. Akun Anda kini terlindungi.',
+            'message' => 'Verifikasi biometrik wajah (@vladmandic/human) berhasil didaftarkan dan diaktifkan. Akun Anda kini terlindungi.',
+            'data' => [
+                'engine' => config('face.engine_version', 'human-v3'),
+                'enrolled_at' => now()->toIso8601String(),
+            ],
         ]);
     }
 

@@ -19,7 +19,10 @@ class EnsureFaceVerified
             $user = Auth::user();
 
             if (($user->isAdmin() || $user->isOwner()) && $user->hasFaceVerificationEnabled()) {
-                if (!$request->session()->has('face_verified_at')) {
+                $verifiedAt = $request->session()->get('face_verified_at');
+                $maxTtl = (int) config('face.session_hours', 8) * 3600;
+
+                if (!$verifiedAt || (now()->timestamp - (int) $verifiedAt > $maxTtl)) {
                     $userId = $user->id;
                     $role = $user->role;
 
@@ -32,8 +35,12 @@ class EnsureFaceVerified
                     $request->session()->put('face_auth:auth_time', now()->timestamp);
                     $request->session()->put('face_auth:role', $role);
 
+                    $msg = $verifiedAt
+                        ? 'Sesi verifikasi biometrik wajah Anda telah kedaluwarsa. Silakan verifikasi ulang.'
+                        : 'Verifikasi wajah diperlukan untuk melanjutkan.';
+
                     return redirect()->route('face-verification.challenge')
-                        ->with('error', 'Verifikasi wajah diperlukan untuk melanjutkan.');
+                        ->with('error', $msg);
                 }
             }
         }

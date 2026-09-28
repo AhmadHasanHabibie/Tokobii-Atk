@@ -258,4 +258,87 @@ class SuperadminController extends Controller
             'user' => $request->user(),
         ]);
     }
+
+    /**
+     * Display Face Biometric Management for Admin & Owner accounts.
+     */
+    public function faceManagement(Request $request): View
+    {
+        $adminsAndOwners = \App\Models\User::whereIn('role', ['admin', 'owner'])
+            ->with(['faceProfile', 'faceVerification'])
+            ->get();
+
+        return view('superadmin.face-management', compact('adminsAndOwners'));
+    }
+
+    /**
+     * Reset / Force Re-enroll face biometrics for an Admin or Owner.
+     */
+    public function resetFaceBiometrics(\App\Models\User $user): RedirectResponse
+    {
+        if (!$user->isAdmin() && !$user->isOwner()) {
+            return back()->with('error', 'Hanya akun Admin dan Owner yang dapat direset biometrik wajahnya.');
+        }
+
+        $profile = \App\Models\FaceProfile::firstOrNew(['user_id' => $user->id]);
+        $profile->is_active = true;
+        $profile->needs_re_enroll = true;
+        $profile->failed_attempts = 0;
+        $profile->locked_until = null;
+        $profile->save();
+
+        if ($user->faceVerification) {
+            $user->faceVerification->update([
+                'failed_attempts' => 0,
+                'locked_until' => null,
+            ]);
+        }
+
+        return back()->with('success', "Biometrik wajah untuk pengguna {$user->name} ({$user->email}) berhasil direset. Pengguna akan diminta mendaftar ulang saat login/masuk ke profil.");
+    }
+
+    /**
+     * Disable face verification completely for an Admin or Owner.
+     */
+    public function disableFaceBiometrics(\App\Models\User $user): RedirectResponse
+    {
+        if (!$user->isAdmin() && !$user->isOwner()) {
+            return back()->with('error', 'Hanya akun Admin dan Owner yang dapat dinonaktifkan.');
+        }
+
+        $user->update(['face_verification_enabled' => false]);
+
+        \App\Models\FaceProfile::where('user_id', $user->id)->update(['is_active' => false]);
+        \App\Models\FaceVerification::where('user_id', $user->id)->update(['is_active' => false]);
+
+        return back()->with('success', "Verifikasi wajah untuk {$user->name} berhasil dinonaktifkan sepenuhnya.");
+    }
+
+    /**
+     * Generate a one-time emergency recovery code for an Admin or Owner.
+     */
+    public function generateEmergencyRecoveryCode(\App\Models\User $user): RedirectResponse
+    {
+        if (!$user->isAdmin() && !$user->isOwner()) {
+            return back()->with('error', 'Hanya akun Admin dan Owner yang dapat diberikan kode pemulihan.');
+        }
+
+        $profile = \App\Models\FaceProfile::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'engine_version' => config('face.engine_version', 'human-v3'),
+                'is_active' => true,
+                'needs_re_enroll' => false,
+            ]
+        );
+
+        $recoveryCode = $profile->generateRecoveryCode();
+
+        return back()->with([
+            'success' => "Kode pemulihan darurat berhasil dibuat untuk {$user->name}.",
+            'generated_recovery_code' => $recoveryCode,
+            'recovery_user_name' => $user->name,
+            'recovery_user_email' => $user->email,
+        ]);
+    }
 }

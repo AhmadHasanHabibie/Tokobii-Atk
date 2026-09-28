@@ -196,6 +196,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(FaceVerification::class);
     }
 
+    public function faceProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(FaceProfile::class);
+    }
+
     public function securityLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(SecurityLog::class);

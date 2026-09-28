@@ -28,4 +28,10 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
 
     // 5. Riwayat Login Pengguna
     Route::get('/login-histories', [SuperadminController::class, 'loginHistories'])->name('login-histories');
+
+    // 6. Manajemen Keamanan Biometrik Wajah Admin & Owner
+    Route::get('/face-management', [SuperadminController::class, 'faceManagement'])->name('face-management');
+    Route::post('/face-management/{user}/reset', [SuperadminController::class, 'resetFaceBiometrics'])->name('face-management.reset');
+    Route::post('/face-management/{user}/disable', [SuperadminController::class, 'disableFaceBiometrics'])->name('face-management.disable');
+    Route::post('/face-management/{user}/recovery-code', [SuperadminController::class, 'generateEmergencyRecoveryCode'])->name('face-management.recovery-code');
 });

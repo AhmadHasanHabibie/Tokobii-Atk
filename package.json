@@ -18,6 +18,7 @@
     "dependencies": {
         "@popperjs/core": "^2.11.8",
         "@vladmandic/face-api": "^1.7.15",
+        "@vladmandic/human": "^3.3.6",
         "@zxing/browser": "^0.2.1",
         "bootstrap": "^5.3.8"
     }

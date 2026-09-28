@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 faceInstance = new window.TokobiiFaceVerification({
                     mode: 'enroll',
                     enrollUrl: '{{ route('admin.profile.face-verification.enroll') }}',
-                    modelsUri: window.location.origin + '/models/face-api',
+                    modelsUri: window.location.origin + '/models/human/',
                 });
             }
         });
