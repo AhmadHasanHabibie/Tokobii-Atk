@@ -1189,6 +1189,13 @@ class TokobiiFaceVerification {
             purple:  'bg-purple-50 text-purple-700 border-purple-200',
         };
         this.statusEl.className = `tokobii-badge ${colors[type] || colors.info} px-3 py-1.5 small fw-semibold border shadow-sm`;
+        this.statusEl.style.whiteSpace = 'normal';
+        this.statusEl.style.wordBreak = 'break-word';
+        this.statusEl.style.overflowWrap = 'anywhere';
+        this.statusEl.style.maxWidth = '100%';
+        this.statusEl.style.display = 'inline-block';
+        this.statusEl.style.textAlign = 'center';
+        this.statusEl.style.lineHeight = '1.35';
         this.statusEl.innerHTML = text;
     }
 

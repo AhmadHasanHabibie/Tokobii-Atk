@@ -124,14 +124,22 @@
         }
         @media (max-width: 575.98px) {
             .auth-card {
-                padding: 1.25rem 1rem;
-                border-radius: 20px;
+                padding: 1.25rem 1rem !important;
+                border-radius: 20px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-inline: auto !important;
+                overflow: hidden !important;
             }
             .auth-right-panel {
-                padding-left: 0.75rem !important;
-                padding-right: 0.75rem !important;
-                padding-top: 1.25rem !important;
-                padding-bottom: 1.75rem !important;
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                padding-top: 1rem !important;
+                padding-bottom: 1.5rem !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
             }
         }
 
@@ -240,8 +248,8 @@
         </div>
 
         {{-- Right Panel: Auth Form --}}
-        <div class="flex-grow-1 auth-right-panel d-flex flex-column justify-content-center align-items-center px-4 py-5">
-            <div class="w-100 animate-fade-in-up" style="max-width: 440px;">
+        <div class="flex-grow-1 auth-right-panel d-flex flex-column justify-content-center align-items-center w-100" style="min-width: 0; max-width: 100vw; overflow-x: hidden;">
+            <div class="w-100 animate-fade-in-up" style="max-width: 440px; min-width: 0;">
 
                 {{-- Mobile Brand Header --}}
                 <div class="text-center mb-5">

@@ -6,6 +6,65 @@
 
 @section('content')
 
+<style>
+    /* Strict Mobile Centering & No Overflow Guard */
+    .auth-card {
+        width: 100% !important;
+        max-width: 440px !important;
+        margin-inline: auto !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .face-camera-wrapper {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        overflow: hidden !important;
+        border-radius: 18px !important;
+        background: #0f172a !important;
+        box-shadow: 0 6px 24px rgba(15,23,42,0.25) !important;
+        height: 310px !important;
+        max-height: 48vh !important;
+    }
+    #faceVideo, #faceCanvas {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        transform: scaleX(-1) !important;
+        display: block !important;
+    }
+    #faceOvalGuide {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 175px !important;
+        height: 225px !important;
+        max-width: 72% !important;
+        max-height: 80% !important;
+    }
+    #faceStatus {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        max-width: 100% !important;
+        text-align: center !important;
+        display: inline-block !important;
+        line-height: 1.35 !important;
+    }
+    #faceInstruction {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        max-width: 100% !important;
+        text-align: center !important;
+    }
+</style>
+
 {{-- Header --}}
 <div class="text-center mb-3">
     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
