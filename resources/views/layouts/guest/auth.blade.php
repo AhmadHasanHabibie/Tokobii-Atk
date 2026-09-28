@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'Autentikasi - Tokobii')</title>
@@ -19,18 +19,6 @@
     ])
 
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-        html, body {
-            overflow-x: hidden;
-            max-width: 100vw;
-        }
-        body {
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
         /* Auth-specific premium styles */
         .auth-left-panel {
             background: linear-gradient(160deg, #0f172a 0%, #1a2744 40%, #1e1b4b 100%);
@@ -116,46 +104,12 @@
                 0 1px 4px rgba(15,23,42,0.04),
                 0 0 0 1px rgba(255,255,255,0.9) inset;
             padding: 2.25rem;
-            width: 100%;
-            max-width: 440px;
-            box-sizing: border-box;
-            margin-inline: auto;
             animation: tokobiiScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
         @media (max-width: 575.98px) {
             .auth-card {
-                padding: 1.25rem 1rem !important;
-                border-radius: 20px !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
-                overflow: hidden !important;
-                box-sizing: border-box !important;
-            }
-            .auth-card .btn,
-            .auth-card .btn span {
-                white-space: normal !important;
-                word-break: break-word !important;
-            }
-            .auth-right-panel {
-                padding-left: 14px !important;
-                padding-right: 14px !important;
-                padding-top: 1rem !important;
-                padding-bottom: 1.5rem !important;
-                width: 100% !important;
-                max-width: 100vw !important;
-                min-width: 0 !important;
-                overflow-x: hidden !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-            .auth-card-container {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin-inline: auto !important;
+                padding: 1.75rem 1.5rem;
+                border-radius: 20px;
             }
         }
 
@@ -264,8 +218,8 @@
         </div>
 
         {{-- Right Panel: Auth Form --}}
-        <div class="flex-grow-1 auth-right-panel d-flex flex-column justify-content-center align-items-center w-100" style="min-width: 0; max-width: 100vw; overflow-x: hidden;">
-            <div class="w-100 animate-fade-in-up auth-card-container" style="max-width: 440px; min-width: 0; margin-inline: auto;">
+        <div class="flex-grow-1 auth-right-panel d-flex flex-column justify-content-center align-items-center px-4 py-5">
+            <div class="w-100 animate-fade-in-up" style="max-width: 440px;">
 
                 {{-- Mobile Brand Header --}}
                 <div class="text-center mb-5">

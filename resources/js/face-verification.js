@@ -156,21 +156,8 @@ class TokobiiFaceVerification {
             decisionMs: 0,
         };
 
-        this._hasRetryListener = false;
-        this._hasCameraListener = false;
-
         if (typeof window !== 'undefined') {
             window.addEventListener('resize', () => this._syncCanvas());
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => this._syncCanvas(), 150);
-            });
-        }
-
-        if (typeof ResizeObserver !== 'undefined' && this.video) {
-            this._resizeObserver = new ResizeObserver(() => {
-                this._syncCanvas();
-            });
-            this._resizeObserver.observe(this.video);
         }
 
         this._setupAuxiliaryButtons();
@@ -179,22 +166,13 @@ class TokobiiFaceVerification {
 
     /**
      * Siapkan tombol bantuan UI (Skip step & Konfirmasi Simpan).
-     * PENTING: Hanya aktif pada mode 'enroll' (Pendaftaran Biometrik),
-     * TIDAK PERNAH aktif pada mode 'verify' (Login Verifikasi).
      */
     _setupAuxiliaryButtons() {
-        if (this.config.mode !== 'enroll') {
-            return;
-        }
+        const modalFooter = document.querySelector('#enrollFaceModal .modal-footer')
+            || document.querySelector('.face-camera-wrapper')?.parentElement;
 
-        const modalFooter = document.querySelector('#enrollFaceModal .modal-footer');
-        if (!modalFooter) {
-            return;
-        }
-
-        // Tombol Lewati Langkah (Fallback Anti-Macet Pose Enrollment)
-        this.skipBtn = document.getElementById('btnSkipEnrollStep');
-        if (!this.skipBtn) {
+        if (modalFooter && !document.getElementById('btnSkipEnrollStep')) {
+            // Tombol Lewati Langkah
             this.skipBtn = document.createElement('button');
             this.skipBtn.id = 'btnSkipEnrollStep';
             this.skipBtn.type = 'button';
@@ -203,14 +181,8 @@ class TokobiiFaceVerification {
             this.skipBtn.innerHTML = '<i class="bi bi-skip-forward me-1"></i> Lewati Langkah';
             this.skipBtn.addEventListener('click', () => this._skipCurrentStep());
             modalFooter.insertBefore(this.skipBtn, modalFooter.firstChild);
-        } else if (!this.skipBtn._boundClick) {
-            this.skipBtn.addEventListener('click', () => this._skipCurrentStep());
-            this.skipBtn._boundClick = true;
-        }
 
-        // Tombol Simpan Biometrik (jika password diisi belakangan)
-        this.saveEnrollBtn = document.getElementById('btnSaveEnrollFace');
-        if (!this.saveEnrollBtn) {
+            // Tombol Simpan Biometrik (jika password baru diisi belakangan)
             this.saveEnrollBtn = document.createElement('button');
             this.saveEnrollBtn.id = 'btnSaveEnrollFace';
             this.saveEnrollBtn.type = 'button';
@@ -219,9 +191,9 @@ class TokobiiFaceVerification {
             this.saveEnrollBtn.innerHTML = '<i class="bi bi-shield-lock-fill me-1"></i> Simpan Biometrik';
             this.saveEnrollBtn.addEventListener('click', () => this._manualTriggerSave());
             modalFooter.appendChild(this.saveEnrollBtn);
-        } else if (!this.saveEnrollBtn._boundClick) {
-            this.saveEnrollBtn.addEventListener('click', () => this._manualTriggerSave());
-            this.saveEnrollBtn._boundClick = true;
+        } else {
+            this.skipBtn = document.getElementById('btnSkipEnrollStep');
+            this.saveEnrollBtn = document.getElementById('btnSaveEnrollFace');
         }
     }
 
@@ -230,19 +202,11 @@ class TokobiiFaceVerification {
     // ═══════════════════════════════════════════════════════════════════
 
     async _init() {
-        if (this.retryBtn && !this._hasRetryListener) {
+        if (this.retryBtn) {
             this.retryBtn.addEventListener('click', () => this.restart());
-            this._hasRetryListener = true;
         }
-        if (this.cameraSelect && !this._hasCameraListener) {
-            this.cameraSelect.addEventListener('change', () => {
-                const devId = this.cameraSelect.value;
-                try {
-                    localStorage.setItem('tokobii_preferred_camera', devId);
-                } catch (e) {}
-                this._startCamera(devId);
-            });
-            this._hasCameraListener = true;
+        if (this.cameraSelect) {
+            this.cameraSelect.addEventListener('change', () => this._startCamera(this.cameraSelect.value));
         }
 
         this._setStatus('Menyiapkan AI Biometrik...', 'info');
@@ -369,42 +333,18 @@ class TokobiiFaceVerification {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(d => d.kind === 'videoinput');
 
-            let savedCameraId = null;
-            try {
-                savedCameraId = localStorage.getItem('tokobii_preferred_camera');
-            } catch (e) {}
-
             if (this.cameraSelect) {
                 this.cameraSelect.innerHTML = '';
                 videoDevices.forEach((device, idx) => {
                     const opt = document.createElement('option');
                     opt.value = device.deviceId;
-                    let label = device.label || '';
-                    if (!label) {
-                        label = (idx === 0) ? 'Kamera Utama (Depan)' : `Kamera ${idx + 1}`;
-                    } else {
-                        const lower = label.toLowerCase();
-                        if (lower.includes('front') || lower.includes('user') || lower.includes('depan')) {
-                            label = `Kamera Depan (${label})`;
-                        } else if (lower.includes('back') || lower.includes('environment') || lower.includes('belakang')) {
-                            label = `Kamera Belakang (${label})`;
-                        }
-                    }
-                    opt.text = label;
+                    opt.text = device.label || `Kamera ${idx + 1}`;
                     this.cameraSelect.appendChild(opt);
                 });
                 this.cameraSelect.style.display = videoDevices.length > 1 ? 'block' : 'none';
             }
 
-            let initialId = undefined;
-            if (savedCameraId && videoDevices.some(d => d.deviceId === savedCameraId)) {
-                initialId = savedCameraId;
-                if (this.cameraSelect) this.cameraSelect.value = initialId;
-            } else if (videoDevices.length > 0) {
-                initialId = videoDevices[0].deviceId;
-                if (this.cameraSelect) this.cameraSelect.value = initialId;
-            }
-
+            const initialId = videoDevices.length > 0 ? videoDevices[0].deviceId : undefined;
             await this._startCamera(initialId);
             return true;
         } catch (err) {
@@ -449,16 +389,6 @@ class TokobiiFaceVerification {
 
         this.perf.cameraStartupMs = Math.round(performance.now() - t0);
         this._syncCanvas();
-
-        if (this.config.debug) {
-            console.log('[TokobiiFace] Kamera aktif:', {
-                videoWidth: this.video.videoWidth,
-                videoHeight: this.video.videoHeight,
-                clientWidth: this.video.clientWidth,
-                clientHeight: this.video.clientHeight,
-                deviceId: deviceId || 'default'
-            });
-        }
     }
 
     _stopCamera() {
@@ -576,6 +506,9 @@ class TokobiiFaceVerification {
     // ═══════════════════════════════════════════════════════════════════
 
     _evaluateQualityGate(face) {
+        const vw = this.video.videoWidth || 640;
+        const vh = this.video.videoHeight || 480;
+
         // Cek jumlah wajah (Harus tepat 1 orang)
         if (face.allFacesCount > 1) {
             return { valid: false, status: 'Lebih dari 1 Wajah', message: 'Hanya 1 wajah yang diizinkan di depan kamera.', state: 'danger' };
@@ -586,18 +519,18 @@ class TokobiiFaceVerification {
             return { valid: false, status: 'Wajah Kurang Jelas', message: 'Tingkatkan pencahayaan atau dekatkan wajah.', state: 'warning' };
         }
 
-        // Geometri Bounding Box yang dipetakan ke koordinat container tampilan (Display Space)
-        const mapped = this._mapVideoToDisplay(face.box.x, face.box.y, face.box.width, face.box.height);
-        const relW = mapped.width / mapped.cw;
-        const centerX = (mapped.x + mapped.width / 2) / mapped.cw;
-        const centerY = (mapped.y + mapped.height / 2) / mapped.ch;
+        // Cek Geometri Bounding Box di dalam Oval
+        const box = face.box;
+        const relW = box.width / vw;
+        const centerX = (box.x + box.width / 2) / vw;
+        const centerY = (box.y + box.height / 2) / vh;
 
-        if (relW < 0.18) return { valid: false, status: 'Terlalu Jauh', message: 'Dekatkan wajah sedikit ke kamera.', state: 'warning' };
+        if (relW < 0.16) return { valid: false, status: 'Terlalu Jauh', message: 'Dekatkan wajah sedikit ke kamera.', state: 'warning' };
         if (relW > 0.85) return { valid: false, status: 'Terlalu Dekat', message: 'Mundur sedikit dari kamera.', state: 'warning' };
         if (centerX < 0.18) return { valid: false, status: 'Geser ke Kanan', message: 'Posisikan wajah di tengah bingkai oval.', state: 'warning' };
         if (centerX > 0.82) return { valid: false, status: 'Geser ke Kiri', message: 'Posisikan wajah di tengah bingkai oval.', state: 'warning' };
-        if (centerY < 0.12) return { valid: false, status: 'Turunkan Sedikit', message: 'Posisikan wajah tepat di dalam oval.', state: 'warning' };
-        if (centerY > 0.88) return { valid: false, status: 'Naikkan Sedikit', message: 'Posisikan wajah tepat di dalam oval.', state: 'warning' };
+        if (centerY < 0.10) return { valid: false, status: 'Turunkan Sedikit', message: 'Posisikan wajah tepat di dalam oval.', state: 'warning' };
+        if (centerY > 0.90) return { valid: false, status: 'Naikkan Sedikit', message: 'Posisikan wajah tepat di dalam oval.', state: 'warning' };
 
         // Cek Pencahayaan Khusus Wajah (Face ROI)
         if (face.faceBrightness < 28) {
@@ -1080,72 +1013,21 @@ class TokobiiFaceVerification {
     //  CANVAS & UI RENDERING
     // ═══════════════════════════════════════════════════════════════════
 
-    /**
-     * Pemetaan koordinat dari ruang video mentah (videoWidth x videoHeight)
-     * ke ruang tampilan display container (clientWidth x clientHeight)
-     * dengan memperhitungkan CSS object-fit: cover dan rasio aspek.
-     *
-     * @param {number} x - Koordinat X mentah pada video
-     * @param {number} y - Koordinat Y mentah pada video
-     * @param {number} w - Lebar mentah pada video
-     * @param {number} h - Tinggi mentah pada video
-     * @returns {{ x: number, y: number, width: number, height: number, scale: number, offsetX: number, offsetY: number, cw: number, ch: number, vw: number, vh: number }}
-     */
-    _mapVideoToDisplay(x, y, w = 0, h = 0) {
-        const vw = (this.video && this.video.videoWidth > 0) ? this.video.videoWidth : 640;
-        const vh = (this.video && this.video.videoHeight > 0) ? this.video.videoHeight : 480;
-        const cw = (this.video && this.video.clientWidth > 0) ? this.video.clientWidth : (this.canvas?.clientWidth || 320);
-        const ch = (this.video && this.video.clientHeight > 0) ? this.video.clientHeight : (this.canvas?.clientHeight || 240);
-
-        // object-fit: cover menggunakan scale = max(cw/vw, ch/vh)
-        const scale = Math.max(cw / vw, ch / vh);
-        const offsetX = (cw - vw * scale) / 2;
-        const offsetY = (ch - vh * scale) / 2;
-
-        return {
-            x: x * scale + offsetX,
-            y: y * scale + offsetY,
-            width: w * scale,
-            height: h * scale,
-            scale,
-            offsetX,
-            offsetY,
-            cw,
-            ch,
-            vw,
-            vh,
-        };
-    }
-
     _syncCanvas() {
         if (!this.canvas || !this.video) return;
-        const cw = this.video.clientWidth || this.canvas.clientWidth || 320;
-        const ch = this.video.clientHeight || this.canvas.clientHeight || 240;
-        if (cw <= 0 || ch <= 0) return;
+        const w = this.video.clientWidth || this.video.videoWidth || 640;
+        const h = this.video.clientHeight || this.video.videoHeight || 480;
 
-        const dpr = window.devicePixelRatio || 1;
-        const targetW = Math.round(cw * dpr);
-        const targetH = Math.round(ch * dpr);
-
-        if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
-            this.canvas.width = targetW;
-            this.canvas.style.width = '100%';
-            this.canvas.style.height = '100%';
-            const ctx = this.canvas.getContext('2d');
-            if (ctx) {
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            }
+        if (w > 0 && h > 0 && (this.canvas.width !== w || this.canvas.height !== h)) {
+            this.canvas.width = w;
+            this.canvas.height = h;
         }
     }
 
     _clearCanvas() {
         if (!this.canvas) return;
         const ctx = this.canvas.getContext('2d');
-        if (ctx) {
-            const cw = this.video?.clientWidth || this.canvas.clientWidth || 320;
-            const ch = this.video?.clientHeight || this.canvas.clientHeight || 240;
-            ctx.clearRect(0, 0, cw, ch);
-        }
+        if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     _drawCanvas(face) {
@@ -1155,25 +1037,29 @@ class TokobiiFaceVerification {
         const ctx = this.canvas.getContext('2d');
         if (!ctx) return;
 
-        const cw = this.video.clientWidth || this.canvas.clientWidth || 320;
-        const ch = this.video.clientHeight || this.canvas.clientHeight || 240;
-        ctx.clearRect(0, 0, cw, ch);
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const mappedBox = this._mapVideoToDisplay(face.box.x, face.box.y, face.box.width, face.box.height);
+        const scaleX = this.canvas.width / (this.video.videoWidth || 640);
+        const scaleY = this.canvas.height / (this.video.videoHeight || 480);
 
-        // Bounding Box (Menempel Akurat pada Kontur Wajah di Mobile & Desktop)
+        const bx = face.box.x * scaleX;
+        const by = face.box.y * scaleY;
+        const bw = face.box.width * scaleX;
+        const bh = face.box.height * scaleY;
+
+        // Bounding Box
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
-        ctx.strokeRect(mappedBox.x, mappedBox.y, mappedBox.width, mappedBox.height);
+        ctx.strokeRect(bx, by, bw, bh);
 
-        // Landmark Titik Mesh (Menempel Presisi pada Fitur Wajah)
+        // Landmark Titik Mesh
         if (face.mesh && face.mesh.length > 0) {
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
             for (let i = 0; i < face.mesh.length; i += 4) {
                 const pt = face.mesh[i];
-                const px = pt[0] * mappedBox.scale + mappedBox.offsetX;
-                const py = pt[1] * mappedBox.scale + mappedBox.offsetY;
-                ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
+                const px = pt[0] * scaleX;
+                const py = pt[1] * scaleY;
+                ctx.fillRect(px - 1, py - 1, 2, 2);
             }
         }
     }
@@ -1188,13 +1074,6 @@ class TokobiiFaceVerification {
             purple:  'bg-purple-50 text-purple-700 border-purple-200',
         };
         this.statusEl.className = `tokobii-badge ${colors[type] || colors.info} px-3 py-1.5 small fw-semibold border shadow-sm`;
-        this.statusEl.style.whiteSpace = 'normal';
-        this.statusEl.style.wordBreak = 'break-word';
-        this.statusEl.style.overflowWrap = 'anywhere';
-        this.statusEl.style.maxWidth = '100%';
-        this.statusEl.style.display = 'inline-block';
-        this.statusEl.style.textAlign = 'center';
-        this.statusEl.style.lineHeight = '1.35';
         this.statusEl.innerHTML = text;
     }
 
@@ -1259,20 +1138,11 @@ class TokobiiFaceVerification {
         const inferMs = humanEngine.perf.lastInferenceMs || 0;
         const mode = humanEngine.perf.lastMode || 'fast';
 
-        const vw = this.video?.videoWidth || 0;
-        const vh = this.video?.videoHeight || 0;
-        const cw = this.video?.clientWidth || 0;
-        const ch = this.video?.clientHeight || 0;
-        const mapped = face ? this._mapVideoToDisplay(face.box.x, face.box.y, face.box.width, face.box.height) : null;
-        const boxStr = mapped ? `${Math.round(mapped.x)},${Math.round(mapped.y)} (${Math.round(mapped.width)}x${Math.round(mapped.height)})` : '-';
-
         panel.innerHTML = `
             <div style="font-weight:600; color:#38bdf8; margin-bottom:4px; display:flex; justify-content:space-between;">
                 <span>[TokobiiFace Telemetry]</span>
                 <span id="faceDebugFps" style="color:#22c55e;">FPS: ${this.currentFps || 0} (${inferMs}ms [${mode}])</span>
             </div>
-            <div><b style="color:#e2e8f0;">Resolution:</b> Video: ${vw}x${vh} | Screen: ${cw}x${ch}</div>
-            <div><b style="color:#e2e8f0;">Mapped Box:</b> ${boxStr}</div>
             <div><b style="color:#e2e8f0;">Pose Angle:</b> Yaw: <b style="color:#f59e0b;">${yawStr}</b> | Pitch: ${pitchStr} | Roll: ${rollStr}</div>
             <div><b style="color:#e2e8f0;">Face Brightness:</b> ${bright}/255 | <b style="color:#e2e8f0;">Hold Frames:</b> ${this.poseHoldFrames}/3</div>
             <div><b style="color:#e2e8f0;">Quality Gate:</b> <span style="color:#a5f3fc;">${this.lastQGError}</span></div>
@@ -1292,23 +1162,6 @@ class TokobiiFaceVerification {
     }
 
     restart() {
-        if (this.retryBtn) {
-            this.retryBtn.disabled = true;
-            this.retryBtn.setAttribute('data-loading', 'true');
-            const originalContent = this.retryBtn.innerHTML;
-            this.retryBtn.innerHTML = `
-                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <span>Memulai Ulang...</span>
-            `;
-            setTimeout(() => {
-                if (this.retryBtn) {
-                    this.retryBtn.disabled = false;
-                    this.retryBtn.removeAttribute('data-loading');
-                    this.retryBtn.innerHTML = originalContent;
-                }
-            }, 1200);
-        }
-
         this.stop();
         this.isDetecting = false;
         this.isCapturing = false;
