@@ -15,12 +15,12 @@
         </svg>
     </div>
     <h2 class="fw-bold text-slate-900 mb-1" style="font-size: 1.1875rem; letter-spacing: -0.01em;">Verifikasi Wajah</h2>
-    <div class="d-flex align-items-center justify-content-center gap-2">
-        <span class="fw-semibold text-slate-700 small">{{ $user->name }}</span>
-        @if($user->isAdmin())
-            <span class="tokobii-badge tokobii-badge-info" style="font-size: 0.68rem;">Administrator</span>
-        @elseif($user->isOwner())
-            <span class="tokobii-badge" style="background: linear-gradient(135deg, #faf5ff, #ede9fe); color: #7c3aed; border: 1px solid #c4b5fd; font-size: 0.68rem;">Owner</span>
+    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap face-user-badge-row">
+        <span class="fw-semibold text-slate-700 small face-user-name">{{ $user->name }}</span>
+        @if($user->isAdmin() && strcasecmp(trim($user->name), 'Administrator') !== 0 && strcasecmp(trim($user->name), 'Admin') !== 0)
+            <span class="tokobii-badge tokobii-badge-info face-user-role-badge" style="font-size: 0.68rem;">Administrator</span>
+        @elseif($user->isOwner() && strcasecmp(trim($user->name), 'Owner') !== 0)
+            <span class="tokobii-badge face-user-role-badge" style="background: linear-gradient(135deg, #faf5ff, #ede9fe); color: #7c3aed; border: 1px solid #c4b5fd; font-size: 0.68rem;">Owner</span>
         @endif
     </div>
 </div>

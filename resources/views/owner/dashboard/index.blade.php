@@ -24,10 +24,10 @@
                 </p>
             </div>
             
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2 flex-wrap owner-header-actions">
                 {{-- Download PDF Button for active period --}}
                 <a href="{{ route('owner.sales.pdf', array_merge(['period' => $period], request()->query())) }}" 
-                   class="btn d-inline-flex align-items-center gap-2 fw-semibold shadow-sm text-white"
+                   class="btn d-inline-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm text-white owner-btn-download-pdf"
                    style="background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 10px; padding: 0.55rem 1.15rem; font-size: 0.875rem;"
                    title="Unduh laporan periode ini sebagai berkas PDF resmi">
                     <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
                 </a>
 
                 <a href="{{ route('owner.sales.index', request()->query()) }}" 
-                   class="btn d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm text-purple-700 bg-purple-50 border border-purple-200 hover-bg-purple-100"
+                   class="btn d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm text-purple-700 bg-purple-50 border border-purple-200 hover-bg-purple-100 owner-btn-full-report"
                    style="border-radius: 10px; padding: 0.55rem 1.05rem; font-size: 0.875rem;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -61,7 +61,7 @@
                         </svg>
                         <span>Pilih Periode Penjualan:</span>
                     </label>
-                    <div class="btn-group w-100 shadow-sm" role="group">
+                    <div class="btn-group w-100 shadow-sm owner-period-switcher" role="group">
                         <input type="radio" class="btn-check" name="period" id="dashPeriodDaily" value="daily" 
                                {{ $period === 'daily' ? 'checked' : '' }} onchange="toggleDashPeriodInputs()">
                         <label class="btn btn-outline-primary py-2 small fw-semibold" for="dashPeriodDaily">
@@ -107,7 +107,7 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="col-12 col-sm-4 col-lg-3 d-flex gap-2">
+                <div class="col-12 col-sm-4 col-lg-3 d-flex gap-2 owner-filter-actions">
                     <button type="submit" class="btn btn-tokobii-primary btn-tokobii-sm flex-grow-1 shadow-sm">
                         <span>Terapkan</span>
                     </button>
@@ -120,15 +120,17 @@
         </form>
 
         {{-- Current Filter Active Badge (Exact Image 2 Design) --}}
-        <div class="mt-3 pt-3 border-top border-slate-100 d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-slate-400 small">Periode Aktif:</span>
-                <span class="tokobii-badge" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8125rem; font-weight: 600; border-radius: 9999px; padding: 0.35rem 0.85rem;">
-                    {{ $periodLabel }}
-                </span>
-                <span class="text-slate-400 small font-monospace">({{ $startDate->format('d/m/Y') }} - {{ $endDate->format('d/m/Y') }})</span>
+        <div class="mt-3 pt-3 border-top border-slate-100 d-flex align-items-start align-items-md-center justify-content-between flex-wrap gap-2 owner-active-period-row">
+            <div class="d-flex align-items-start align-items-sm-center gap-2 flex-column flex-sm-row owner-active-period-details">
+                <span class="text-slate-400 small text-nowrap">Periode Aktif:</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="tokobii-badge owner-period-pill" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8125rem; font-weight: 600; border-radius: 9999px; padding: 0.35rem 0.85rem;">
+                        {{ $periodLabel }}
+                    </span>
+                    <span class="text-slate-400 small font-monospace owner-period-range">({{ $startDate->format('d/m/Y') }} - {{ $endDate->format('d/m/Y') }})</span>
+                </div>
             </div>
-            <div class="text-slate-500 small">
+            <div class="text-slate-500 small owner-period-updated">
                 Diperbarui pada: <strong>{{ now()->translatedFormat('H:i') }} WIB</strong>
             </div>
         </div>
@@ -223,25 +225,29 @@
                     </svg>
                     <span>Metode Pembayaran ({{ ucfirst($period) }})</span>
                 </h5>
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="p-3 rounded-3" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-success-subtle text-success fw-bold">QRIS</span>
-                                <span class="text-slate-500 small">{{ $periodQrisCount }} Order</span>
+                <div class="row g-3 owner-payment-cards-row">
+                    <div class="col-6 owner-payment-card-col">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <div>
+                                <div class="mb-1">
+                                    <span class="badge bg-success-subtle text-success fw-bold">QRIS</span>
+                                </div>
+                                <div class="text-slate-500 small mb-2">{{ $periodQrisCount }} Order</div>
                             </div>
-                            <div class="font-monospace fw-bold text-emerald-800" style="font-size: 1.125rem;">
+                            <div class="font-monospace fw-bold text-emerald-800 owner-payment-nominal" style="font-size: 1.125rem;">
                                 Rp {{ number_format($periodQrisRevenue, 0, ',', '.') }}
                             </div>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="p-3 rounded-3" style="background-color: #eff6ff; border: 1px solid #bfdbfe;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-primary-subtle text-primary fw-bold">Tunai Kasir</span>
-                                <span class="text-slate-500 small">{{ $periodCashCount }} Order</span>
+                    <div class="col-6 owner-payment-card-col">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background-color: #eff6ff; border: 1px solid #bfdbfe;">
+                            <div>
+                                <div class="mb-1">
+                                    <span class="badge bg-primary-subtle text-primary fw-bold">Tunai Kasir</span>
+                                </div>
+                                <div class="text-slate-500 small mb-2">{{ $periodCashCount }} Order</div>
                             </div>
-                            <div class="font-monospace fw-bold text-blue-800" style="font-size: 1.125rem;">
+                            <div class="font-monospace fw-bold text-blue-800 owner-payment-nominal" style="font-size: 1.125rem;">
                                 Rp {{ number_format($periodCashRevenue, 0, ',', '.') }}
                             </div>
                         </div>
@@ -285,20 +291,20 @@
 
     {{-- Period Transaction List & Full Report Link --}}
     <div class="tokobii-card mb-4">
-        <div class="tokobii-card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="tokobii-card-header d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold mb-0 text-slate-900" style="font-size: 1rem;">Daftar Transaksi Penjualan</h5>
                 <span class="text-slate-400 small">{{ $periodLabel }}</span>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-column flex-sm-row w-100 w-sm-auto owner-sales-table-actions">
                 <a href="{{ route('owner.sales.pdf', array_merge(['period' => $period], request()->query())) }}" 
-                   class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 fw-semibold">
+                   class="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold w-100 w-sm-auto">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     <span>Download PDF</span>
                 </a>
-                <a href="{{ route('owner.sales.index', request()->query()) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+                <a href="{{ route('owner.sales.index', request()->query()) }}" class="btn btn-sm btn-outline-primary fw-semibold d-inline-flex align-items-center justify-content-center w-100 w-sm-auto">
                     <span>Lihat Semua Detail &raquo;</span>
                 </a>
             </div>

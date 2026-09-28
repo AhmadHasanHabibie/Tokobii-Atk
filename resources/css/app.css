@@ -1558,7 +1558,9 @@ img, svg, video, canvas, audio, iframe, embed, object {
     max-width: 100%;
 }
 
-/* 2. Responsive Border Radii & Smooth Elements */
+/* ============================================================
+   MOBILE POLISH & GLOBAL RESPONSIVE FOUNDATION (< 768px)
+   ============================================================ */
 @media (max-width: 767.98px) {
     :root {
         --tokobii-radius: 14px;
@@ -1566,9 +1568,30 @@ img, svg, video, canvas, audio, iframe, embed, object {
         --tokobii-radius-lg: 18px;
     }
 
-    /* Cards smooth mobile padding and radius */
+    /* 1. Global Box Sizing & Viewport Boundary */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+
+    /* 2. Media elements constraints */
+    img, video, iframe, embed, object {
+        max-width: 100% !important;
+        height: auto;
+    }
+
+    /* 3. Cards & Panel Padding, Overflow, and Consistency */
     .tokobii-card {
         border-radius: var(--tokobii-radius) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        margin-bottom: 1rem !important;
     }
 
     .tokobii-card.p-4.p-md-5,
@@ -1582,18 +1605,69 @@ img, svg, video, canvas, audio, iframe, embed, object {
         border-top-right-radius: var(--tokobii-radius) !important;
     }
 
-    /* Product Card Image Container */
-    .product-image-container {
-        height: 140px !important;
-        padding: 0.75rem !important;
+    .tokobii-header-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: var(--tokobii-radius) !important;
+        padding: 1.25rem 1rem !important;
+        overflow: hidden !important;
     }
 
-    /* Product detail page image preview */
-    .product-detail-image-box {
-        min-height: 250px !important;
+    /* 4. Stat Cards: Spacing, Overflow, and Number Fitting */
+    .tokobii-stat-card {
+        border-radius: var(--tokobii-radius) !important;
+        padding: 1.125rem 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        position: relative !important;
     }
 
-    /* Typography scaling on mobile */
+    .tokobii-stat-card::after {
+        display: none !important; /* Mencegah dekorasi bulat memicu overflow di mobile */
+    }
+
+    .tokobii-stat-value {
+        font-size: clamp(1.2rem, 5.5vw, 1.45rem) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.25 !important;
+    }
+
+    .tokobii-stat-label {
+        font-size: 0.8125rem !important;
+        line-height: 1.3 !important;
+        margin-top: 0.25rem !important;
+    }
+
+    /* 5. Flex & Grid Child Constraints (Anti-Overflow) */
+    .tokobii-card .d-flex,
+    .tokobii-card .row,
+    .tokobii-card [class*="col-"],
+    .tokobii-header-card .d-flex,
+    .tokobii-header-card .row,
+    .tokobii-page-content .row {
+        min-width: 0 !important;
+    }
+
+    .tokobii-card .d-flex > *,
+    .tokobii-header-card .d-flex > * {
+        min-width: 0;
+    }
+
+    .tokobii-page-content {
+        padding: 1rem 0.875rem !important;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+
+    .tokobii-page-content .container-fluid.px-0 {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    /* 6. Typography Scaling & Wrapping */
     .display-5, h1.display-5 {
         font-size: 1.75rem !important;
         line-height: 1.25 !important;
@@ -1604,29 +1678,45 @@ img, svg, video, canvas, audio, iframe, embed, object {
         line-height: 1.25 !important;
     }
 
-    /* Buttons: comfortable touch target and safe flex */
+    .h3, h3 {
+        font-size: 1.25rem !important;
+        line-height: 1.3 !important;
+    }
+
+    /* 7. Buttons: Touch Targets (Min 44px) & Full Width Adaptation */
+    .btn,
     .btn-tokobii-primary,
     .btn-tokobii-secondary,
     .btn-tokobii-danger,
     .btn-tokobii-success,
-    .btn-tokobii-warning {
-        min-height: 38px !important;
+    .btn-tokobii-warning,
+    .dashboard-action-card {
+        min-height: 44px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    /* Category pills: smooth touch momentum scrolling */
+    .min-h-44-mobile {
+        min-height: 44px !important;
+    }
+
+    /* 8. Input & Select Fields: Prevent iOS Zoom & Full Width */
+    .form-control,
+    .form-select,
+    .tokobii-input,
+    .tokobii-select {
+        font-size: 16px !important;
+        min-height: 44px !important;
+        width: 100% !important;
+    }
+
+    /* 9. Category Pills & Breadcrumb Touch Scrolling */
     .tokobii-category-pill {
         flex-shrink: 0;
         white-space: nowrap;
     }
 
-    /* Responsive tables */
-    .tokobii-table-container {
-        border-radius: var(--tokobii-radius) !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Breadcrumbs */
     .breadcrumb {
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
@@ -1638,31 +1728,155 @@ img, svg, video, canvas, audio, iframe, embed, object {
         display: none;
     }
 
-    /* Dropdowns prevent off-screen overflow */
+    /* 10. Responsive Table Container (Scroll Internal Saja) */
+    .tokobii-table-container,
+    .table-responsive {
+        border-radius: var(--tokobii-radius) !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 11. Dropdowns & Modals Bound to Viewport */
     .dropdown-menu,
     .tokobii-dropdown-menu {
-        max-width: calc(100vw - 1.5rem) !important;
+        max-width: calc(100vw - 2rem) !important;
     }
 
-    /* Modals comfortable margin & touch targets */
     .modal-dialog {
         margin: 0.75rem auto !important;
-        max-width: calc(100vw - 1.5rem) !important;
-    }
-    .modal-content.tokobii-card {
-        border-radius: var(--tokobii-radius-lg) !important;
+        max-width: calc(100vw - 2rem) !important;
     }
 
-    /* Input & Select fields iOS touch prevention */
-    .form-control,
-    .form-select,
-    .tokobii-input,
-    .tokobii-select {
-        font-size: 15px !important;
+    .modal-dialog-centered {
+        min-height: calc(100% - 1.5rem) !important;
+    }
+
+    .modal-content.tokobii-card {
+        border-radius: var(--tokobii-radius-lg) !important;
+        max-height: 90dvh !important;
+        overflow-y: auto !important;
+    }
+
+    /* 12. Safe Area Inset */
+    .fixed-bottom,
+    .sticky-bottom {
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* =========================================================
+       DASHBOARD OWNER POLISH
+       ========================================================= */
+    /* Tab Periode: Segmented Control 3 Kolom */
+    .owner-period-switcher {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        width: 100% !important;
+        gap: 0 !important;
+    }
+
+    .owner-period-switcher .btn {
+        padding: 0.5rem 0.25rem !important;
+        font-size: 0.8125rem !important;
+        min-height: 44px !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        border-radius: 0 !important;
+    }
+
+    .owner-period-switcher label:first-of-type {
+        border-top-left-radius: 8px !important;
+        border-bottom-left-radius: 8px !important;
+    }
+
+    .owner-period-switcher label:last-of-type {
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+    }
+
+    /* Periode Aktif: Tumpuk Vertikal Rapi */
+    .owner-active-period-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .owner-active-period-details {
+        width: 100% !important;
+    }
+
+    .owner-period-pill {
+        white-space: normal !important;
+        word-break: break-word !important;
+        max-width: 100% !important;
+        display: inline-block !important;
+    }
+
+    .owner-period-range {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Header Action Buttons: 100% Width & Vertikal */
+    .owner-header-actions {
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .owner-header-actions .btn,
+    .owner-btn-download-pdf,
+    .owner-btn-full-report {
+        width: 100% !important;
+        min-height: 44px !important;
+        justify-content: center !important;
+    }
+
+    /* Metode Pembayaran: Tinggi Sama & Susunan Rapi */
+    .owner-payment-cards-row {
+        align-items: stretch !important;
+    }
+
+    .owner-payment-card-col {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .owner-payment-nominal {
+        font-size: clamp(0.95rem, 4.2vw, 1.125rem) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Daftar Transaksi Penjualan Table Actions */
+    .owner-sales-table-actions {
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .owner-sales-table-actions .btn {
+        width: 100% !important;
+        min-height: 44px !important;
+        justify-content: center !important;
+    }
+
+    /* Filter Form Submit & Reset Buttons */
+    .owner-filter-actions {
+        width: 100% !important;
+    }
+
+    .owner-filter-actions .btn {
+        min-height: 44px !important;
     }
 }
 
-/* Extra Small Screens (< 575.98px) */
+/* Extra Small Screens (< 575.98px & < 360px) */
 @media (max-width: 575.98px) {
     .container {
         padding-left: 0.875rem !important;
@@ -1681,21 +1895,41 @@ img, svg, video, canvas, audio, iframe, embed, object {
         padding: 0.75rem !important;
     }
 
-    /* Stat cards */
     .tokobii-stat-card {
         padding: 1rem !important;
     }
 
-    /* Auth card on small devices */
     .auth-card {
         padding: 1.5rem 1.25rem !important;
         border-radius: 18px !important;
     }
 
-    /* Allow buttons with long text to wrap comfortably */
     .btn-wrap-mobile {
         white-space: normal !important;
         word-break: break-word !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .owner-period-switcher .btn {
+        font-size: 0.725rem !important;
+        padding: 0.4rem 0.15rem !important;
+    }
+
+    .owner-filter-actions {
+        flex-direction: column !important;
+    }
+
+    .owner-filter-actions .btn {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 340px) {
+    .owner-payment-card-col {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
     }
 }
 
@@ -1916,14 +2150,14 @@ img, svg, video, canvas, audio, iframe, embed, object {
         min-width: 0 !important;
         display: block !important;
         text-align: center !important;
-        overflow: hidden !important;
+        overflow: visible !important;
     }
 
     .face-recovery-toggle-btn {
-        display: inline-flex !important;
-        flex-direction: row !important;
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        gap: 8px !important;
         width: 100% !important;
         max-width: 100% !important;
         min-height: 44px !important;
@@ -1935,6 +2169,11 @@ img, svg, video, canvas, audio, iframe, embed, object {
         padding-inline: 8px !important;
         padding-block: 6px !important;
         line-height: 1.35 !important;
+    }
+
+    .face-recovery-toggle-btn svg {
+        flex-shrink: 0 !important;
+        display: inline-block !important;
     }
 
     .face-recovery-toggle-btn span {
