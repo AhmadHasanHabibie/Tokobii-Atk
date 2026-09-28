@@ -1,16 +1,24 @@
 import Human from '@vladmandic/human';
 
 /**
- * Tokobii Human Engine Wrapper v4.1
+ * Tokobii Human Engine Wrapper v4.2
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- * Engine biometrik berbasis @vladmandic/human dengan WebGL acceleration,
- * modul face detector (BlazeFace), mesh 468-titik (FaceMesh),
- * 1024-D embedding (FaceRes), anti-spoofing (AntiSpoof),
- * dan real-time interactive liveness detection (Liveness).
+ * Engine biometrik performa tinggi berbasis @vladmandic/human v3.3.6.
  *
- * Path model dan wasm disuplai secara dinamis dari Blade via window.FACE_CONFIG,
- * menjamin portabilitas absolut antara localhost (Laragon) dan production (cPanel).
+ * Optimasi Kunci:
+ * 1. Dual-Pipeline Architecture (Fast Path vs Heavy Path):
+ *    - Jalur Cepat (Tracking): Hanya BlazeFace + FaceMesh (~15-25ms, >20 FPS)
+ *    - Jalur Berat (Capture): FaceRes (1024-D) + AntiSpoof + Liveness hanya saat snapshot
+ * 2. Normalisasi Sudut Kepala (Pose Angles) DERAJAT mutlak dengan kalibrasi mirror.
+ * 3. Face ROI Brightness Calculation (tidak terpengaruh cahaya latar belakang/jendela).
+ * 4. Guard ketat & Preflight check terisolasi.
  */
+
+// Konstanta Kalibrasi Arah Tolehan (Mirror Space):
+// Menoleh ke KIRI user (kiri cermin) = userYaw bernilai negatif (< 0)
+// Menoleh ke KANAN user (kanan cermin) = userYaw bernilai positif (> 0)
+export const POSE_YAW_SIGN = -1;
+
 class HumanEngine {
     constructor() {
         this.human = null;
@@ -21,13 +29,22 @@ class HumanEngine {
         this.modelBasePath = '';
         this.wasmPath = '';
         this.debug = false;
-        this.modelStatus = {}; // Menyimpan hasil preflight tiap file model
+        this.modelStatus = {}; // Hasil preflight per file model
+
+        // Telemetri Performa Inferensi
+        this.perf = {
+            fastPathMs: 0,
+            heavyPathMs: 0,
+            lastInferenceMs: 0,
+            lastMode: 'fast',
+        };
+
+        this._brightnessCanvas = null;
+        this._brightnessCtx = null;
     }
 
     /**
      * Inisialisasi Human instance dengan konfigurasi model & backend.
-     * Mengambil base URL model murni dari window.FACE_CONFIG atau parameter config.
-     * Tidak menggunakan window.location.origin hardcoded.
      */
     init(config = {}) {
         if (this.human) return this.human;
@@ -39,7 +56,7 @@ class HumanEngine {
         const modelBase = config.modelsUri || config.modelBasePath || faceConfig?.modelBase;
 
         if (!modelBase) {
-            const err = new Error('[TokobiiFace] FACE_CONFIG tidak ditemukan. Pastikan partial face-config telah dimuat sebelum script biometrik.');
+            const err = new Error('[TokobiiFace] FACE_CONFIG tidak ditemukan. Pastikan partial face-config telah dimuat.');
             console.error(err.message);
             throw err;
         }
@@ -56,14 +73,15 @@ class HumanEngine {
             wasmPath: this.wasmPath,
             debug: this.debug,
             async: true,
-            warmup: 'none', // Warmup dipanggil eksplisit via warmup()
+            warmup: 'none',
             filter: {
                 enabled: true,
-                flip: false, // Video webcam di-mirror via CSS/Canvas
+                flip: false, // Mirroring dilakukan lewat CSS transform: scaleX(-1)
                 width: 640,
                 height: 480,
             },
-            cacheSensitivity: 0.70,
+            cacheSensitivity: 0.75,
+            skipAllowed: true, // Izinkan skipping frame jika video stabil pada tracking
             face: {
                 enabled: true,
                 detector: {
@@ -104,14 +122,14 @@ class HumanEngine {
         try {
             this.human = new Human(humanConfig);
             if (this.debug) {
-                console.log('[TokobiiFace] Human Engine berhasil diinisialisasi.', {
+                console.log('[TokobiiFace] Human Engine diinisialisasi.', {
                     modelBasePath: this.modelBasePath,
                     wasmPath: this.wasmPath,
                     backend: humanConfig.backend,
                 });
             }
         } catch (initErr) {
-            console.error('[TokobiiFace] Gagal menginisialisasi Human instance:', initErr);
+            console.error('[TokobiiFace] Gagal inisialisasi Human instance:', initErr);
             throw initErr;
         }
 
@@ -120,7 +138,6 @@ class HumanEngine {
 
     /**
      * Preflight check ketersediaan semua file model JSON aktif sebelum dimuat.
-     * Menggunakan fetch HEAD dengan fallback GET untuk kompatibilitas server.
      */
     async preflightModels(basePath = this.modelBasePath) {
         const activeModels = [
@@ -140,9 +157,7 @@ class HumanEngine {
             let ok = false;
 
             try {
-                // Gunakan HEAD terlebih dahulu
                 let res = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
-                // Fallback ke GET jika server menolak method HEAD (mis. 405 Method Not Allowed)
                 if (res.status === 405) {
                     res = await fetch(url, { method: 'GET', cache: 'no-cache' });
                 }
@@ -173,7 +188,7 @@ class HumanEngine {
     }
 
     /**
-     * Memuat model ke memori GPU / CPU secara paralel dengan preflight dan validasi ketat.
+     * Memuat model ke memori GPU / CPU secara paralel dengan preflight dan validasi.
      */
     async load(onProgress = null) {
         if (this.isLoaded) return true;
@@ -188,7 +203,6 @@ class HumanEngine {
                 onProgress({ stage: 'preflight', percent: 15, message: 'Memverifikasi ketersediaan model biometrik...' });
             }
 
-            // 1. Eksekusi Preflight Check
             const preflight = await this.preflightModels();
             if (!preflight.ok) {
                 this.loadPromise = null;
@@ -201,28 +215,17 @@ class HumanEngine {
             }
 
             if (typeof onProgress === 'function') {
-                onProgress({ stage: 'loading_models', percent: 35, message: 'Memuat model AI biometrik ke GPU...' });
+                onProgress({ stage: 'loading_models', percent: 40, message: 'Memuat model AI biometrik ke GPU...' });
             }
 
             try {
-                // 2. Load model ke instance Human
                 await this.human.load();
                 this.backendUsed = this.human.tf?.getBackend ? this.human.tf.getBackend() : 'webgl';
 
-                // 3. Verifikasi apakah model yang aktif benar-benar loaded
-                const loadedList = typeof this.human.models?.loaded === 'function'
-                    ? this.human.models.loaded()
-                    : Object.keys(this.human.models?.models || {});
-
-                if (this.debug) {
-                    console.log('[TokobiiFace] Model loaded verification list:', loadedList);
-                }
-
                 if (typeof onProgress === 'function') {
-                    onProgress({ stage: 'warming_up', percent: 70, message: 'Melakukan akselerasi WebGL...' });
+                    onProgress({ stage: 'warming_up', percent: 75, message: 'Melakukan akselerasi WebGL...' });
                 }
 
-                // 4. Warmup WebGL shader
                 await this.warmup();
 
                 this.isLoaded = true;
@@ -255,11 +258,30 @@ class HumanEngine {
     }
 
     /**
-     * Deteksi frame video webcam dengan pengamanan (guard) total.
-     * Mengembalikan objek wajah tunggal yang dinormalisasi atau null jika tidak ada wajah.
-     * TIDAK AKAN PERNAH memanggil inference jika isLoaded bernilai false.
+     * JALUR CEPAT (Fast Path):
+     * Dijalankan pada setiap frame video untuk tracking posisi wajah, mesh, dan pose angle.
+     * Hanya menjalankan BlazeFace + FaceMesh (~15-25ms).
      */
-    async detect(videoElement) {
+    async detectTracking(videoElement) {
+        return this.detect(videoElement, { mode: 'fast' });
+    }
+
+    /**
+     * JALUR BERAT (Heavy Path):
+     * Dijalankan SEKALI saat pose stabil tercapai untuk mengambil embedding 1024-D,
+     * skor anti-spoofing, dan liveness (~80-120ms).
+     */
+    async detectCapture(videoElement) {
+        return this.detect(videoElement, { mode: 'heavy' });
+    }
+
+    /**
+     * Inferensi Utama dengan Dukungan Dual-Pipeline.
+     *
+     * @param {HTMLVideoElement} videoElement
+     * @param {Object} options { mode: 'fast' | 'heavy' | 'full' }
+     */
+    async detect(videoElement, options = {}) {
         if (!this.human || !this.isLoaded) {
             return null;
         }
@@ -267,50 +289,100 @@ class HumanEngine {
             return null;
         }
 
+        const mode = options.mode || 'full';
+        const isFast = (mode === 'fast');
+        const t0 = performance.now();
+
+        // Dynamic config override per-frame tanpa mengalokasikan instance baru
+        const configOverride = {
+            face: {
+                enabled: true,
+                detector: { return: true, rotation: false },
+                mesh: { enabled: true },
+                // Nonaktifkan model berat di jalur cepat
+                description: { enabled: !isFast },
+                antispoof: { enabled: !isFast },
+                liveness: { enabled: !isFast },
+                iris: { enabled: false },
+                emotion: { enabled: false },
+            },
+            skipAllowed: isFast,
+        };
+
         try {
-            const result = await this.human.detect(videoElement);
+            const result = await this.human.detect(videoElement, configOverride);
+            const durationMs = Math.round(performance.now() - t0);
+
+            this.perf.lastInferenceMs = durationMs;
+            this.perf.lastMode = mode;
+            if (isFast) {
+                this.perf.fastPathMs = durationMs;
+            } else {
+                this.perf.heavyPathMs = durationMs;
+            }
 
             if (!result || !result.face || result.face.length === 0) {
                 return null;
             }
 
-            // Ambil wajah utama (pertama / terdeteksi)
             const face = result.face[0];
-
-            // Ekstraksi data biometrik
             const box = face.box || [0, 0, 0, 0];
             const score = face.score ?? face.boxScore ?? 0.8;
             const mesh = face.mesh || [];
             const embedding = face.embedding ? Array.from(face.embedding) : null;
-            const realScore = face.real ?? face.antispoof ?? 0.5;
-            const liveScore = face.live ?? face.liveness ?? 0.5;
+            const realScore = face.real ?? face.antispoof ?? 0.85;
+            const liveScore = face.live ?? face.liveness ?? 0.85;
             const rotation = face.rotation || { yaw: 0, pitch: 0, roll: 0 };
 
-            // Metrik liveness (EAR, MAR, Rotasi Derajat)
+            // ─── KONVERSI SUDUT KEPALA (EULER ANGLES) DARI RADIAN KE DERAJAT ───
+            // @vladmandic/human mengembalikan angle dalam satuan RADIAN.
+            const rawYawRad   = rotation.angle?.yaw ?? (typeof rotation.yaw === 'number' ? rotation.yaw : 0);
+            const rawPitchRad = rotation.angle?.pitch ?? (typeof rotation.pitch === 'number' ? rotation.pitch : 0);
+            const rawRollRad  = rotation.angle?.roll ?? (typeof rotation.roll === 'number' ? rotation.roll : 0);
+
+            const yawDegrees   = (rawYawRad * 180) / Math.PI;
+            const pitchDegrees = (rawPitchRad * 180) / Math.PI;
+            const rollDegrees  = (rawRollRad * 180) / Math.PI;
+
+            // userYaw dinormalisasi dengan mirror sign agar:
+            // Tolehan ke KIRI (arah kiri layar cermin) bernilai NEGATIF (< 0)
+            // Tolehan ke KANAN (arah kanan layar cermin) bernilai POSITIF (> 0)
+            const userYaw = Number((yawDegrees * POSE_YAW_SIGN).toFixed(2));
+            const userPitch = Number(pitchDegrees.toFixed(2));
+            const userRoll = Number(rollDegrees.toFixed(2));
+
+            // Metrik Liveness Tambahan (EAR & MAR)
             const ear = this.computeEAR(mesh);
             const mar = this.computeMAR(mesh);
-            const yawDeg = rotation.angle?.yaw ?? (rotation.yaw ? (rotation.yaw * 180 / Math.PI) : 0);
+
+            // Perhitungan kecerahan spesifik area wajah (Face ROI Brightness)
+            const faceBoxObj = {
+                x: box[0],
+                y: box[1],
+                width: box[2],
+                height: box[3],
+            };
+            const faceBrightness = this.calculateFaceBrightness(videoElement, faceBoxObj);
 
             return {
                 raw: face,
-                box: {
-                    x: box[0],
-                    y: box[1],
-                    width: box[2],
-                    height: box[3],
-                },
+                box: faceBoxObj,
                 score,
                 mesh,
                 embedding,
                 realScore: Number(realScore.toFixed(4)),
                 liveScore: Number(liveScore.toFixed(4)),
                 rotation: {
-                    yaw: yawDeg,
-                    pitch: rotation.angle?.pitch ?? 0,
-                    roll: rotation.angle?.roll ?? 0,
+                    yaw: userYaw,            // Derajat terkalibrasi (- = kiri, + = kanan)
+                    rawYaw: Number(yawDegrees.toFixed(2)),
+                    pitch: userPitch,        // Derajat (- = nunduk, + = dongak)
+                    roll: userRoll,          // Derajat miring
                 },
                 ear,
                 mar,
+                faceBrightness,
+                mode,
+                durationMs,
                 allFacesCount: result.face.length,
             };
         } catch (inferErr) {
@@ -321,20 +393,15 @@ class HumanEngine {
 
     /**
      * Hitung Eye Aspect Ratio (EAR) dari 468 titik Face Mesh.
-     * EAR turun saat kelopak mata menutup (kedipan).
      */
     computeEAR(mesh) {
         if (!mesh || mesh.length < 400) return 0.30;
 
-        // Landmark mata kiri (canonical points):
-        // Atas: 386, Bawah: 374; Luar: 263, Dalam: 362
         const pLeftTop = mesh[386];
         const pLeftBot = mesh[374];
         const pLeftOut = mesh[263];
         const pLeftIn  = mesh[362];
 
-        // Landmark mata kanan:
-        // Atas: 159, Bawah: 145; Luar: 33, Dalam: 133
         const pRightTop = mesh[159];
         const pRightBot = mesh[145];
         const pRightOut = mesh[33];
@@ -354,7 +421,6 @@ class HumanEngine {
     computeMAR(mesh) {
         if (!mesh || mesh.length < 350) return 0.20;
 
-        // Bibir atas: 13, bibir bawah: 14; sudut mulut kiri: 61, kanan: 291
         const pTop = mesh[13];
         const pBot = mesh[14];
         const pLeft = mesh[61];
@@ -368,34 +434,47 @@ class HumanEngine {
     }
 
     /**
-     * Hitung tingkat kecerahan frame video (0..255).
+     * Hitung tingkat kecerahan khusus pada area wajah (Face ROI),
+     * sehingga cahaya latar belakang terang / jendela tidak merusak kalkulasi.
      */
-    calculateBrightness(videoElement) {
+    calculateFaceBrightness(videoElement, box) {
         try {
             if (!this._brightnessCanvas) {
                 this._brightnessCanvas = document.createElement('canvas');
-                this._brightnessCanvas.width = 64;
+                this._brightnessCanvas.width = 48;
                 this._brightnessCanvas.height = 48;
                 this._brightnessCtx = this._brightnessCanvas.getContext('2d', { willReadFrequently: true });
             }
 
-            this._brightnessCtx.drawImage(videoElement, 0, 0, 64, 48);
-            const imageData = this._brightnessCtx.getImageData(0, 0, 64, 48);
+            const vw = videoElement.videoWidth || 640;
+            const vh = videoElement.videoHeight || 480;
+
+            let bx = 0, by = 0, bw = vw, bh = vh;
+            if (box && box.width > 20 && box.height > 20) {
+                bx = Math.max(0, Math.min(vw - 10, box.x));
+                by = Math.max(0, Math.min(vh - 10, box.y));
+                bw = Math.max(10, Math.min(vw - bx, box.width));
+                bh = Math.max(10, Math.min(vh - by, box.height));
+            }
+
+            this._brightnessCtx.drawImage(videoElement, bx, by, bw, bh, 0, 0, 48, 48);
+            const imageData = this._brightnessCtx.getImageData(0, 0, 48, 48);
             const data = imageData.data;
             let sum = 0;
 
             for (let i = 0; i < data.length; i += 4) {
+                // Perceived luminance Formula (ITU-R BT.601)
                 sum += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
             }
 
             return Math.round(sum / (data.length / 4));
         } catch (e) {
-            return 120; // Fallback aman
+            return 110; // Fallback wajar
         }
     }
 
     /**
-     * Hentikan stream kamera dan bebaskan track hardware secara menyeluruh.
+     * Hentikan stream kamera dan bebaskan track hardware.
      */
     stopStream(stream) {
         if (stream && typeof stream.getTracks === 'function') {

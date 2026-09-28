@@ -219,13 +219,23 @@
                 </div>
             </div>
 
-            <div class="modal-footer border-top border-slate-100 p-3 bg-slate-50 d-flex justify-content-between">
-                <button id="btnRetryFace" type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" style="display: none;">
-                    Ulangi Perekaman
-                </button>
-                <button type="button" class="btn btn-tokobii-secondary btn-tokobii-sm ms-auto" data-bs-dismiss="modal">
-                    Tutup
-                </button>
+            <div class="modal-footer border-top border-slate-100 p-3 bg-slate-50 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btnRetryFace" type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" style="display: none;">
+                        Ulangi Perekaman
+                    </button>
+                    <button id="btnSkipEnrollStep" type="button" class="btn btn-outline-secondary btn-tokobii-sm" style="display: none;">
+                        Lewati Langkah
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <button id="btnSaveEnrollFace" type="button" class="btn btn-tokobii-primary btn-tokobii-sm" style="display: none;">
+                        <i class="bi bi-shield-check me-1"></i> Simpan Biometrik
+                    </button>
+                    <button type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" data-bs-dismiss="modal">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
     </div>

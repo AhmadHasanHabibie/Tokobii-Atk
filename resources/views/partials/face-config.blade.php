@@ -17,6 +17,11 @@
             disableAdmin: "{{ route('admin.profile.face-verification.disable') }}",
             disableOwner: "{{ route('owner.profile.face-verification.disable') }}"
         },
+        thresholds: {
+            match: {{ config('face.match_threshold', 0.70) }},
+            antispoof: {{ config('face.antispoof_threshold', 0.40) }},
+            liveness: {{ config('face.liveness_threshold', 0.40) }},
+        },
         debug: {{ config('face.debug') ? 'true' : 'false' }}
     };
 </script>
