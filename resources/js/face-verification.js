@@ -391,6 +391,7 @@ class TokobiiFaceVerification {
             };
             this.video.onloadedmetadata = () => {
                 this.video.play().catch(() => {});
+                this._syncCanvas();
                 checkReady();
             };
             setTimeout(checkReady, 300);
@@ -528,11 +529,27 @@ class TokobiiFaceVerification {
             return { valid: false, status: 'Wajah Kurang Jelas', message: 'Tingkatkan pencahayaan atau dekatkan wajah.', state: 'warning' };
         }
 
-        // Cek Geometri Bounding Box di dalam Oval
-        const box = face.box;
-        const relW = box.width / vw;
-        const centerX = (box.x + box.width / 2) / vw;
-        const centerY = (box.y + box.height / 2) / vh;
+        // Cek Geometri Bounding Box di dalam Oval (ruang tampil yang selaras dengan panduan oval)
+        const tensorW = face.raw?.width || vw;
+        const tensorH = face.raw?.height || vh;
+
+        const boxRaw = face.boxRaw || face.raw?.boxRaw || [
+            face.box.x / tensorW,
+            face.box.y / tensorH,
+            face.box.width / tensorW,
+            face.box.height / tensorH,
+        ];
+
+        const centerNormX = boxRaw[0] + boxRaw[2] / 2;
+        const centerNormY = boxRaw[1] + boxRaw[3] / 2;
+
+        const centerPt = this._mapPointToDisplay(centerNormX, centerNormY);
+        const ptLeft = this._mapPointToDisplay(boxRaw[0], centerNormY);
+        const ptRight = this._mapPointToDisplay(boxRaw[0] + boxRaw[2], centerNormY);
+
+        const relW = Math.abs(ptRight.x - ptLeft.x) / centerPt.cw;
+        const centerX = centerPt.x / centerPt.cw;
+        const centerY = centerPt.y / centerPt.ch;
 
         if (relW < 0.16) return { valid: false, status: 'Terlalu Jauh', message: 'Dekatkan wajah sedikit ke kamera.', state: 'warning' };
         if (relW > 0.85) return { valid: false, status: 'Terlalu Dekat', message: 'Mundur sedikit dari kamera.', state: 'warning' };
@@ -1024,8 +1041,14 @@ class TokobiiFaceVerification {
 
     _syncCanvas() {
         if (!this.canvas || !this.video) return;
-        const cw = this.video.clientWidth || this.video.videoWidth || 640;
-        const ch = this.video.clientHeight || this.video.videoHeight || 480;
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.inset = '0';
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = '100%';
+        this.canvas.style.transform = 'none';
+
+        const cw = this.video.clientWidth || this.canvas.clientWidth || 640;
+        const ch = this.video.clientHeight || this.canvas.clientHeight || 480;
         const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
         const targetW = Math.round(cw * dpr);
         const targetH = Math.round(ch * dpr);
@@ -1042,6 +1065,43 @@ class TokobiiFaceVerification {
         if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
+    /**
+     * Pemetaan terpadu titik koordinat normalisasi (0-1) ke ruang koordinat tampil.
+     * Mengakomodasi object-fit: cover dan cermin visual secara konsisten.
+     */
+    _mapPointToDisplay(xNorm, yNorm) {
+        const cw = this.video?.clientWidth || this.canvas?.clientWidth || 640;
+        const ch = this.video?.clientHeight || this.canvas?.clientHeight || 480;
+        const vw = this.video?.videoWidth || 640;
+        const vh = this.video?.videoHeight || 480;
+
+        const scale = Math.max(cw / vw, ch / vh);
+        const offsetX = (cw - vw * scale) / 2;
+        const offsetY = (ch - vh * scale) / 2;
+
+        const rawX = xNorm * vw * scale + offsetX;
+        const rawY = yNorm * vh * scale + offsetY;
+
+        // Strategi Mirror: Canvas tanpa transform CSS (transform: none),
+        // posisi X dicerminkan matematis agar selaras dengan <video style="transform: scaleX(-1)">
+        const displayX = cw - rawX;
+        const displayY = rawY;
+
+        return {
+            x: displayX,
+            y: displayY,
+            rawX,
+            rawY,
+            scale,
+            offsetX,
+            offsetY,
+            cw,
+            ch,
+            vw,
+            vh,
+        };
+    }
+
     _drawCanvas(face) {
         if (!this.canvas || !face || !this.video) return;
         this._syncCanvas();
@@ -1049,44 +1109,58 @@ class TokobiiFaceVerification {
         const ctx = this.canvas.getContext('2d');
         if (!ctx) return;
 
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
-        ctx.save();
-        ctx.scale(dpr, dpr);
-
         const cw = this.video.clientWidth || this.canvas.clientWidth || 640;
         const ch = this.video.clientHeight || this.canvas.clientHeight || 480;
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+
+        // Reset transform ke DPR scale dan bersihkan canvas pada ukuran tampil
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cw, ch);
+
         const vw = this.video.videoWidth || 640;
         const vh = this.video.videoHeight || 480;
+        const tensorW = face.raw?.width || vw;
+        const tensorH = face.raw?.height || vh;
 
-        // Pemetaan koordinat proporsional memperhitungkan object-fit: cover
-        const scale = Math.max(cw / vw, ch / vh);
-        const offsetX = (cw - vw * scale) / 2;
-        const offsetY = (ch - vh * scale) / 2;
+        // Koordinat normalisasi (0-1) dari Human: face.boxRaw
+        const boxRaw = face.boxRaw || face.raw?.boxRaw || [
+            face.box.x / tensorW,
+            face.box.y / tensorH,
+            face.box.width / tensorW,
+            face.box.height / tensorH,
+        ];
 
-        const bx = face.box.x * scale + offsetX;
-        const by = face.box.y * scale + offsetY;
-        const bw = face.box.width * scale;
-        const bh = face.box.height * scale;
+        // Petakan sudut kiri-atas dan kanan-bawah secara terpisah dengan _mapPointToDisplay
+        const ptTopLeft = this._mapPointToDisplay(boxRaw[0], boxRaw[1]);
+        const ptBottomRight = this._mapPointToDisplay(boxRaw[0] + boxRaw[2], boxRaw[1] + boxRaw[3]);
+
+        const bx = Math.min(ptTopLeft.x, ptBottomRight.x);
+        const by = Math.min(ptTopLeft.y, ptBottomRight.y);
+        const bw = Math.abs(ptBottomRight.x - ptTopLeft.x);
+        const bh = Math.abs(ptBottomRight.y - ptTopLeft.y);
 
         // Bounding Box
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
         ctx.strokeRect(bx, by, bw, bh);
 
-        // Landmark Titik Mesh
-        if (face.mesh && face.mesh.length > 0) {
+        // Landmark Titik Mesh menggunakan meshRaw
+        const meshRaw = face.meshRaw || face.raw?.meshRaw;
+        if (meshRaw && meshRaw.length > 0) {
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
+            for (let i = 0; i < meshRaw.length; i += 4) {
+                const pt = meshRaw[i];
+                const mPt = this._mapPointToDisplay(pt[0], pt[1]);
+                ctx.fillRect(mPt.x - 1, mPt.y - 1, 2, 2);
+            }
+        } else if (face.mesh && face.mesh.length > 0) {
             ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
             for (let i = 0; i < face.mesh.length; i += 4) {
                 const pt = face.mesh[i];
-                const px = pt[0] * scale + offsetX;
-                const py = pt[1] * scale + offsetY;
-                ctx.fillRect(px - 1, py - 1, 2, 2);
+                const mPt = this._mapPointToDisplay(pt[0] / tensorW, pt[1] / tensorH);
+                ctx.fillRect(mPt.x - 1, mPt.y - 1, 2, 2);
             }
         }
-
-        ctx.restore();
     }
 
     _setStatus(text, type = 'info') {
