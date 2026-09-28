@@ -174,65 +174,67 @@
                            id="enrollPassword" 
                            class="form-control tokobii-input" 
                            placeholder="Masukkan kata sandi untuk konfirmasi" 
+                           style="min-height: 44px; font-size: 16px;"
                            required>
                     <small class="text-slate-400">Kata sandi diperlukan demi keamanan otorisasi pendaftaran biometrik.</small>
                 </div>
 
                 {{-- Camera Preview with Oval Overlay & Detection Canvas --}}
-                <div class="face-camera-wrapper position-relative mb-3 rounded-3 overflow-hidden bg-slate-950 shadow-inner"
-                     style="position: relative; width: 100%; overflow: hidden; height: 260px;">
+                <div class="face-camera-wrapper position-relative mb-3 rounded-3 overflow-hidden bg-slate-950 shadow-inner mx-auto"
+                     style="position: relative; width: 100%; max-width: 100%; overflow: hidden; height: 260px; max-height: 48vh;">
                     <video id="faceVideo" 
                            autoplay 
                            playsinline 
                            muted 
-                           class="w-100 h-100 object-cover" 
-                           style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block;">
+                           style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block;">
                     </video>
 
                     {{-- Detection Canvas Overlay (Bounding Box / Landmarks) --}}
                     <canvas id="faceCanvas"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1);">
+                            style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1);">
                     </canvas>
 
                     {{-- Oval Overlay --}}
                     <div id="faceOvalGuide" class="position-absolute top-50 start-50 translate-middle pointer-events-none" 
-                         style="width: 150px; height: 190px; border: 3px dashed rgba(147, 51, 234, 0.7); border-radius: 50%; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55); pointer-events: none; transition: border-color 0.25s ease, box-shadow 0.25s ease;">
+                         style="width: 150px; height: 190px; max-width: 75%; max-height: 80%; border: 3px dashed rgba(147, 51, 234, 0.7); border-radius: 50%; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55); pointer-events: none; transition: border-color 0.25s ease, box-shadow 0.25s ease;">
                     </div>
                 </div>
 
                 {{-- Status & Progress --}}
-                <div class="text-center mb-2">
+                <div class="text-center mb-3">
                     <div class="progress mb-2 rounded-pill bg-slate-100" style="height: 6px;">
                         <div id="faceProgress" class="progress-bar bg-purple-600 progress-bar-striped progress-bar-animated rounded-pill" role="progressbar" style="width: 0%;"></div>
                     </div>
-                    <span id="faceStatus" class="tokobii-badge bg-purple-50 text-purple-700 border-purple-200 mb-1">
-                        Mempersiapkan kamera...
-                    </span>
-                    <p id="faceInstruction" class="text-slate-500 small mb-0">
-                        Posisikan wajah Anda tepat di dalam bingkai oval.
-                    </p>
+                    <div class="d-flex flex-column align-items-center gap-1 px-1">
+                        <span id="faceStatus" class="tokobii-badge bg-purple-50 text-purple-700 border-purple-200" style="font-size: 0.72rem; max-width: 100%; white-space: normal; text-align: center; cursor: default;">
+                            Mempersiapkan kamera...
+                        </span>
+                        <p id="faceInstruction" class="text-slate-500 small mb-0 fw-medium" style="font-size: 0.78rem; line-height: 1.4; word-break: break-word; overflow-wrap: anywhere; text-align: center;">
+                            Posisikan wajah Anda tepat di dalam bingkai oval.
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Camera Select Dropdown --}}
-                <div class="d-flex justify-content-center">
-                    <select id="faceCameraSelect" class="form-select form-select-sm tokobii-select w-75 mt-2" style="display: none;"></select>
+                <div class="w-100 mb-2">
+                    <select id="faceCameraSelect" class="form-select form-select-sm tokobii-select w-100" style="display: none; min-height: 44px; font-size: 16px; max-width: 100%;"></select>
                 </div>
             </div>
 
-            <div class="modal-footer border-top border-slate-100 p-3 bg-slate-50 d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <button id="btnRetryFace" type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" style="display: none;">
+            <div class="modal-footer border-top border-slate-100 p-3 bg-slate-50 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button id="btnRetryFace" type="button" class="btn btn-tokobii-secondary" style="display: none; min-height: 44px;">
                         Ulangi Perekaman
                     </button>
-                    <button id="btnSkipEnrollStep" type="button" class="btn btn-outline-secondary btn-tokobii-sm" style="display: none;">
+                    <button id="btnSkipEnrollStep" type="button" class="btn btn-outline-secondary" style="display: none; min-height: 44px;">
                         Lewati Langkah
                     </button>
                 </div>
-                <div class="d-flex align-items-center gap-2 ms-auto">
-                    <button id="btnSaveEnrollFace" type="button" class="btn btn-tokobii-primary btn-tokobii-sm" style="display: none;">
+                <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                    <button id="btnSaveEnrollFace" type="button" class="btn btn-tokobii-primary" style="display: none; min-height: 44px;">
                         <i class="bi bi-shield-check me-1"></i> Simpan Biometrik
                     </button>
-                    <button type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-tokobii-secondary" data-bs-dismiss="modal" style="min-height: 44px;">
                         Tutup
                     </button>
                 </div>

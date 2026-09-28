@@ -77,8 +77,8 @@ class HumanEngine {
             filter: {
                 enabled: true,
                 flip: false, // Mirroring dilakukan lewat CSS transform: scaleX(-1)
-                width: 640,
-                height: 480,
+                width: 0,   // Resolusi natural kamera (0 = no resize, tidak mendistorsi portrait mobile)
+                height: 0,  // Resolusi natural kamera (0 = no resize, tidak mendistorsi portrait mobile)
             },
             cacheSensitivity: 0.75,
             skipAllowed: true, // Izinkan skipping frame jika video stabil pada tracking

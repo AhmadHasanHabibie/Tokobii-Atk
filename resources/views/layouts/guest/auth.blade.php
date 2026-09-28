@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'Autentikasi - Tokobii')</title>
@@ -19,6 +19,18 @@
     ])
 
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
         /* Auth-specific premium styles */
         .auth-left-panel {
             background: linear-gradient(160deg, #0f172a 0%, #1a2744 40%, #1e1b4b 100%);
@@ -104,12 +116,22 @@
                 0 1px 4px rgba(15,23,42,0.04),
                 0 0 0 1px rgba(255,255,255,0.9) inset;
             padding: 2.25rem;
+            width: 100%;
+            max-width: 440px;
+            box-sizing: border-box;
+            margin-inline: auto;
             animation: tokobiiScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
         @media (max-width: 575.98px) {
             .auth-card {
-                padding: 1.75rem 1.5rem;
+                padding: 1.25rem 1rem;
                 border-radius: 20px;
+            }
+            .auth-right-panel {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 1.25rem !important;
+                padding-bottom: 1.75rem !important;
             }
         }
 
