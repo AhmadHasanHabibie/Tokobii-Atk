@@ -38,9 +38,9 @@
             </div>
 
             {{-- PDF Export Button --}}
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 owner-header-actions">
                 <a href="{{ route('owner.sales.pdf', request()->query()) }}" 
-                   class="btn d-inline-flex align-items-center gap-2 fw-semibold shadow-sm text-white"
+                   class="btn d-inline-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm text-white owner-btn-download-pdf"
                    style="background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 10px; padding: 0.55rem 1.15rem; font-size: 0.875rem;"
                    title="Unduh laporan ini sebagai berkas PDF resmi">
                     <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,46 +53,36 @@
     </div>
 
     {{-- Filter & Period Selector Card --}}
-    <div class="tokobii-card p-4 mb-4 shadow-sm">
+    <div class="tokobii-card p-3 p-md-4 mb-4 shadow-sm">
         <form action="{{ route('owner.sales.index') }}" method="GET" id="salesFilterForm">
             <div class="row g-3 align-items-end">
                 
                 {{-- Period Selector Tabs --}}
                 <div class="col-12 col-lg-5">
-                    <label class="form-label fw-bold text-slate-700 small mb-2">Pilih Jenis Periode:</label>
-                    <div class="d-flex gap-2">
-                        <div class="form-check p-0 flex-grow-1">
-                            <input type="radio" class="btn-check" name="period" id="periodDaily" value="daily" 
-                                   {{ $period === 'daily' ? 'checked' : '' }} onchange="togglePeriodInputs()">
-                            <label class="btn btn-outline-primary w-100 py-2 small fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5" for="periodDaily">
-                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>Harian</span>
-                            </label>
-                        </div>
+                    <label class="form-label fw-bold text-slate-700 small mb-2 d-flex align-items-center gap-1.5">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-primary">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        <span>Pilih Jenis Periode:</span>
+                    </label>
+                    <div class="btn-group w-100 shadow-sm owner-period-switcher" role="group">
+                        <input type="radio" class="btn-check" name="period" id="periodDaily" value="daily" 
+                               {{ $period === 'daily' ? 'checked' : '' }} onchange="togglePeriodInputs()">
+                        <label class="btn btn-outline-primary py-2 small fw-semibold" for="periodDaily">
+                            📅 Harian
+                        </label>
 
-                        <div class="form-check p-0 flex-grow-1">
-                            <input type="radio" class="btn-check" name="period" id="periodWeekly" value="weekly" 
-                                   {{ $period === 'weekly' ? 'checked' : '' }} onchange="togglePeriodInputs()">
-                            <label class="btn btn-outline-primary w-100 py-2 small fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5" for="periodWeekly">
-                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
-                                <span>Mingguan</span>
-                            </label>
-                        </div>
+                        <input type="radio" class="btn-check" name="period" id="periodWeekly" value="weekly" 
+                               {{ $period === 'weekly' ? 'checked' : '' }} onchange="togglePeriodInputs()">
+                        <label class="btn btn-outline-primary py-2 small fw-semibold" for="periodWeekly">
+                            📊 Mingguan
+                        </label>
 
-                        <div class="form-check p-0 flex-grow-1">
-                            <input type="radio" class="btn-check" name="period" id="periodMonthly" value="monthly" 
-                                   {{ $period === 'monthly' ? 'checked' : '' }} onchange="togglePeriodInputs()">
-                            <label class="btn btn-outline-primary w-100 py-2 small fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-1.5" for="periodMonthly">
-                                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                </svg>
-                                <span>Bulanan</span>
-                            </label>
-                        </div>
+                        <input type="radio" class="btn-check" name="period" id="periodMonthly" value="monthly" 
+                               {{ $period === 'monthly' ? 'checked' : '' }} onchange="togglePeriodInputs()">
+                        <label class="btn btn-outline-primary py-2 small fw-semibold" for="periodMonthly">
+                            🗓️ Bulanan
+                        </label>
                     </div>
                 </div>
 
@@ -118,8 +108,8 @@
                 </div>
 
                 {{-- Submit Button --}}
-                <div class="col-12 col-sm-4 col-lg-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-tokobii-primary w-100" style="height: 42px;">
+                <div class="col-12 col-sm-4 col-lg-3 d-flex gap-2 owner-filter-actions">
+                    <button type="submit" class="btn btn-tokobii-primary w-100" style="min-height: 44px;">
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                         </svg>
@@ -131,15 +121,17 @@
         </form>
 
         {{-- Current Filter Active Badge --}}
-        <div class="mt-3 pt-3 border-top border-slate-100 d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-slate-400 small">Periode Aktif:</span>
-                <span class="tokobii-badge" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8125rem;">
-                    {{ $periodLabel }}
-                </span>
-                <span class="text-slate-400 small font-monospace">({{ $startDate->format('d/m/Y') }} - {{ $endDate->format('d/m/Y') }})</span>
+        <div class="mt-3 pt-3 border-top border-slate-100 d-flex align-items-start align-items-md-center justify-content-between flex-wrap gap-2 owner-active-period-row">
+            <div class="d-flex align-items-start align-items-sm-center gap-2 flex-column flex-sm-row owner-active-period-details">
+                <span class="text-slate-400 small text-nowrap">Periode Aktif:</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="tokobii-badge owner-period-pill" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.8125rem; font-weight: 600; border-radius: 9999px; padding: 0.35rem 0.85rem;">
+                        {{ $periodLabel }}
+                    </span>
+                    <span class="text-slate-400 small font-monospace owner-period-range">({{ $startDate->format('d/m/Y') }} - {{ $endDate->format('d/m/Y') }})</span>
+                </div>
             </div>
-            <div class="text-slate-500 small">
+            <div class="text-slate-500 small owner-period-updated">
                 Diperbarui pada: <strong>{{ now()->translatedFormat('H:i') }} WIB</strong>
             </div>
         </div>
@@ -436,14 +428,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="tokobii-empty-state">
-                                    <div class="tokobii-empty-icon">
-                                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <td colspan="7" class="text-center py-4 border-0">
+                                <div class="d-flex flex-column align-items-center justify-content-center py-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px; background: #eff6ff; color: #2563eb;">
+                                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
                                     </div>
-                                    <h6 class="fw-bold text-slate-900 mb-1">Tidak Ada Transaksi Penjualan</h6>
+                                    <h6 class="fw-bold text-slate-800 mb-1" style="font-size: 0.95rem;">Tidak Ada Transaksi Penjualan</h6>
                                     <p class="text-slate-400 small mb-0">Belum ada transaksi pesanan yang lunas atau selesai pada periode ini.</p>
                                 </div>
                             </td>

@@ -52,7 +52,7 @@
     <div class="mb-3">
         <label for="email" class="form-label">Alamat Email</label>
         <div class="input-group">
-            <span class="input-group-text">
+            <span class="input-group-text" style="border-right: none; border-radius: 12px 0 0 12px; background-color: #f8fafc; border-color: #cbd5e1;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
@@ -66,7 +66,7 @@
                    autocomplete="username"
                    required
                    autofocus
-                   style="border-left: none; border-radius: 0 12px 12px 0;">
+                   style="border-left: none; border-radius: 0 12px 12px 0; border-color: #cbd5e1;">
         </div>
         @error('email')
             <div class="text-rose-600 small mt-1 d-flex align-items-center gap-1">
@@ -87,7 +87,7 @@
             @endif
         </div>
         <div class="input-group">
-            <span class="input-group-text">
+            <span class="input-group-text" style="border-right: none; border-radius: 12px 0 0 12px; background-color: #f8fafc; border-color: #cbd5e1;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
@@ -99,7 +99,7 @@
                    placeholder="Masukkan kata sandi"
                    autocomplete="current-password"
                    required
-                   style="border-left: none; border-radius: 0 12px 12px 0;">
+                   style="border-left: none; border-radius: 0 12px 12px 0; border-color: #cbd5e1;">
         </div>
         @error('password')
             <div class="text-rose-600 small mt-1 d-flex align-items-center gap-1">

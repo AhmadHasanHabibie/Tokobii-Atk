@@ -113,12 +113,17 @@
 @endif
 
 {{-- Emergency Recovery Code Accordion --}}
-<div class="face-recovery-wrapper text-center pt-2 mb-2">
-    <button class="btn btn-link text-decoration-none small text-slate-500 p-0 face-recovery-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
-        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display: inline; vertical-align: -1px; flex-shrink: 0;">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-        </svg>
-        <span>Kamera bermasalah? Masukkan Kode Pemulihan Darurat</span>
+<div class="face-recovery-wrapper text-center pt-2 mb-2 w-100">
+    <button class="btn btn-link text-decoration-none small text-slate-500 p-0 face-recovery-toggle-btn w-100" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
+        <span class="d-inline-flex align-items-center justify-content-center gap-1 flex-wrap text-center w-100 px-1" style="white-space: normal !important; line-height: 1.45;">
+            <span class="d-inline-flex align-items-center gap-1">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="flex-shrink-0" style="display: inline-block;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                </svg>
+                <span>Kamera bermasalah?</span>
+            </span>
+            <span class="text-primary fw-medium">Masukkan Kode Pemulihan Darurat</span>
+        </span>
     </button>
     <div class="collapse mt-2" id="recoveryCodeCollapse">
         <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-start">

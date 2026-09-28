@@ -1016,8 +1016,13 @@ class TokobiiFaceVerification {
                     window.location.href = data.redirect_url;
                 }
             } else {
-                this._setStatus(data.message || 'Verifikasi Wajah Gagal', 'danger');
-                this._setInstruction(data.message || 'Wajah tidak cocok dengan akun ini.');
+                const errMsg = data.message || 'Verifikasi Wajah Gagal';
+                this._setStatus(errMsg, 'danger');
+                if (data.message && (data.message.toLowerCase().includes('terkunci') || data.message.toLowerCase().includes('percobaan'))) {
+                    this._setInstruction('Gunakan Kode Pemulihan Darurat di bawah untuk melanjutkan.');
+                } else {
+                    this._setInstruction(data.instruction || 'Pastikan wajah berada tepat di dalam oval.');
+                }
                 this._setOvalGuideState('danger');
                 this.stop();
                 if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';

@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CPx_CKlM.css",
+    "file": "assets/app-Bi6DDbka.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -14,7 +14,7 @@
     ]
   },
   "resources/js/face-verification.js": {
-    "file": "assets/face-verification-DeEOZmsr.js",
+    "file": "assets/face-verification-vjJeLkGn.js",
     "name": "face-verification",
     "src": "resources/js/face-verification.js",
     "isEntry": true
