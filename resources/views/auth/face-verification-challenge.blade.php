@@ -7,13 +7,12 @@
 @section('content')
 
 <style>
-    /* Strict Mobile Centering & No Overflow Guard */
+    /* Base card styling (Desktop default) */
     .auth-card {
-        width: 100% !important;
-        max-width: 440px !important;
-        margin-inline: auto !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
+        width: 100%;
+        max-width: 440px;
+        margin-inline: auto;
+        box-sizing: border-box;
     }
     .face-camera-wrapper {
         position: relative !important;
@@ -62,6 +61,47 @@
         overflow-wrap: anywhere !important;
         max-width: 100% !important;
         text-align: center !important;
+    }
+    #faceCameraSelect {
+        width: 100% !important;
+        max-width: 100% !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+    }
+
+    /* Strict Mobile Precision Centering & Overflow Prevention (< 576px) */
+    @media (max-width: 575.98px) {
+        .auth-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding: 1.25rem 1rem !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+        }
+        .face-camera-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 280px !important;
+            max-height: 46vh !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        #faceOvalGuide {
+            width: 160px !important;
+            height: 210px !important;
+            max-width: 72% !important;
+            max-height: 82% !important;
+        }
+        .btn,
+        .btn span,
+        button,
+        button span {
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
     }
 </style>
 
@@ -172,11 +212,11 @@
 
 {{-- Emergency Recovery Code Accordion --}}
 <div class="text-center pt-2 mb-2 w-100">
-    <button class="btn btn-link text-decoration-none small text-slate-500 p-2 d-inline-flex align-items-center justify-content-center w-100" style="min-height: 44px;" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
+    <button class="btn btn-link text-decoration-none small text-slate-500 p-2 d-inline-flex align-items-center justify-content-center w-100" style="min-height: 44px; white-space: normal !important;" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1.5 flex-shrink-0">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
         </svg>
-        <span style="overflow-wrap: anywhere; word-break: break-word;">Kamera bermasalah? Masukkan Kode Pemulihan Darurat</span>
+        <span style="overflow-wrap: anywhere; word-break: break-word; white-space: normal !important; text-align: center;">Kamera bermasalah? Masukkan Kode Pemulihan Darurat</span>
     </button>
     <div class="collapse mt-2" id="recoveryCodeCollapse">
         <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-start">
@@ -185,8 +225,8 @@
                 <label for="recoveryCodeInput" class="form-label small fw-semibold text-slate-700 mb-1">Kode Pemulihan Darurat Superadmin</label>
                 <input type="text" id="recoveryCodeInput" class="form-control form-control-sm font-monospace text-uppercase" style="min-height: 44px; font-size: 16px;" placeholder="CONTOH: ABCD-1234" maxlength="16">
             </div>
-            <button type="button" id="btnSubmitRecovery" class="btn btn-tokobii-primary btn-tokobii-sm w-100 d-inline-flex align-items-center justify-content-center" style="min-height: 44px;" onclick="submitEmergencyCode()">
-                Verifikasi Kode Pemulihan
+            <button type="button" id="btnSubmitRecovery" class="btn btn-tokobii-primary btn-tokobii-sm w-100 d-inline-flex align-items-center justify-content-center" style="min-height: 44px; white-space: normal !important;" onclick="submitEmergencyCode()">
+                <span style="white-space: normal !important; word-break: break-word; text-align: center;">Verifikasi Kode Pemulihan</span>
             </button>
         </div>
     </div>
@@ -196,11 +236,11 @@
 <div class="text-center pt-3 mt-1 w-100" style="border-top: 1px solid #f1f5f9;">
     <form method="POST" action="{{ route('face-verification.cancel') }}" class="d-inline w-100">
         @csrf
-        <button type="submit" class="btn btn-link text-decoration-none text-slate-400 small p-2 d-inline-flex align-items-center justify-content-center w-100" style="min-height: 44px;">
+        <button type="submit" class="btn btn-link text-decoration-none text-slate-400 small p-2 d-inline-flex align-items-center justify-content-center w-100" style="min-height: 44px; white-space: normal !important;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1.5 flex-shrink-0">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            <span>Batalkan dan Kembali ke Login</span>
+            <span style="white-space: normal !important; word-break: break-word; text-align: center;">Batalkan dan Kembali ke Login</span>
         </button>
     </form>
 </div>

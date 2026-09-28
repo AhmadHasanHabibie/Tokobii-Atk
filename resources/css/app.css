@@ -1688,8 +1688,20 @@ img, svg, video, canvas, audio, iframe, embed, object {
 
     /* Auth card on small devices */
     .auth-card {
-        padding: 1.5rem 1.25rem !important;
-        border-radius: 18px !important;
+        padding: 1.25rem 1rem !important;
+        border-radius: 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .auth-card .btn,
+    .auth-card .btn span {
+        white-space: normal !important;
+        word-break: break-word !important;
     }
 
     /* Allow buttons with long text to wrap comfortably */

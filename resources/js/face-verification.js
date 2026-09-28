@@ -1129,9 +1129,8 @@ class TokobiiFaceVerification {
 
         if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
             this.canvas.width = targetW;
-            this.canvas.height = targetH;
-            this.canvas.style.width = `${cw}px`;
-            this.canvas.style.height = `${ch}px`;
+            this.canvas.style.width = '100%';
+            this.canvas.style.height = '100%';
             const ctx = this.canvas.getContext('2d');
             if (ctx) {
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

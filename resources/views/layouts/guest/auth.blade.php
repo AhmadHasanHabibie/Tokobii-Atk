@@ -128,18 +128,34 @@
                 border-radius: 20px !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                margin-inline: auto !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
                 overflow: hidden !important;
+                box-sizing: border-box !important;
+            }
+            .auth-card .btn,
+            .auth-card .btn span {
+                white-space: normal !important;
+                word-break: break-word !important;
             }
             .auth-right-panel {
-                padding-left: 12px !important;
-                padding-right: 12px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
                 padding-top: 1rem !important;
                 padding-bottom: 1.5rem !important;
                 width: 100% !important;
                 max-width: 100vw !important;
                 min-width: 0 !important;
                 overflow-x: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .auth-card-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-inline: auto !important;
             }
         }
 
@@ -249,7 +265,7 @@
 
         {{-- Right Panel: Auth Form --}}
         <div class="flex-grow-1 auth-right-panel d-flex flex-column justify-content-center align-items-center w-100" style="min-width: 0; max-width: 100vw; overflow-x: hidden;">
-            <div class="w-100 animate-fade-in-up" style="max-width: 440px; min-width: 0;">
+            <div class="w-100 animate-fade-in-up auth-card-container" style="max-width: 440px; min-width: 0; margin-inline: auto;">
 
                 {{-- Mobile Brand Header --}}
                 <div class="text-center mb-5">
