@@ -158,6 +158,15 @@ class TokobiiFaceVerification {
 
         if (typeof window !== 'undefined') {
             window.addEventListener('resize', () => this._syncCanvas());
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => this._syncCanvas(), 150);
+            });
+            if (window.ResizeObserver && this.video) {
+                try {
+                    this._resizeObserver = new ResizeObserver(() => this._syncCanvas());
+                    this._resizeObserver.observe(this.video);
+                } catch (e) {}
+            }
         }
 
         this._setupAuxiliaryButtons();
@@ -1015,12 +1024,15 @@ class TokobiiFaceVerification {
 
     _syncCanvas() {
         if (!this.canvas || !this.video) return;
-        const w = this.video.clientWidth || this.video.videoWidth || 640;
-        const h = this.video.clientHeight || this.video.videoHeight || 480;
+        const cw = this.video.clientWidth || this.video.videoWidth || 640;
+        const ch = this.video.clientHeight || this.video.videoHeight || 480;
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        const targetW = Math.round(cw * dpr);
+        const targetH = Math.round(ch * dpr);
 
-        if (w > 0 && h > 0 && (this.canvas.width !== w || this.canvas.height !== h)) {
-            this.canvas.width = w;
-            this.canvas.height = h;
+        if (targetW > 0 && targetH > 0 && (this.canvas.width !== targetW || this.canvas.height !== targetH)) {
+            this.canvas.width = targetW;
+            this.canvas.height = targetH;
         }
     }
 
@@ -1039,13 +1051,24 @@ class TokobiiFaceVerification {
 
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const scaleX = this.canvas.width / (this.video.videoWidth || 640);
-        const scaleY = this.canvas.height / (this.video.videoHeight || 480);
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+        ctx.save();
+        ctx.scale(dpr, dpr);
 
-        const bx = face.box.x * scaleX;
-        const by = face.box.y * scaleY;
-        const bw = face.box.width * scaleX;
-        const bh = face.box.height * scaleY;
+        const cw = this.video.clientWidth || this.canvas.clientWidth || 640;
+        const ch = this.video.clientHeight || this.canvas.clientHeight || 480;
+        const vw = this.video.videoWidth || 640;
+        const vh = this.video.videoHeight || 480;
+
+        // Pemetaan koordinat proporsional memperhitungkan object-fit: cover
+        const scale = Math.max(cw / vw, ch / vh);
+        const offsetX = (cw - vw * scale) / 2;
+        const offsetY = (ch - vh * scale) / 2;
+
+        const bx = face.box.x * scale + offsetX;
+        const by = face.box.y * scale + offsetY;
+        const bw = face.box.width * scale;
+        const bh = face.box.height * scale;
 
         // Bounding Box
         ctx.strokeStyle = '#3b82f6';
@@ -1057,11 +1080,13 @@ class TokobiiFaceVerification {
             ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
             for (let i = 0; i < face.mesh.length; i += 4) {
                 const pt = face.mesh[i];
-                const px = pt[0] * scaleX;
-                const py = pt[1] * scaleY;
+                const px = pt[0] * scale + offsetX;
+                const py = pt[1] * scale + offsetY;
                 ctx.fillRect(px - 1, py - 1, 2, 2);
             }
         }
+
+        ctx.restore();
     }
 
     _setStatus(text, type = 'info') {
@@ -1157,6 +1182,10 @@ class TokobiiFaceVerification {
     stop() {
         this.isStopped = true;
         this.currentStage = TokobiiFaceVerification.STAGE.FINISHED;
+        if (this._resizeObserver) {
+            try { this._resizeObserver.disconnect(); } catch (e) {}
+            this._resizeObserver = null;
+        }
         this._clearCanvas();
         this._stopCamera();
     }

@@ -86,11 +86,11 @@
     </div>
 
     {{-- Progress & Status --}}
-    <div class="mb-3">
+    <div class="face-status-container mb-3">
         <div class="tokobii-progress mb-2">
             <div id="faceProgress" class="tokobii-progress-bar" style="width: 0%;"></div>
         </div>
-        <div class="d-flex align-items-center justify-content-between">
+        <div class="face-status-row d-flex align-items-center justify-content-between">
             <span id="faceStatus" class="tokobii-badge tokobii-badge-info" style="font-size: 0.71875rem;">
                 Mempersiapkan AI...
             </span>
@@ -101,7 +101,7 @@
     </div>
 
     {{-- Actions --}}
-    <div class="d-flex flex-column align-items-center gap-2 mb-3">
+    <div class="face-actions-wrapper d-flex flex-column align-items-center gap-2 mb-3">
         <select id="faceCameraSelect" class="form-select form-select-sm tokobii-select w-75" style="display: none;"></select>
         <button id="btnRetryFace" type="button" class="btn btn-tokobii-secondary btn-tokobii-sm" style="display: none;">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,12 +113,12 @@
 @endif
 
 {{-- Emergency Recovery Code Accordion --}}
-<div class="text-center pt-2 mb-2">
-    <button class="btn btn-link text-decoration-none small text-slate-500 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
-        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display: inline; vertical-align: -1px;">
+<div class="face-recovery-wrapper text-center pt-2 mb-2">
+    <button class="btn btn-link text-decoration-none small text-slate-500 p-0 face-recovery-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#recoveryCodeCollapse">
+        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display: inline; vertical-align: -1px; flex-shrink: 0;">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
         </svg>
-        Kamera bermasalah? Masukkan Kode Pemulihan Darurat
+        <span>Kamera bermasalah? Masukkan Kode Pemulihan Darurat</span>
     </button>
     <div class="collapse mt-2" id="recoveryCodeCollapse">
         <div class="p-3 bg-slate-50 rounded-3 border border-slate-200 text-start">
@@ -135,14 +135,14 @@
 </div>
 
 {{-- Cancel --}}
-<div class="text-center pt-3 mt-1" style="border-top: 1px solid #f1f5f9;">
-    <form method="POST" action="{{ route('face-verification.cancel') }}" class="d-inline">
+<div class="face-cancel-wrapper text-center pt-3 mt-1" style="border-top: 1px solid #f1f5f9;">
+    <form method="POST" action="{{ route('face-verification.cancel') }}" class="d-inline w-100">
         @csrf
-        <button type="submit" class="btn btn-link text-decoration-none text-slate-400 small p-0">
-            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display: inline; vertical-align: -1px;">
+        <button type="submit" class="btn btn-link text-decoration-none text-slate-400 small p-0 face-cancel-btn">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-1" style="display: inline; vertical-align: -1px; flex-shrink: 0;">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Batalkan dan Kembali ke Login
+            <span>Batalkan dan Kembali ke Login</span>
         </button>
     </form>
 </div>

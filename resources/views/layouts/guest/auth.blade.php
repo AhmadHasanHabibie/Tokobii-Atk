@@ -106,10 +106,10 @@
             padding: 2.25rem;
             animation: tokobiiScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        @media (max-width: 575.98px) {
+        @media (max-width: 767.98px) {
             .auth-card {
-                padding: 1.75rem 1.5rem;
-                border-radius: 20px;
+                padding: 16px;
+                border-radius: 16px;
             }
         }
 
