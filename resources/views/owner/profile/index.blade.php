@@ -280,6 +280,7 @@
 </div>
 
 @push('scripts')
+@include('partials.face-config')
 @vite(['resources/js/face-verification.js'])
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -291,8 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (window.TokobiiFaceVerification) {
                 faceInstance = new window.TokobiiFaceVerification({
                     mode: 'enroll',
-                    enrollUrl: '{{ route('owner.profile.face-verification.enroll') }}',
-                    modelsUri: window.location.origin + '/models/human/',
+                    enrollUrl: window.FACE_CONFIG?.endpoints?.enrollOwner || '{{ route('owner.profile.face-verification.enroll') }}',
                 });
             }
         });

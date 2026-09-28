@@ -37,5 +37,6 @@ return [
     'challenge_ttl_seconds' => (int) env('FACE_CHALLENGE_TTL', 60),
 
     // Debug / Calibration mode (exposes similarity, antispoof, liveness telemetry if APP_DEBUG=true)
+    'debug' => (bool) env('FACE_DEBUG_MODE', false),
     'debug_mode' => (bool) env('FACE_DEBUG_MODE', env('APP_DEBUG', false)),
 ];

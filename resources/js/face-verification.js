@@ -1,15 +1,19 @@
 import humanEngine from './face/humanEngine.js';
 
 /**
- * Tokobii Face Verification Engine v4.0 (@vladmandic/human)
+ * Tokobii Face Verification Engine v4.1 (@vladmandic/human)
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Fitur Utama:
  * 1. Engine @vladmandic/human dengan akselerasi WebGL GPU.
- * 2. Anti-Spoofing AI (deteksi foto kertas, layar smartphone/monitor).
- * 3. Interactive Challenge-Response Liveness (kedip mata, tengok kiri/kanan, senyum).
- * 4. 1024-D embedding centroid averaging untuk akurasi tinggi & cepat (< 2 detik).
- * 5. Single-use challenge nonce (60s TTL) untuk mencegah replay attack.
- * 6. Server-side validation (Laravel Cosine Similarity + Anti-Spoof Threshold).
+ * 2. Dynamic model/wasm base path via window.FACE_CONFIG (Blade asset()).
+ * 3. Preflight check file JSON sebelum model dimuat dengan pesan error spesifik.
+ * 4. Guard ketat: tidak akan menjalankan inference jika engine gagal/belum loaded.
+ * 5. Anti-Spoofing AI (deteksi foto kertas, layar smartphone/monitor).
+ * 6. Interactive Challenge-Response Liveness (kedip mata, tengok kiri/kanan, senyum).
+ * 7. 1024-D embedding centroid averaging untuk akurasi tinggi & cepat.
+ * 8. Single-use challenge nonce (60s TTL) untuk mencegah replay attack.
+ * 9. Server-side validation (Laravel Cosine Similarity + Anti-Spoof Threshold).
+ * 10. Live Debug Panel saat window.FACE_CONFIG.debug true.
  */
 class TokobiiFaceVerification {
     static STAGE = Object.freeze({
@@ -21,10 +25,14 @@ class TokobiiFaceVerification {
         FINISHED:     'FINISHED',
     });
 
-    constructor(config) {
-        const origin = (typeof window !== 'undefined' && window.location?.origin)
-            ? window.location.origin
-            : '';
+    constructor(config = {}) {
+        const faceConfig = (typeof window !== 'undefined' && window.FACE_CONFIG)
+            ? window.FACE_CONFIG
+            : null;
+
+        const modelBase = config.modelsUri || config.modelBasePath || faceConfig?.modelBase || '';
+        const wasmBase  = config.wasmPath || faceConfig?.wasmBase || modelBase;
+        const debugMode = Boolean(config.debug ?? faceConfig?.debug ?? false);
 
         this.config = Object.assign({
             mode: 'verify',                 // 'verify' | 'enroll'
@@ -36,14 +44,15 @@ class TokobiiFaceVerification {
             ovalGuideId: 'faceOvalGuide',
             retryButtonId: 'btnRetryFace',
             cameraSelectId: 'faceCameraSelect',
-            modelsUri: `${origin}/models/human/`,
-            verifyUrl: '/verify-face',
-            challengeUrl: '/verify-face/challenge-data',
+            modelsUri: modelBase,
+            wasmUri: wasmBase,
+            verifyUrl: faceConfig?.endpoints?.verify || '/verify-face',
+            challengeUrl: faceConfig?.endpoints?.challenge || '/verify-face/challenge-data',
             enrollUrl: null,
-            csrfToken: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            csrfToken: faceConfig?.csrf || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             onSuccess: null,
             onError: null,
-            debug: true,
+            debug: debugMode,
         }, config);
 
         // ─── DOM Elements ───
@@ -63,7 +72,12 @@ class TokobiiFaceVerification {
         this.isStopped     = false;
         this.animFrameId   = null;
         this.lastFrameTime = 0;
-        this.frameThrottle = 100; // ms per inference (~10 FPS optimal untuk mobile & laptop)
+        this.frameThrottle = 100; // ms per inference (~10 FPS optimal)
+
+        // ─── FPS & Telemetry ───
+        this.currentFps    = 0;
+        this._fpsCount     = 0;
+        this._lastFpsTime  = 0;
 
         // ─── Challenge & Liveness State ───
         this.challenge = {
@@ -75,7 +89,7 @@ class TokobiiFaceVerification {
             blinkFrames: 0,
         };
 
-        // ─── Enrollment Samples (5 Samples) ───
+        // ─── Enrollment Steps (5 Sampel Terpandu) ───
         this.enrollSteps = [
             { id: 'center', prompt: 'Posisikan wajah menghadap lurus ke depan', condition: (f) => Math.abs(f.rotation.yaw) < 8 },
             { id: 'left',   prompt: 'Tengok kepala ke kiri sedikit',          condition: (f) => f.rotation.yaw < -10 },
@@ -93,7 +107,7 @@ class TokobiiFaceVerification {
             livenessScores: [],
         };
 
-        // ─── Telemetry & Performance ───
+        // ─── Performance Monitoring ───
         this.startTime = performance.now();
         this.perf = {
             modelLoadMs: 0,
@@ -110,7 +124,7 @@ class TokobiiFaceVerification {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  INITIALIZATION
+    //  INITIALIZATION & GUARDED BOOTSTRAP
     // ═══════════════════════════════════════════════════════════════════
 
     async _init() {
@@ -122,12 +136,12 @@ class TokobiiFaceVerification {
         }
 
         this._setStatus('Menyiapkan AI Biometrik...', 'info');
-        this._setInstruction('Menginisialisasi GPU & model @vladmandic/human...');
+        this._setInstruction('Memeriksa model dan menginisialisasi kamera...');
         this._setProgress(15);
         this._setOvalGuideState('searching');
 
         try {
-            // Paralel: setup kamera dan inisialisasi Human Engine
+            // Paralel: setup kamera dan inisialisasi Human Engine (Preflight + Load)
             const [_, cameraReady] = await Promise.all([
                 this._loadEngine(),
                 this._setupCamera(),
@@ -146,24 +160,60 @@ class TokobiiFaceVerification {
             this._updateStepInstruction();
             this._setProgress(35);
 
+            if (this.config.debug) {
+                this._renderDebugPanel();
+            }
+
+            // Mulai loop inferensi hanya jika load sukses!
             this._startLoop();
         } catch (err) {
-            this._log('Init error:', err);
-            this._setStatus('Gagal Memuat Kamera/Model', 'danger');
-            this._setInstruction('Pastikan izin kamera diberikan dan koneksi internet stabil.');
+            // Hentikan stream kamera segera demi keamanan privasi dan performa
+            this._stopCamera();
+            this.isStopped = true;
+            this.isDetecting = false;
+
+            let displayStatus = 'Gagal Memuat Kamera/Model';
+            let displayInstruction = 'Terjadi kesalahan sistem biometrik.';
+
+            if (err.failedModels && err.failedModels.length > 0) {
+                const first = err.failedModels[0];
+                const statusTxt = first.status ? `(${first.status})` : '(Network Error)';
+                displayStatus = `Model '${first.model}' tidak ditemukan ${statusTxt}`;
+                displayInstruction = `URL: ${first.url}`;
+                console.error(`[TokobiiFace] GAGAL PREFLIGHT: Model ${first.model} ${statusTxt} di ${first.url}`);
+            } else if (err.message && err.message.includes('FACE_CONFIG')) {
+                displayStatus = 'Konfigurasi Face Tidak Ditemukan';
+                displayInstruction = err.message;
+                console.error(`[TokobiiFace] ${err.message}`);
+            } else {
+                displayStatus = err.message || 'Gagal Memuat Kamera/Model';
+                displayInstruction = 'Pastikan izin kamera diberikan dan file model dapat diakses.';
+                console.error('[TokobiiFace] Init failure:', err);
+            }
+
+            this._setStatus(displayStatus, 'danger');
+            this._setInstruction(displayInstruction);
             this._setOvalGuideState('danger');
             if (this.retryBtn) this.retryBtn.style.display = 'inline-flex';
+
+            if (this.config.debug) {
+                this._renderDebugPanel();
+            }
 
             if (typeof this.config.onError === 'function') {
                 this.config.onError(err);
             }
+
+            // JANGAN lanjut ke detect & JANGAN panggil _startLoop()!
         }
     }
 
     async _loadEngine() {
         const t0 = performance.now();
+
         humanEngine.init({
             modelsUri: this.config.modelsUri,
+            wasmPath: this.config.wasmUri,
             debug: this.config.debug,
         });
 
@@ -171,10 +221,13 @@ class TokobiiFaceVerification {
             if (this.progressBar) {
                 this._setProgress(prog.percent || 25);
             }
+            if (prog.message) {
+                this._setInstruction(prog.message);
+            }
         });
 
         this.perf.modelLoadMs = Math.round(performance.now() - t0);
-        this._log(`Model Human Engine siap dalam ${this.perf.modelLoadMs}ms`);
+        this._log(`Model Human Engine berhasil dimuat dalam ${this.perf.modelLoadMs}ms`);
     }
 
     async _fetchChallengeData() {
@@ -283,13 +336,29 @@ class TokobiiFaceVerification {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  INFERENCE DETECTION LOOP (Throttle 100ms via requestAnimationFrame)
+    //  INFERENCE DETECTION LOOP (Throttle 100ms + Strict Guards)
     // ═══════════════════════════════════════════════════════════════════
 
     _startLoop() {
         const loop = async (timestamp) => {
             if (this.isStopped || this.currentStage === TokobiiFaceVerification.STAGE.FINISHED) {
                 return;
+            }
+
+            // Hitung FPS riil
+            if (this._lastFpsTime) {
+                const delta = timestamp - this._lastFpsTime;
+                this._fpsCount = (this._fpsCount || 0) + 1;
+                if (delta >= 1000) {
+                    this.currentFps = Math.round((this._fpsCount * 1000) / delta);
+                    this._fpsCount = 0;
+                    this._lastFpsTime = timestamp;
+                    const fpsEl = document.getElementById('faceDebugFps');
+                    if (fpsEl) fpsEl.textContent = `FPS: ${this.currentFps}`;
+                }
+            } else {
+                this._lastFpsTime = timestamp;
+                this._fpsCount = 0;
             }
 
             if (!this.isDetecting && (timestamp - this.lastFrameTime >= this.frameThrottle)) {
@@ -311,7 +380,10 @@ class TokobiiFaceVerification {
     }
 
     async _processFrame() {
-        if (!this.video || this.video.paused || this.video.ended || !humanEngine.isLoaded) return;
+        // Guard ketat: tidak memproses jika video belum siap atau engine belum loaded
+        if (!this.video || this.video.paused || this.video.ended || !humanEngine.isLoaded) {
+            return;
+        }
 
         // 1. Eksekusi deteksi Human Engine
         const face = await humanEngine.detect(this.video);
@@ -395,7 +467,7 @@ class TokobiiFaceVerification {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  ENROLLMENT HANDLER (5 Variasi Sampel)
+    //  ENROLLMENT HANDLER (5 Variasi Sampel Biometrik)
     // ═══════════════════════════════════════════════════════════════════
 
     async _handleEnrollFrame(face) {
@@ -406,7 +478,6 @@ class TokobiiFaceVerification {
 
         this._setOvalGuideState('liveness');
 
-        // Evaluasi kondisi langkah saat ini (mis. tengok kiri, senyum, dll)
         const isStepSatisfied = currentStep.condition(face);
 
         if (isStepSatisfied) {
@@ -421,7 +492,6 @@ class TokobiiFaceVerification {
             this._log(`Enroll Step ${this.currentEnrollStepIndex} (${currentStep.id}) sukses!`);
 
             if (this.currentEnrollStepIndex >= this.enrollSteps.length) {
-                // Semua 5 sampel berhasil terkumpul!
                 this.currentStage = TokobiiFaceVerification.STAGE.SUBMITTING;
                 this._setProgress(95);
                 this._setStatus('Menyimpan Biometrik...', 'info');
@@ -461,7 +531,6 @@ class TokobiiFaceVerification {
             }
         }
 
-        // Average and normalize
         let norm = 0;
         for (let j = 0; j < dim; j++) {
             centroid[j] /= count;
@@ -479,7 +548,6 @@ class TokobiiFaceVerification {
     }
 
     async _submitEnrollment(centroid, samples) {
-        // Ambil password dari input
         const passwordInput = document.getElementById('enrollPassword')
             || document.getElementById('enroll_admin_face_password')
             || document.getElementById('enroll_owner_face_password');
@@ -545,18 +613,16 @@ class TokobiiFaceVerification {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    //  VERIFICATION HANDLER (Interactive Challenge + Multi-Frame Buffer)
+    //  VERIFICATION HANDLER (Interactive Challenge + Multi-Frame Centroid)
     // ═══════════════════════════════════════════════════════════════════
 
     async _handleVerifyFrame(face) {
         if (!face.embedding) return;
 
-        // Kumpulkan data buffer kualitas tinggi
         this.verifyBuffers.embeddings.push(face.embedding);
         this.verifyBuffers.antispoofScores.push(face.realScore);
         this.verifyBuffers.livenessScores.push(face.liveScore);
 
-        // Batasi buffer maksimal 8 frame terbaik
         if (this.verifyBuffers.embeddings.length > 8) {
             this.verifyBuffers.embeddings.shift();
             this.verifyBuffers.antispoofScores.shift();
@@ -602,11 +668,9 @@ class TokobiiFaceVerification {
         const action = this.challenge.action || 'blink';
 
         if (action === 'blink') {
-            // Deteksi kedipan mata via EAR
             if (face.ear < 0.20) {
                 this.challenge.blinkFrames++;
             } else if (this.challenge.blinkFrames >= 1 && face.ear >= 0.25) {
-                // Mata tertutup lalu terbuka kembali = Kedip valid!
                 return true;
             }
         } else if (action === 'turn_left') {
@@ -713,7 +777,6 @@ class TokobiiFaceVerification {
 
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Skala koordinat box ke ukuran canvas tampilan
         const scaleX = this.canvas.width / (this.video.videoWidth || 640);
         const scaleY = this.canvas.height / (this.video.videoHeight || 480);
 
@@ -722,15 +785,12 @@ class TokobiiFaceVerification {
         const bw = face.box.width * scaleX;
         const bh = face.box.height * scaleY;
 
-        // Gambar Bounding Box Halus
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 2;
         ctx.strokeRect(bx, by, bw, bh);
 
-        // Gambar Landmark Mesh 468 titik (titik-titik cyan tipis)
         if (face.mesh && face.mesh.length > 0) {
             ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
-            // Render setiap titik ke-4 agar tidak memberatkan rendering
             for (let i = 0; i < face.mesh.length; i += 4) {
                 const pt = face.mesh[i];
                 const px = pt[0] * scaleX;
@@ -777,6 +837,60 @@ class TokobiiFaceVerification {
     }
 
     // ═══════════════════════════════════════════════════════════════════
+    //  DEBUG PANEL (Hanya aktif jika window.FACE_CONFIG.debug = true)
+    // ═══════════════════════════════════════════════════════════════════
+
+    _renderDebugPanel() {
+        if (!this.config.debug) return;
+
+        let panel = document.getElementById('faceDebugPanel');
+        if (!panel) {
+            const container = this.video?.closest('.face-camera-wrapper') || this.video?.parentElement;
+            if (container) {
+                panel = document.createElement('div');
+                panel.id = 'faceDebugPanel';
+                panel.style.cssText = `
+                    margin-top: 10px;
+                    padding: 8px 12px;
+                    background: rgba(15, 23, 42, 0.94);
+                    border: 1px solid rgba(148, 163, 184, 0.25);
+                    border-radius: 8px;
+                    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    font-size: 11px;
+                    color: #94a3b8;
+                    text-align: left;
+                    line-height: 1.5;
+                `;
+                container.insertAdjacentElement('afterend', panel);
+            }
+        }
+
+        if (!panel) return;
+
+        const modelBase = humanEngine.modelBasePath || window.FACE_CONFIG?.modelBase || '-';
+        const backend = humanEngine.backendUsed || 'webgl';
+        const statusEntries = Object.entries(humanEngine.modelStatus || {});
+
+        const modelsStatusHtml = statusEntries.length > 0
+            ? statusEntries.map(([name, info]) => {
+                const color = info.ok ? '#10b981' : '#f43f5e';
+                const label = info.ok ? '200' : (info.status || 'ERR');
+                return `<span style="display:inline-block; margin-right:8px;"><span style="color:#cbd5e1;">${name}:</span> <b style="color:${color};">${label}</b></span>`;
+            }).join('')
+            : '<span style="color:#64748b;">Belum dicek</span>';
+
+        panel.innerHTML = `
+            <div style="font-weight:600; color:#38bdf8; margin-bottom:4px; display:flex; justify-content:space-between;">
+                <span>[TokobiiFace Debug Mode]</span>
+                <span id="faceDebugFps">FPS: ${this.currentFps || 0}</span>
+            </div>
+            <div><b style="color:#e2e8f0;">Base:</b> <span style="word-break:break-all; color:#7dd3fc;">${modelBase}</span></div>
+            <div><b style="color:#e2e8f0;">Backend:</b> <span style="color:#c084fc;">${backend}</span></div>
+            <div style="margin-top:4px;"><b style="color:#e2e8f0;">Status Model:</b> ${modelsStatusHtml}</div>
+        `;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
     //  LIFECYCLE CONTROLS
     // ═══════════════════════════════════════════════════════════════════
 
@@ -803,17 +917,12 @@ class TokobiiFaceVerification {
 
         this.isStopped = false;
         this.currentStage = TokobiiFaceVerification.STAGE.SEARCHING;
-        this._setStatus('Mencari wajah...', 'info');
+        this._setStatus('Mencari Wajah...', 'info');
         this._setInstruction('Posisikan wajah Anda tepat di dalam bingkai oval.');
         this._setOvalGuideState('searching');
         this._setProgress(25);
 
-        this._setupCamera().then(() => {
-            if (this.config.mode === 'verify') {
-                this._fetchChallengeData();
-            }
-            this._startLoop();
-        }).catch(() => {});
+        this._init();
     }
 
     _log(message, data = null) {

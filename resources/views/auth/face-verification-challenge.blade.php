@@ -197,15 +197,15 @@ function submitEmergencyCode() {
 </script>
 
 @if(!$isLocked)
+@include('partials.face-config')
 @vite(['resources/js/face-verification.js'])
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     if (window.TokobiiFaceVerification) {
         new window.TokobiiFaceVerification({
             mode: 'verify',
-            verifyUrl: '{{ route('face-verification.verify') }}',
-            challengeUrl: '{{ route('face-verification.challenge-data') }}',
-            modelsUri: window.location.origin + '/models/human/',
+            verifyUrl: window.FACE_CONFIG?.endpoints?.verify || '{{ route('face-verification.verify') }}',
+            challengeUrl: window.FACE_CONFIG?.endpoints?.challenge || '{{ route('face-verification.challenge-data') }}',
         });
     }
 });

@@ -1,11 +1,15 @@
 import Human from '@vladmandic/human';
 
 /**
- * Tokobii Human Engine Wrapper
+ * Tokobii Human Engine Wrapper v4.1
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * Engine biometrik berbasis @vladmandic/human dengan WebGL acceleration,
- * modul face detector, mesh 468-titik, 1024-D embedding, anti-spoofing,
- * dan real-time interactive liveness detection.
+ * modul face detector (BlazeFace), mesh 468-titik (FaceMesh),
+ * 1024-D embedding (FaceRes), anti-spoofing (AntiSpoof),
+ * dan real-time interactive liveness detection (Liveness).
+ *
+ * Path model dan wasm disuplai secara dinamis dari Blade via window.FACE_CONFIG,
+ * menjamin portabilitas absolut antara localhost (Laragon) dan production (cPanel).
  */
 class HumanEngine {
     constructor() {
@@ -14,30 +18,48 @@ class HumanEngine {
         this.isWarmingUp = false;
         this.loadPromise = null;
         this.backendUsed = 'webgl';
+        this.modelBasePath = '';
+        this.wasmPath = '';
+        this.debug = false;
+        this.modelStatus = {}; // Menyimpan hasil preflight tiap file model
     }
 
     /**
-     * Inisialisasi Human instance dengan konfigurasi minimal & teroptimasi.
+     * Inisialisasi Human instance dengan konfigurasi model & backend.
+     * Mengambil base URL model murni dari window.FACE_CONFIG atau parameter config.
+     * Tidak menggunakan window.location.origin hardcoded.
      */
     init(config = {}) {
         if (this.human) return this.human;
 
-        const origin = (typeof window !== 'undefined' && window.location?.origin)
-            ? window.location.origin
-            : '';
+        const faceConfig = (typeof window !== 'undefined' && window.FACE_CONFIG)
+            ? window.FACE_CONFIG
+            : null;
 
-        const modelsPath = config.modelsUri || `${origin}/models/human/`;
+        const modelBase = config.modelsUri || config.modelBasePath || faceConfig?.modelBase;
+
+        if (!modelBase) {
+            const err = new Error('[TokobiiFace] FACE_CONFIG tidak ditemukan. Pastikan partial face-config telah dimuat sebelum script biometrik.');
+            console.error(err.message);
+            throw err;
+        }
+
+        const wasmBase = config.wasmPath || faceConfig?.wasmBase || modelBase;
+
+        this.modelBasePath = modelBase;
+        this.wasmPath = wasmBase;
+        this.debug = Boolean(config.debug ?? faceConfig?.debug ?? false);
 
         const humanConfig = {
             backend: config.backend || 'webgl',
-            modelBasePath: modelsPath,
-            wasmPath: modelsPath,
-            debug: Boolean(config.debug),
+            modelBasePath: this.modelBasePath,
+            wasmPath: this.wasmPath,
+            debug: this.debug,
             async: true,
-            warmup: 'none', // Warmup dipanggil manual via warmup()
+            warmup: 'none', // Warmup dipanggil eksplisit via warmup()
             filter: {
                 enabled: true,
-                flip: false, // Video webcam diatur cermin di CSS/HTML
+                flip: false, // Video webcam di-mirror via CSS/Canvas
                 width: 640,
                 height: 480,
             },
@@ -79,12 +101,79 @@ class HumanEngine {
             segmentation: { enabled: false },
         };
 
-        this.human = new Human(humanConfig);
+        try {
+            this.human = new Human(humanConfig);
+            if (this.debug) {
+                console.log('[TokobiiFace] Human Engine berhasil diinisialisasi.', {
+                    modelBasePath: this.modelBasePath,
+                    wasmPath: this.wasmPath,
+                    backend: humanConfig.backend,
+                });
+            }
+        } catch (initErr) {
+            console.error('[TokobiiFace] Gagal menginisialisasi Human instance:', initErr);
+            throw initErr;
+        }
+
         return this.human;
     }
 
     /**
-     * Memuat model ke memori GPU / CPU secara paralel.
+     * Preflight check ketersediaan semua file model JSON aktif sebelum dimuat.
+     * Menggunakan fetch HEAD dengan fallback GET untuk kompatibilitas server.
+     */
+    async preflightModels(basePath = this.modelBasePath) {
+        const activeModels = [
+            'blazeface.json',
+            'facemesh.json',
+            'faceres.json',
+            'antispoof.json',
+            'liveness.json',
+        ];
+
+        const results = [];
+        const failedModels = [];
+
+        for (const model of activeModels) {
+            const url = `${basePath}${model}`;
+            let status = 0;
+            let ok = false;
+
+            try {
+                // Gunakan HEAD terlebih dahulu
+                let res = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+                // Fallback ke GET jika server menolak method HEAD (mis. 405 Method Not Allowed)
+                if (res.status === 405) {
+                    res = await fetch(url, { method: 'GET', cache: 'no-cache' });
+                }
+                status = res.status;
+                ok = res.ok;
+            } catch (networkErr) {
+                status = 0;
+                ok = false;
+            }
+
+            const record = { model, url, status, ok };
+            results.push(record);
+            this.modelStatus[model] = record;
+
+            if (!ok) {
+                failedModels.push(record);
+                console.error(`[TokobiiFace] Preflight FAILED: Model '${model}' (${status || 'Network Error'}) di ${url}`);
+            } else if (this.debug) {
+                console.log(`[TokobiiFace] Preflight OK: Model '${model}' (${status}) di ${url}`);
+            }
+        }
+
+        return {
+            ok: failedModels.length === 0,
+            failedModels,
+            results,
+        };
+    }
+
+    /**
+     * Memuat model ke memori GPU / CPU secara paralel dengan preflight dan validasi ketat.
      */
     async load(onProgress = null) {
         if (this.isLoaded) return true;
@@ -96,17 +185,44 @@ class HumanEngine {
             }
 
             if (typeof onProgress === 'function') {
-                onProgress({ stage: 'loading_models', percent: 20, message: 'Memuat model AI biometrik...' });
+                onProgress({ stage: 'preflight', percent: 15, message: 'Memverifikasi ketersediaan model biometrik...' });
+            }
+
+            // 1. Eksekusi Preflight Check
+            const preflight = await this.preflightModels();
+            if (!preflight.ok) {
+                this.loadPromise = null;
+                this.isLoaded = false;
+                const firstFail = preflight.failedModels[0];
+                const statusLabel = firstFail.status ? `${firstFail.status}` : 'Network Error';
+                const err = new Error(`Model '${firstFail.model}' tidak ditemukan (${statusLabel}) di ${firstFail.url}`);
+                err.failedModels = preflight.failedModels;
+                throw err;
+            }
+
+            if (typeof onProgress === 'function') {
+                onProgress({ stage: 'loading_models', percent: 35, message: 'Memuat model AI biometrik ke GPU...' });
             }
 
             try {
+                // 2. Load model ke instance Human
                 await this.human.load();
                 this.backendUsed = this.human.tf?.getBackend ? this.human.tf.getBackend() : 'webgl';
 
-                if (typeof onProgress === 'function') {
-                    onProgress({ stage: 'warming_up', percent: 60, message: 'Melakukan akselerasi WebGL...' });
+                // 3. Verifikasi apakah model yang aktif benar-benar loaded
+                const loadedList = typeof this.human.models?.loaded === 'function'
+                    ? this.human.models.loaded()
+                    : Object.keys(this.human.models?.models || {});
+
+                if (this.debug) {
+                    console.log('[TokobiiFace] Model loaded verification list:', loadedList);
                 }
 
+                if (typeof onProgress === 'function') {
+                    onProgress({ stage: 'warming_up', percent: 70, message: 'Melakukan akselerasi WebGL...' });
+                }
+
+                // 4. Warmup WebGL shader
                 await this.warmup();
 
                 this.isLoaded = true;
@@ -118,7 +234,7 @@ class HumanEngine {
             } catch (err) {
                 this.loadPromise = null;
                 this.isLoaded = false;
-                console.error('[HumanEngine] Gagal memuat model:', err);
+                console.error('[TokobiiFace] Gagal memuat atau memverifikasi model Human:', err);
                 throw err;
             }
         })();
@@ -134,63 +250,73 @@ class HumanEngine {
         try {
             await this.human.warmup({ warmup: 'face' });
         } catch (e) {
-            console.warn('[HumanEngine] Warmup fallback note:', e);
+            console.warn('[TokobiiFace] Warmup note (fallback safe):', e);
         }
     }
 
     /**
-     * Deteksi frame video webcam.
+     * Deteksi frame video webcam dengan pengamanan (guard) total.
      * Mengembalikan objek wajah tunggal yang dinormalisasi atau null jika tidak ada wajah.
+     * TIDAK AKAN PERNAH memanggil inference jika isLoaded bernilai false.
      */
     async detect(videoElement) {
-        if (!this.human || !this.isLoaded) return null;
-        if (!videoElement || videoElement.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return null;
-
-        const result = await this.human.detect(videoElement);
-
-        if (!result || !result.face || result.face.length === 0) {
+        if (!this.human || !this.isLoaded) {
+            return null;
+        }
+        if (!videoElement || videoElement.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
             return null;
         }
 
-        // Ambil wajah utama (terbesar/pertama)
-        const face = result.face[0];
+        try {
+            const result = await this.human.detect(videoElement);
 
-        // Ekstraksi data penting
-        const box = face.box || [0, 0, 0, 0];
-        const score = face.score ?? face.boxScore ?? 0.8;
-        const mesh = face.mesh || [];
-        const embedding = face.embedding ? Array.from(face.embedding) : null;
-        const realScore = face.real ?? face.antispoof ?? 0.5;
-        const liveScore = face.live ?? face.liveness ?? 0.5;
-        const rotation = face.rotation || { yaw: 0, pitch: 0, roll: 0 };
+            if (!result || !result.face || result.face.length === 0) {
+                return null;
+            }
 
-        // Hitung metrik pendukung liveness
-        const ear = this.computeEAR(mesh);
-        const mar = this.computeMAR(mesh);
-        const yawDeg = rotation.angle?.yaw ?? (rotation.yaw ? (rotation.yaw * 180 / Math.PI) : 0);
+            // Ambil wajah utama (pertama / terdeteksi)
+            const face = result.face[0];
 
-        return {
-            raw: face,
-            box: {
-                x: box[0],
-                y: box[1],
-                width: box[2],
-                height: box[3],
-            },
-            score,
-            mesh,
-            embedding,
-            realScore: Number(realScore.toFixed(4)),
-            liveScore: Number(liveScore.toFixed(4)),
-            rotation: {
-                yaw: yawDeg,
-                pitch: rotation.angle?.pitch ?? 0,
-                roll: rotation.angle?.roll ?? 0,
-            },
-            ear,
-            mar,
-            allFacesCount: result.face.length,
-        };
+            // Ekstraksi data biometrik
+            const box = face.box || [0, 0, 0, 0];
+            const score = face.score ?? face.boxScore ?? 0.8;
+            const mesh = face.mesh || [];
+            const embedding = face.embedding ? Array.from(face.embedding) : null;
+            const realScore = face.real ?? face.antispoof ?? 0.5;
+            const liveScore = face.live ?? face.liveness ?? 0.5;
+            const rotation = face.rotation || { yaw: 0, pitch: 0, roll: 0 };
+
+            // Metrik liveness (EAR, MAR, Rotasi Derajat)
+            const ear = this.computeEAR(mesh);
+            const mar = this.computeMAR(mesh);
+            const yawDeg = rotation.angle?.yaw ?? (rotation.yaw ? (rotation.yaw * 180 / Math.PI) : 0);
+
+            return {
+                raw: face,
+                box: {
+                    x: box[0],
+                    y: box[1],
+                    width: box[2],
+                    height: box[3],
+                },
+                score,
+                mesh,
+                embedding,
+                realScore: Number(realScore.toFixed(4)),
+                liveScore: Number(liveScore.toFixed(4)),
+                rotation: {
+                    yaw: yawDeg,
+                    pitch: rotation.angle?.pitch ?? 0,
+                    roll: rotation.angle?.roll ?? 0,
+                },
+                ear,
+                mar,
+                allFacesCount: result.face.length,
+            };
+        } catch (inferErr) {
+            console.error('[TokobiiFace] Inference error pada detect():', inferErr);
+            return null;
+        }
     }
 
     /**
@@ -200,7 +326,7 @@ class HumanEngine {
     computeEAR(mesh) {
         if (!mesh || mesh.length < 400) return 0.30;
 
-        // Landmark mata kiri (FaceMesh canonical points):
+        // Landmark mata kiri (canonical points):
         // Atas: 386, Bawah: 374; Luar: 263, Dalam: 362
         const pLeftTop = mesh[386];
         const pLeftBot = mesh[374];
@@ -228,7 +354,7 @@ class HumanEngine {
     computeMAR(mesh) {
         if (!mesh || mesh.length < 350) return 0.20;
 
-        // Bibir atas tengah: 13, bibir bawah tengah: 14; sudut mulut kiri: 61, kanan: 291
+        // Bibir atas: 13, bibir bawah: 14; sudut mulut kiri: 61, kanan: 291
         const pTop = mesh[13];
         const pBot = mesh[14];
         const pLeft = mesh[61];
@@ -259,18 +385,17 @@ class HumanEngine {
             let sum = 0;
 
             for (let i = 0; i < data.length; i += 4) {
-                // Perceived luminance
                 sum += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
             }
 
             return Math.round(sum / (data.length / 4));
         } catch (e) {
-            return 120; // Default fallback jika ada restriksi canvas
+            return 120; // Fallback aman
         }
     }
 
     /**
-     * Hentikan stream kamera dan bebaskan track hardware.
+     * Hentikan stream kamera dan bebaskan track hardware secara menyeluruh.
      */
     stopStream(stream) {
         if (stream && typeof stream.getTracks === 'function') {
