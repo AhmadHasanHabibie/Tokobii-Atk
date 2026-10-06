@@ -26,26 +26,7 @@
         </div>
     </div>
 
-    {{-- Alert Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4" role="alert">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-success flex-shrink-0">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4" role="alert">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-danger flex-shrink-0">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
 
     {{-- Highlight Box: Generated Emergency Recovery Code --}}
     @if(session('generated_recovery_code'))
@@ -177,38 +158,38 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1">
                                     {{-- Tombol Recovery Code --}}
-                                    <form method="POST" action="{{ route('superadmin.face-management.recovery-code', $user->id) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-outline-primary btn-sm px-2 py-1" title="Terbitkan Kode Pemulihan Darurat Sekali Pakai">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                                            </svg>
-                                            <span class="d-none d-lg-inline ms-1">Beri Recovery</span>
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-outline-primary btn-sm px-2 py-1" 
+                                            title="Terbitkan Kode Pemulihan Darurat Sekali Pakai"
+                                            onclick="openRecoveryModal('{{ addslashes($user->name) }}', '{{ route('superadmin.face-management.recovery-code', $user->id) }}')">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                        </svg>
+                                        <span class="d-none d-lg-inline ms-1">Beri Recovery</span>
+                                    </button>
 
                                     {{-- Tombol Reset / Paksa Daftar Ulang --}}
-                                    <form method="POST" action="{{ route('superadmin.face-management.reset', $user->id) }}" onsubmit="return confirm('Reset biometrik dan minta pengguna {{ $user->name }} mendaftar ulang?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-outline-warning btn-sm px-2 py-1" title="Reset & Minta Daftar Ulang">
-                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                            </svg>
-                                            <span class="d-none d-lg-inline ms-1">Reset</span>
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-outline-warning btn-sm px-2 py-1" 
+                                            title="Reset & Minta Daftar Ulang"
+                                            onclick="openResetModal('{{ addslashes($user->name) }}', '{{ route('superadmin.face-management.reset', $user->id) }}')">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        <span class="d-none d-lg-inline ms-1">Reset</span>
+                                    </button>
 
                                     {{-- Tombol Nonaktifkan --}}
                                     @if($hasActive)
-                                        <form method="POST" action="{{ route('superadmin.face-management.disable', $user->id) }}" onsubmit="return confirm('Nonaktifkan verifikasi wajah untuk {{ $user->name }}?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-danger btn-sm px-2 py-1" title="Nonaktifkan Verifikasi Wajah">
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
-                                                </svg>
-                                                <span class="d-none d-lg-inline ms-1">Nonaktifkan</span>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-sm px-2 py-1" 
+                                                title="Nonaktifkan Verifikasi Wajah"
+                                                onclick="openDisableModal('{{ addslashes($user->name) }}', '{{ route('superadmin.face-management.disable', $user->id) }}')">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                            </svg>
+                                            <span class="d-none d-lg-inline ms-1">Nonaktifkan</span>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -226,18 +207,188 @@
     </div>
 </div>
 
+{{-- Custom Modal: Reset Biometrik Wajah (Full custom Tokobii Modal, No Native Confirm) --}}
+<div class="modal fade" id="customResetFaceModal" tabindex="-1" aria-labelledby="customResetFaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg p-2" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background-color: #fef3c7; color: #d97706;">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </div>
+
+                <h4 class="fw-bold text-slate-900 mb-2" style="font-size: 1.25rem;">
+                    Reset Biometrik Wajah?
+                </h4>
+
+                <p style="color: #475569; font-size: 0.875rem; line-height: 1.55; font-weight: 500;" class="mb-4">
+                    Data biometrik pengguna <strong style="color: #0f172a; font-weight: 700;" id="resetModalUserName"></strong> akan direset dan ditandai perlu daftar ulang. Pengguna akan diwajibkan mendaftarkan kembali wajahnya saat login atau mengakses profil berikutnya.
+                </p>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light w-50 py-2.5 fw-semibold text-slate-700" style="border-radius: 12px;" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <form id="resetFaceForm" method="POST" class="w-50 m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-warning w-100 py-2.5 fw-semibold shadow-sm text-slate-900" style="border-radius: 12px; background-color: #f59e0b; border-color: #f59e0b;">
+                            Ya, Reset
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Custom Modal: Nonaktifkan Biometrik Wajah (Full custom Tokobii Modal, No Native Confirm) --}}
+<div class="modal fade" id="customDisableFaceModal" tabindex="-1" aria-labelledby="customDisableFaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg p-2" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background-color: #fee2e2; color: #dc2626;">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                    </svg>
+                </div>
+
+                <h4 class="fw-bold text-slate-900 mb-2" style="font-size: 1.25rem;">
+                    Nonaktifkan Verifikasi Wajah?
+                </h4>
+
+                <p style="color: #475569; font-size: 0.875rem; line-height: 1.55; font-weight: 500;" class="mb-4">
+                    Verifikasi biometrik wajah untuk pengguna <strong style="color: #0f172a; font-weight: 700;" id="disableModalUserName"></strong> akan dinonaktifkan sepenuhnya. Pengguna tidak akan lagi ditantang verifikasi wajah saat masuk ke aplikasi.
+                </p>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light w-50 py-2.5 fw-semibold text-slate-700" style="border-radius: 12px;" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <form id="disableFaceForm" method="POST" class="w-50 m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-danger w-100 py-2.5 fw-semibold shadow-sm text-white" style="border-radius: 12px; background-color: #dc2626; border-color: #dc2626;">
+                            Ya, Nonaktifkan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Custom Modal: Terbitkan Kode Pemulihan Darurat (Full custom Tokobii Modal, No Native Confirm) --}}
+<div class="modal fade" id="customRecoveryModal" tabindex="-1" aria-labelledby="customRecoveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg p-2" style="border-radius: 20px;">
+            <div class="modal-body p-4 text-center">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background-color: #dbeafe; color: #2563eb;">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
+                </div>
+
+                <h4 class="fw-bold text-slate-900 mb-2" style="font-size: 1.25rem;">
+                    Terbitkan Kode Pemulihan?
+                </h4>
+
+                <p style="color: #475569; font-size: 0.875rem; line-height: 1.55; font-weight: 500;" class="mb-4">
+                    Buat kode pemulihan darurat sekali pakai untuk pengguna <strong style="color: #0f172a; font-weight: 700;" id="recoveryModalUserName"></strong>. Kode ini dapat digunakan 1 kali jika kamera pengguna bermasalah saat login.
+                </p>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light w-50 py-2.5 fw-semibold text-slate-700" style="border-radius: 12px;" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <form id="recoveryFaceForm" method="POST" class="w-50 m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold shadow-sm text-white" style="border-radius: 12px; background-color: #2563eb; border-color: #2563eb;">
+                            Ya, Terbitkan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
 <script>
+function openResetModal(userName, actionUrl) {
+    const nameEl = document.getElementById('resetModalUserName');
+    const formEl = document.getElementById('resetFaceForm');
+    if (nameEl) nameEl.textContent = userName;
+    if (formEl) formEl.action = actionUrl;
+
+    const modalEl = document.getElementById('customResetFaceModal');
+    if (modalEl && window.bootstrap) {
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.show();
+    }
+}
+
+function openDisableModal(userName, actionUrl) {
+    const nameEl = document.getElementById('disableModalUserName');
+    const formEl = document.getElementById('disableFaceForm');
+    if (nameEl) nameEl.textContent = userName;
+    if (formEl) formEl.action = actionUrl;
+
+    const modalEl = document.getElementById('customDisableFaceModal');
+    if (modalEl && window.bootstrap) {
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.show();
+    }
+}
+
+function openRecoveryModal(userName, actionUrl) {
+    const nameEl = document.getElementById('recoveryModalUserName');
+    const formEl = document.getElementById('recoveryFaceForm');
+    if (nameEl) nameEl.textContent = userName;
+    if (formEl) formEl.action = actionUrl;
+
+    const modalEl = document.getElementById('customRecoveryModal');
+    if (modalEl && window.bootstrap) {
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modalInstance.show();
+    }
+}
+
 function copyRecoveryCode() {
     const textEl = document.getElementById('recoveryCodeText');
     const btnLabel = document.getElementById('copyBtnLabel');
     if (!textEl) return;
 
-    navigator.clipboard.writeText(textEl.textContent.trim()).then(() => {
+    const text = textEl.textContent.trim();
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+
+    function fallbackCopy(val) {
+        const textArea = document.createElement('textarea');
+        textArea.value = val;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopied();
+        } catch (err) {
+            console.error('Gagal menyalin:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showCopied() {
         if (btnLabel) {
             btnLabel.textContent = 'Tersalin!';
             setTimeout(() => { btnLabel.textContent = 'Salin Kode'; }, 2500);
         }
-    });
+    }
 }
 </script>
-@endsection
+@endpush
