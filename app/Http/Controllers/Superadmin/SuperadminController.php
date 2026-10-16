@@ -295,7 +295,7 @@ class SuperadminController extends Controller
                 }
             }
         }, $filename, [
-            'Content-Type' => 'application/sql; charset=utf-8',
+            'Content-Type' => 'application/sql',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
