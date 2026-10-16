@@ -96,123 +96,211 @@ class SuperadminController extends Controller
     }
 
     /**
-     * Export and download MySQL database backup as .sql.
+     * Export and download MySQL/SQLite database backup as .sql.
+     * Engineered specifically for hosting environments (cPanel, LiteSpeed, Nginx, Apache)
+     * without relying on disabled CLI commands (exec/mysqldump) or disk write permissions.
      */
-    public function downloadBackup(): BinaryFileResponse|StreamedResponse|RedirectResponse
+    public function downloadBackup(): StreamedResponse|RedirectResponse
     {
-        $backupDir = storage_path('app/backups');
-        if (! File::isDirectory($backupDir)) {
-            File::makeDirectory($backupDir, 0755, true);
+        try {
+            // Extend execution time and memory limits for reliable backup export
+            @ini_set('max_execution_time', '300');
+            @set_time_limit(300);
+            @ini_set('memory_limit', '512M');
+
+            $connection = config('database.default');
+            $pdo = DB::connection($connection)->getPdo();
+            $driver = DB::connection($connection)->getDriverName();
+            $database = DB::connection($connection)->getDatabaseName();
+
+            // Quick connectivity ping
+            $pdo->query('SELECT 1');
+        } catch (\Throwable $e) {
+            return redirect()->route('superadmin.dashboard')
+                ->with('error', 'Gagal menghubungkan ke basis data: ' . $e->getMessage());
         }
 
         $filename = 'tokobii_backup_' . date('Y-m-d_His') . '.sql';
-        $filePath = $backupDir . DIRECTORY_SEPARATOR . $filename;
 
-        // Retrieve database credentials
-        $connection = config('database.default');
-        $dbConfig = config("database.connections.{$connection}");
+        return response()->streamDownload(function () use ($pdo, $driver, $database) {
+            // Discard any existing output buffers to ensure clean, valid SQL output
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
+            }
 
-        $host = $dbConfig['host'] ?? '127.0.0.1';
-        $port = $dbConfig['port'] ?? '3306';
-        $database = $dbConfig['database'] ?? 'tokobii';
-        $username = $dbConfig['username'] ?? 'root';
-        $password = $dbConfig['password'] ?? '';
-
-        $dumpSuccessful = false;
-
-        // 1. Try mysqldump command line first
-        $mysqldumpPath = 'mysqldump';
-        if (file_exists('C:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysqldump.exe')) {
-            $mysqldumpPath = '"C:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysqldump.exe"';
-        }
-
-        $pwdArg = $password !== '' ? '--password=' . escapeshellarg($password) : '';
-        $cmd = sprintf(
-            '%s --host=%s --port=%s --user=%s %s %s > %s 2>&1',
-            $mysqldumpPath,
-            escapeshellarg($host),
-            escapeshellarg($port),
-            escapeshellarg($username),
-            $pwdArg,
-            escapeshellarg($database),
-            escapeshellarg($filePath)
-        );
-
-        @exec($cmd, $output, $returnCode);
-
-        if ($returnCode === 0 && file_exists($filePath) && filesize($filePath) > 0) {
-            $dumpSuccessful = true;
-        }
-
-        // 2. Failsafe: Pure PHP SQL Export if mysqldump is unavailable or errored
-        if (! $dumpSuccessful) {
             try {
-                $handle = fopen($filePath, 'w');
-                fwrite($handle, "-- Tokobii Database Backup\n");
-                fwrite($handle, "-- Generated at: " . date('Y-m-d H:i:s') . "\n");
-                fwrite($handle, "-- Database: {$database}\n\n");
-                fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n\n");
-
-                $driver = DB::getDriverName();
-                $tables = [];
+                echo "-- =======================================================\n";
+                echo "-- Tokobii E-Commerce Database Backup\n";
+                echo "-- Generated at: " . date('Y-m-d H:i:s') . "\n";
+                echo "-- Database: {$database}\n";
+                echo "-- Driver: {$driver}\n";
+                echo "-- Server: " . (request()->getHost() ?: 'localhost') . "\n";
+                echo "-- =======================================================\n\n";
 
                 if ($driver === 'sqlite') {
-                    $sqliteTables = DB::select("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-                    foreach ($sqliteTables as $st) {
-                        $tables[$st->name] = $st->sql;
+                    $tableStmt = $pdo->query("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                    $tables = [];
+                    while ($row = $tableStmt->fetch(\PDO::FETCH_ASSOC)) {
+                        $tables[$row['name']] = $row['sql'];
+                    }
+
+                    foreach ($tables as $tableName => $createStatement) {
+                        echo "--\n-- Table structure for table `{$tableName}`\n--\n\n";
+                        echo "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                        echo $createStatement . ";\n\n";
+
+                        echo "--\n-- Dumping data for table `{$tableName}`\n--\n\n";
+                        $dataStmt = $pdo->query("SELECT * FROM \"{$tableName}\"");
+                        $batch = [];
+                        $columns = null;
+                        $batchSize = 100;
+
+                        while ($row = $dataStmt->fetch(\PDO::FETCH_ASSOC)) {
+                            if ($columns === null) {
+                                $columns = array_map(fn($col) => "`{$col}`", array_keys($row));
+                            }
+
+                            $escaped = [];
+                            foreach ($row as $val) {
+                                $escaped[] = is_null($val) ? 'NULL' : $pdo->quote((string) $val);
+                            }
+                            $batch[] = '(' . implode(', ', $escaped) . ')';
+
+                            if (count($batch) >= $batchSize) {
+                                echo "INSERT INTO `{$tableName}` (" . implode(', ', $columns) . ") VALUES\n"
+                                    . implode(",\n", $batch) . ";\n";
+                                $batch = [];
+                                if (function_exists('flush')) {
+                                    @flush();
+                                }
+                            }
+                        }
+
+                        if (! empty($batch)) {
+                            echo "INSERT INTO `{$tableName}` (" . implode(', ', $columns) . ") VALUES\n"
+                                . implode(",\n", $batch) . ";\n\n";
+                            $batch = [];
+                            if (function_exists('flush')) {
+                                @flush();
+                            }
+                        } else {
+                            echo "\n";
+                        }
                     }
                 } else {
-                    $mysqlTables = DB::select('SHOW TABLES');
-                    foreach ($mysqlTables as $tableObj) {
-                        $tableName = reset((array) $tableObj);
-                        $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                        $createStatement = ((array) $createTable[0])['Create Table'] ?? null;
-                        $tables[$tableName] = $createStatement;
-                    }
-                }
+                    // MySQL / MariaDB Export
+                    echo "SET FOREIGN_KEY_CHECKS=0;\n";
+                    echo "SET SQL_MODE=\"NO_AUTO_VALUE_ON_ZERO\";\n";
+                    echo "SET AUTOCOMMIT=0;\n";
+                    echo "START TRANSACTION;\n";
+                    echo "SET time_zone = \"+00:00\";\n\n";
 
-                foreach ($tables as $tableName => $createStatement) {
-                    if ($createStatement) {
-                        fwrite($handle, "DROP TABLE IF EXISTS `{$tableName}`;\n");
-                        fwrite($handle, $createStatement . ";\n\n");
-                    }
-
-                    // Dump rows
-                    $rows = DB::table($tableName)->get();
-                    if ($rows->count() > 0) {
-                        foreach ($rows as $row) {
-                            $rowArray = (array) $row;
-                            $columns = array_map(fn($col) => "`{$col}`", array_keys($rowArray));
-                            $values = array_map(function ($val) {
-                                if (is_null($val)) {
-                                    return 'NULL';
-                                }
-                                return "'" . addslashes((string) $val) . "'";
-                            }, array_values($rowArray));
-
-                            fwrite($handle, "INSERT INTO `{$tableName}` (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $values) . ");\n");
+                    // Retrieve list of BASE TABLES (avoids views)
+                    $tables = [];
+                    try {
+                        $tableStmt = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
+                        while ($row = $tableStmt->fetch(\PDO::FETCH_NUM)) {
+                            if (! empty($row[0])) {
+                                $tables[] = $row[0];
+                            }
                         }
-                        fwrite($handle, "\n");
+                    } catch (\Throwable $e) {
+                        $tables = [];
                     }
+
+                    if (empty($tables)) {
+                        $tableStmt = $pdo->query("SHOW TABLES");
+                        while ($row = $tableStmt->fetch(\PDO::FETCH_NUM)) {
+                            if (! empty($row[0])) {
+                                $tables[] = $row[0];
+                            }
+                        }
+                    }
+
+                    foreach ($tables as $tableName) {
+                        echo "--\n-- Table structure for table `{$tableName}`\n--\n\n";
+                        echo "DROP TABLE IF EXISTS `{$tableName}`;\n";
+
+                        try {
+                            $createStmt = $pdo->query("SHOW CREATE TABLE `{$tableName}`");
+                            $createRow = $createStmt->fetch(\PDO::FETCH_NUM);
+                            $createStatement = $createRow[1] ?? null;
+                            if ($createStatement) {
+                                echo $createStatement . ";\n\n";
+                            }
+                        } catch (\Throwable $e) {
+                            echo "-- Failed to get CREATE TABLE for `{$tableName}`: " . addslashes($e->getMessage()) . "\n\n";
+                        }
+
+                        echo "--\n-- Dumping data for table `{$tableName}`\n--\n\n";
+
+                        try {
+                            $dataStmt = $pdo->query("SELECT * FROM `{$tableName}`");
+                            $batch = [];
+                            $columns = null;
+                            $batchSize = 100;
+
+                            while ($row = $dataStmt->fetch(\PDO::FETCH_ASSOC)) {
+                                if ($columns === null) {
+                                    $columns = array_map(fn($col) => "`{$col}`", array_keys($row));
+                                }
+
+                                $escaped = [];
+                                foreach ($row as $val) {
+                                    $escaped[] = is_null($val) ? 'NULL' : $pdo->quote((string) $val);
+                                }
+                                $batch[] = '(' . implode(', ', $escaped) . ')';
+
+                                if (count($batch) >= $batchSize) {
+                                    echo "INSERT INTO `{$tableName}` (" . implode(', ', $columns) . ") VALUES\n"
+                                        . implode(",\n", $batch) . ";\n";
+                                    $batch = [];
+                                    if (function_exists('flush')) {
+                                        @flush();
+                                    }
+                                }
+                            }
+
+                            if (! empty($batch)) {
+                                echo "INSERT INTO `{$tableName}` (" . implode(', ', $columns) . ") VALUES\n"
+                                    . implode(",\n", $batch) . ";\n\n";
+                                $batch = [];
+                                if (function_exists('flush')) {
+                                    @flush();
+                                }
+                            } else {
+                                echo "\n";
+                            }
+                        } catch (\Throwable $e) {
+                            echo "-- Failed to dump rows for `{$tableName}`: " . addslashes($e->getMessage()) . "\n\n";
+                        }
+                    }
+
+                    echo "COMMIT;\n";
+                    echo "SET FOREIGN_KEY_CHECKS=1;\n\n";
                 }
 
-                fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
-                fclose($handle);
+                echo "-- Dump completed on " . date('Y-m-d H:i:s') . "\n";
 
-                $dumpSuccessful = true;
+                if (function_exists('flush')) {
+                    @flush();
+                }
             } catch (\Throwable $e) {
-                if (file_exists($filePath)) {
-                    @unlink($filePath);
+                echo "\n\n-- ERROR DURING BACKUP EXPORT: " . addslashes($e->getMessage()) . "\n";
+                if ($driver !== 'sqlite') {
+                    echo "ROLLBACK;\nSET FOREIGN_KEY_CHECKS=1;\n";
                 }
-
-                return redirect()->route('superadmin.dashboard')
-                    ->with('error', 'Gagal membuat file backup database: ' . $e->getMessage());
+                if (function_exists('flush')) {
+                    @flush();
+                }
             }
-        }
-
-        return response()->download($filePath, $filename, [
-            'Content-Type' => 'application/sql',
-        ])->deleteFileAfterSend(true);
+        }, $filename, [
+            'Content-Type' => 'application/sql; charset=utf-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     /**
