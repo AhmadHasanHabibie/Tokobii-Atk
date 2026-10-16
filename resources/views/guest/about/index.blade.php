@@ -31,9 +31,6 @@
                         </svg>
                         <span>Mulai Belanja</span>
                     </a>
-                    <a href="{{ route('contact') }}" class="btn btn-tokobii-secondary">
-                        <span>Hubungi Kami</span>
-                    </a>
                 </div>
             </div>
 
