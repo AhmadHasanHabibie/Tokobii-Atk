@@ -28,13 +28,10 @@
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         <span>Download Log</span>
                     </a>
-                    <form action="{{ route('superadmin.logs.laravel.clear') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengosongkan isi file storage/logs/laravel.log?');" class="m-0">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1.5 fw-semibold" style="border-radius: 8px;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            <span>Clear Log</span>
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1.5 fw-semibold" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#clearLogModal">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span>Clear Log</span>
+                    </button>
                 @endif
             </div>
         </div>
@@ -124,5 +121,33 @@
         @endforelse
     </div>
 
+</div>
+
+{{-- Custom Modal: Konfirmasi Clear Log --}}
+<div class="modal fade" id="clearLogModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+                <div class="tokobii-guidance-icon-wrap danger mx-auto mb-3" style="width: 56px; height: 56px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-slate-900 mb-2">Kosongkan File Log?</h5>
+                <p class="text-slate-500 small mb-4">
+                    Apakah Anda yakin ingin mengosongkan seluruh isi berkas <code>storage/logs/laravel.log</code>? Tindakan ini tidak dapat dibatalkan.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-tokobii-secondary flex-grow-1" data-bs-dismiss="modal">Batal</button>
+                    <form action="{{ route('superadmin.logs.laravel.clear') }}" method="POST" class="m-0 flex-grow-1">
+                        @csrf
+                        <button type="submit" class="btn btn-danger w-100 fw-semibold" style="border-radius: 8px;">
+                            Ya, Kosongkan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

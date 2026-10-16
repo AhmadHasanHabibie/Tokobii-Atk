@@ -122,15 +122,12 @@
                                 <strong class="d-block">Kendala Anda sudah terselesaikan?</strong>
                                 <span class="text-emerald-700">Klik tombol di samping jika kendala telah beres dan ingin menutup laporan ini.</span>
                             </div>
-                            <form method="POST" action="{{ route('customer.reports.resolve', $report) }}" onsubmit="return confirm('Apakah Anda yakin kendala ini sudah tuntas dan ingin menyelesaikan laporan?')">
-                                @csrf
-                                <button type="submit" class="btn btn-tokobii-success btn-tokobii-sm text-nowrap d-inline-flex align-items-center gap-1.5">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    <span>Selesaikan Laporan</span>
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-tokobii-success btn-tokobii-sm text-nowrap d-inline-flex align-items-center gap-1.5" onclick="openResolveModal('{{ route('customer.reports.resolve', $report) }}', '{{ addslashes($report->product->name) }}')">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Selesaikan Laporan</span>
+                            </button>
                         </div>
                     </div>
                 @endif
@@ -162,4 +159,52 @@
     @endif
 
 </div>
+
+{{-- Custom Tokobii Modal: Konfirmasi Selesaikan Laporan Masalah (Tanpa Browser Confirm Bawaan) --}}
+<div id="resolveReportModal" class="tokobii-guidance-backdrop" onclick="closeTokobiiModal('resolveReportModal');">
+    <div class="tokobii-guidance-box p-4 p-md-5 text-center" onclick="event.stopPropagation();">
+        <div class="tokobii-guidance-icon-wrap success">
+            <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h3 class="fw-bold text-slate-900 mb-2" style="font-size: 1.25rem;">Selesaikan Laporan Masalah?</h3>
+        <p class="text-slate-500 small mb-4" style="line-height: 1.55;">
+            Apakah Anda yakin kendala produk <strong class="text-slate-800" id="resolveModalProductName"></strong> sudah tuntas? Laporan akan ditandai selesai dan ditutup secara resmi.
+        </p>
+
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+            <button type="button" class="btn btn-tokobii-secondary flex-grow-1 order-2 order-sm-1" onclick="closeTokobiiModal('resolveReportModal');">
+                Batal
+            </button>
+            <form id="resolveReportForm" method="POST" action="" class="flex-grow-1 order-1 order-sm-2 m-0">
+                @csrf
+                <button type="submit" class="btn btn-tokobii-success w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Ya, Selesaikan Laporan</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function openResolveModal(actionUrl, productName) {
+        var form = document.getElementById('resolveReportForm');
+        var nameEl = document.getElementById('resolveModalProductName');
+        if (form) form.action = actionUrl;
+        if (nameEl) nameEl.textContent = productName ? ' "' + productName + '"' : '';
+        if (window.openTokobiiModal) {
+            window.openTokobiiModal('resolveReportModal');
+        } else {
+            var modal = document.getElementById('resolveReportModal');
+            if (modal) modal.classList.add('show');
+            document.body.classList.add('modal-open', 'tokobii-modal-open');
+        }
+    }
+</script>
+@endpush
 @endsection

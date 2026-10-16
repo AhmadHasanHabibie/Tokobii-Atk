@@ -90,7 +90,7 @@
                 <h4 class="fw-bold text-slate-900 mb-1" style="font-size: 1.25rem;">Kirim Pesan ke Kami</h4>
                 <p class="text-slate-500 small mb-4">Kami akan membalas pesan Anda sesegera mungkin.</p>
 
-                <form onsubmit="alert('Terima kasih! Pesan Anda telah kami terima.'); return false;">
+                <form id="contactForm" onsubmit="event.preventDefault(); showContactSuccessModal(); return false;">
                     <div class="row g-3">
                         <div class="col-12 col-sm-6">
                             <label for="name" class="form-label">Nama Lengkap <span class="text-rose-600">*</span></label>
@@ -124,4 +124,38 @@
     </div>
 
 </div>
+
+{{-- Custom Tokobii Modal: Pesan Terkirim (Tanpa Browser Alert Bawaan) --}}
+<div id="contactSuccessModal" class="tokobii-guidance-backdrop" onclick="closeTokobiiModal('contactSuccessModal');">
+    <div class="tokobii-guidance-box p-4 p-md-5 text-center" onclick="event.stopPropagation();">
+        <div class="tokobii-guidance-icon-wrap success">
+            <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h3 class="fw-bold text-slate-900 mb-2" style="font-size: 1.25rem;">Pesan Berhasil Terkirim!</h3>
+        <p class="text-slate-500 small mb-4" style="line-height: 1.55;">
+            Terima kasih telah menghubungi kami. Pesan Anda telah berhasil diterima dan tim kami akan segera merespons melalui email.
+        </p>
+        <button type="button" class="btn btn-tokobii-primary w-100 py-2.5 shadow-sm" onclick="closeTokobiiModal('contactSuccessModal');">
+            Mengerti & Tutup
+        </button>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function showContactSuccessModal() {
+        var form = document.getElementById('contactForm');
+        if (form) form.reset();
+        if (window.openTokobiiModal) {
+            window.openTokobiiModal('contactSuccessModal');
+        } else {
+            var modal = document.getElementById('contactSuccessModal');
+            if (modal) modal.classList.add('show');
+            document.body.classList.add('modal-open', 'tokobii-modal-open');
+        }
+    }
+</script>
+@endpush
 @endsection

@@ -416,7 +416,13 @@
                 modal.show();
             })
             .catch(err => {
-                alert('Gagal mengambil detail payload log forensik.');
+                document.getElementById('mEvent').innerText = 'ERROR';
+                document.getElementById('mIp').innerText = '-';
+                document.getElementById('mEndpoint').innerText = 'Fetch Error';
+                document.getElementById('mStatus').innerText = 'ERR';
+                document.getElementById('mPayloadContent').innerText = '// Gagal mengambil detail payload log forensik: ' + (err.message || 'Koneksi terganggu');
+                const modal = new bootstrap.Modal(document.getElementById('payloadModal'));
+                modal.show();
             });
     }
 </script>

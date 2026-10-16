@@ -91,13 +91,9 @@
                                 {{ $item->created_at->format('Y-m-d H:i') }}
                             </td>
                             <td class="px-4 py-3 text-end">
-                                <form action="{{ route('superadmin.blacklist.destroy', $item) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membuka blokir IP {{ $item->ip_address }}?');" class="m-0 d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-success fw-semibold" style="font-size: 0.75rem; border-radius: 6px;">
-                                        Unblock
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-success fw-semibold" style="font-size: 0.75rem; border-radius: 6px;" onclick="openUnblockModal('{{ route('superadmin.blacklist.destroy', $item) }}', '{{ $item->ip_address }}')">
+                                    Unblock
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -167,4 +163,44 @@
         </div>
     </div>
 </div>
+
+{{-- Custom Modal: Konfirmasi Buka Blokir IP --}}
+<div class="modal fade" id="unblockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+                <div class="tokobii-guidance-icon-wrap success mx-auto mb-3" style="width: 56px; height: 56px; background: #ecfdf5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-slate-900 mb-2">Buka Blokir Alamat IP?</h5>
+                <p class="text-slate-500 small mb-4">
+                    Apakah Anda yakin ingin membuka blokir untuk IP <code id="unblockIpTarget" class="fw-bold text-slate-800"></code>? Alamat ini akan dapat kembali mengakses website.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-tokobii-secondary flex-grow-1" data-bs-dismiss="modal">Batal</button>
+                    <form id="unblockForm" action="" method="POST" class="m-0 flex-grow-1">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-success w-100 fw-semibold" style="border-radius: 8px;">
+                            Ya, Buka Blokir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function openUnblockModal(actionUrl, ipAddress) {
+        document.getElementById('unblockForm').action = actionUrl;
+        document.getElementById('unblockIpTarget').innerText = ipAddress;
+        const modal = new bootstrap.Modal(document.getElementById('unblockModal'));
+        modal.show();
+    }
+</script>
+@endpush
 @endsection

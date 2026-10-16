@@ -97,12 +97,9 @@
             </div>
 
             @if($isMaintenanceMode)
-                <form action="{{ route('superadmin.maintenance.stand-down') }}" method="POST" class="m-0">
-                    @csrf
-                    <button type="submit" class="btn btn-success fw-bold px-4 py-2" onclick="return confirm('Apakah Anda yakin ingin menonaktifkan Maintenance Mode dan mengembalikan sistem ke kondisi normal?')">
-                        RESTORE NORMAL (STAND DOWN)
-                    </button>
-                </form>
+                <button type="button" class="btn btn-success fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#restoreNormalModal">
+                    RESTORE NORMAL (STAND DOWN)
+                </button>
             @endif
         </div>
 
@@ -131,16 +128,16 @@
                 </div>
                 <div class="col-lg-5">
                     <div class="p-3 rounded-3" style="background: #fff5f5; border: 1px solid #fee2e2;">
-                        <form action="{{ route('superadmin.maintenance.panic') }}" method="POST" onsubmit="return confirm('PERINGATAN DEFCON 1: Apakah Anda benar-benar yakin ingin mengeksekusi Panic Button? Seluruh pengguna akan di-logout paksa dan server masuk ke Maintenance Mode!');">
+                        <form id="panicForm" action="{{ route('superadmin.maintenance.panic') }}" method="POST">
                             @csrf
                             <div class="mb-2">
                                 <label class="form-label small fw-bold text-slate-700 mb-1">Konfirmasi Kata Sandi Superadmin</label>
-                                <input type="password" name="password" class="form-control form-control-sm" placeholder="Masukkan kata sandi akun Anda..." required>
+                                <input type="password" id="panicPassword" name="password" class="form-control form-control-sm" placeholder="Masukkan kata sandi akun Anda..." required>
                             </div>
                             <div class="mb-3">
                                 <input type="text" name="reason" class="form-control form-control-sm" placeholder="Alasan insiden (cth: Indikasi SQLi Attack / Data Breach)">
                             </div>
-                            <button type="submit" class="btn btn-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm" style="background: #dc2626; border-color: #dc2626;">
+                            <button type="button" onclick="showPanicModal()" class="btn btn-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm" style="background: #dc2626; border-color: #dc2626;">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 <span>Eksekusi DEFCON 1 Panic Button</span>
                             </button>
@@ -345,6 +342,69 @@
             </div>
         </div>
     </div>
-
 </div>
+
+{{-- Modal Restore Normal --}}
+<div class="modal fade" id="restoreNormalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+                <div class="tokobii-guidance-icon-wrap success mx-auto mb-3" style="width: 56px; height: 56px; background: #ecfdf5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-slate-900 mb-2">Kembalikan ke Mode Normal?</h5>
+                <p class="text-slate-500 small mb-4">
+                    Apakah Anda yakin ingin menonaktifkan Maintenance Mode dan mengembalikan sistem ke kondisi normal untuk seluruh pengguna publik?
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-tokobii-secondary flex-grow-1" data-bs-dismiss="modal">Batal</button>
+                    <form action="{{ route('superadmin.maintenance.stand-down') }}" method="POST" class="m-0 flex-grow-1">
+                        @csrf
+                        <button type="submit" class="btn btn-success w-100 fw-semibold" style="border-radius: 8px;">
+                            Ya, Kembalikan Normal
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Konfirmasi Panic Button --}}
+<div class="modal fade" id="panicModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body p-4 text-center">
+                <div class="tokobii-guidance-icon-wrap danger mx-auto mb-3" style="width: 56px; height: 56px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-danger mb-2">PERINGATAN DEFCON 1</h5>
+                <p class="text-slate-600 small mb-4">
+                    Apakah Anda benar-benar yakin ingin mengeksekusi Panic Button? Seluruh pengguna aktif akan di-logout paksa seketika dan server akan langsung beralih ke Mode Maintenance (503).
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-tokobii-secondary flex-grow-1" data-bs-dismiss="modal">Batalkan</button>
+                    <button type="button" class="btn btn-danger flex-grow-1 fw-semibold" style="border-radius: 8px; background: #dc2626;" onclick="document.getElementById('panicForm').submit();">
+                        Ya, Eksekusi Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function showPanicModal() {
+        const form = document.getElementById('panicForm');
+        if (!form.reportValidity()) return;
+        const modal = new bootstrap.Modal(document.getElementById('panicModal'));
+        modal.show();
+    }
+</script>
+@endpush
 @endsection
